@@ -8,9 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: ghcr.io
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/smartspend-frontend
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/smartspend-backend
+  REPO_URL: https://github.com/${{ github.repository }}.git
 
 jobs:
   validate:
@@ -53,63 +51,8 @@ jobs:
       - name: Run backend smoke tests
         run: pytest backend/tests -q
 
-  docker:
-    needs: validate
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract frontend metadata
-        id: meta_frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.FRONTEND_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Extract backend metadata
-        id: meta_backend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.BACKEND_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile.frontend
-          push: true
-          tags: ${{ steps.meta_frontend.outputs.tags }}
-          labels: ${{ steps.meta_frontend.outputs.labels }}
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ steps.meta_backend.outputs.tags }}
-          labels: ${{ steps.meta_backend.outputs.labels }}
-
   deploy:
-    needs: docker
+    needs: validate
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
@@ -125,49 +68,26 @@ jobs:
         if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
         uses: appleboy/ssh-action@v1.2.0
         env:
-          FRONTEND_IMAGE: ${{ env.FRONTEND_IMAGE }}:latest
-          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}:latest
           APP_URL: ${{ secrets.APP_URL }}
           FRONTEND_ORIGINS: ${{ secrets.FRONTEND_ORIGINS }}
+          REPO_URL: ${{ env.REPO_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: FRONTEND_IMAGE,BACKEND_IMAGE,APP_URL,FRONTEND_ORIGINS
+          envs: APP_URL,FRONTEND_ORIGINS,REPO_URL
           script: |
             set -e
-            mkdir -p ~/smartspend
-            cat > ~/smartspend/docker-compose.prod.yml <<EOF
-            services:
-              backend:
-                image: ${BACKEND_IMAGE}
-                restart: unless-stopped
-                environment:
-                  FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
-                  FRONTEND_ORIGIN_REGEX: https://.*\.vercel\.app
-                  SMARTSPEND_LOG_DIR: /app/backend/logs
-                ports:
-                  - "8001:8001"
-                volumes:
-                  - backend_data:/app/backend/data
-                  - backend_logs:/app/backend/logs
-              frontend:
-                image: ${FRONTEND_IMAGE}
-                restart: unless-stopped
-                depends_on:
-                  - backend
-                environment:
-                  BACKEND_API_BASE: http://backend:8001
-                  NEXT_PUBLIC_BACKEND_API_BASE: http://backend:8001
-                  NEXT_PUBLIC_BACKEND_WS_BASE: wss://${APP_URL#https://}
-                  APP_URL: ${APP_URL}
-                  NEXT_PUBLIC_APP_URL: ${APP_URL}
-                ports:
-                  - "3001:3001"
-            volumes:
-              backend_data:
-              backend_logs:
-            EOF
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            docker compose -f ~/smartspend/docker-compose.prod.yml pull
-            docker compose -f ~/smartspend/docker-compose.prod.yml up -d
+            sudo mkdir -p /opt/smartspend
+            sudo chown -R $USER:$USER /opt/smartspend
+            if [ ! -d /opt/smartspend/.git ]; then
+              git clone "${REPO_URL}" /opt/smartspend
+            else
+              git -C /opt/smartspend fetch origin
+              git -C /opt/smartspend reset --hard origin/main
+            fi
+            cd /opt/smartspend
+            chmod +x scripts/deploy-ec2-native.sh
+            APP_URL="${APP_URL}" FRONTEND_ORIGINS="${FRONTEND_ORIGINS}" bash scripts/deploy-ec2-native.sh
+            curl --fail http://127.0.0.1/
+            curl --fail http://127.0.0.1:8001/health

@@ -4,7 +4,7 @@ output "public_ip" {
 }
 
 output "frontend_url" {
-  value       = "http://${aws_instance.app.public_ip}:3001"
+  value       = "http://${aws_instance.app.public_ip}"
   description = "Frontend URL after deployment."
 }
 
