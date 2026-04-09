@@ -110,10 +110,19 @@ jobs:
 
   deploy:
     needs: docker
-    if: github.ref == 'refs/heads/main' && secrets.EC2_HOST != '' && secrets.EC2_USER != '' && secrets.EC2_SSH_KEY != ''
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
     steps:
+      - name: Skip deploy when EC2 secrets are not configured
+        if: env.EC2_HOST == '' || env.EC2_USER == '' || env.EC2_SSH_KEY == ''
+        run: echo "EC2 deployment secrets are not configured. Skipping deploy job."
+
       - name: Deploy over SSH
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
         uses: appleboy/ssh-action@v1.2.0
         env:
           FRONTEND_IMAGE: ${{ env.FRONTEND_IMAGE }}:latest
