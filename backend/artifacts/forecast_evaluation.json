@@ -1,0 +1,49 @@
+{
+  "task": "expense_forecasting",
+  "model_family": "ensemble_regression_with_optional_lstm",
+  "features": [
+    "lag1",
+    "lag2",
+    "lag3",
+    "rolling_mean_3",
+    "rolling_mean_7",
+    "rolling_std_7",
+    "trend_3",
+    "day_of_week",
+    "week_of_year",
+    "month",
+    "day_of_month",
+    "is_weekend",
+    "behavior_fixed_ratio",
+    "behavior_volatility",
+    "behavior_trend",
+    "behavior_top_category_share"
+  ],
+  "training_rows": 11,
+  "evaluation": {
+    "data_split": {
+      "strategy": "time_series",
+      "train_rows": 11,
+      "validation_rows": 0,
+      "test_rows": 0
+    },
+    "models": {},
+    "ensemble": {},
+    "ablation": {},
+    "deep_learning": {
+      "tensorflow_available": false,
+      "lstm_status": "insufficient_data"
+    },
+    "comparison": {
+      "table": {},
+      "best_model": null,
+      "selection_metric": "rmse"
+    },
+    "note": "Insufficient data for full train/validation/test reporting. Production model still trained on available history."
+  },
+  "comparison": {
+    "table": {},
+    "best_model": null,
+    "selection_metric": "rmse"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "lag_rf": [
+    {
+      "feature": "trend_3",
+      "impact": -913.628,
+      "absolute_impact": 913.628
+    },
+    {
+      "feature": "lag2",
+      "impact": 547.3293,
+      "absolute_impact": 547.3293
+    },
+    {
+      "feature": "rolling_mean_7",
+      "impact": -226.1272,
+      "absolute_impact": 226.1272
+    },
+    {
+      "feature": "day_of_month",
+      "impact": 147.8313,
+      "absolute_impact": 147.8313
+    },
+    {
+      "feature": "rolling_mean_3",
+      "impact": -146.2871,
+      "absolute_impact": 146.2871
+    }
+  ],
+  "xgb_trend": [
+    {
+      "feature": "rolling_mean_3",
+      "impact": -1791.1086,
+      "absolute_impact": 1791.1086
+    },
+    {
+      "feature": "lag2",
+      "impact": 877.4898,
+      "absolute_impact": 877.4898
+    },
+    {
+      "feature": "trend_3",
+      "impact": -369.8032,
+      "absolute_impact": 369.8032
+    },
+    {
+      "feature": "rolling_mean_7",
+      "impact": -178.8031,
+      "absolute_impact": 178.8031
+    },
+    {
+      "feature": "lag1",
+      "impact": -64.9326,
+      "absolute_impact": 64.9326
+    }
+  ],
+  "sequence_mlp": []
+}

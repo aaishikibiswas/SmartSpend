@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: smartspend-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: FRONTEND_ORIGIN_REGEX
+        value: https://.*\\.vercel\\.app

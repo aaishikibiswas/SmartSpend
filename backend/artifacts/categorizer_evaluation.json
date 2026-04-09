@@ -1,0 +1,33 @@
+{
+  "task": "transaction_categorization",
+  "model_family": "hybrid_tfidf_tabular_xgboost",
+  "evaluation": {
+    "data_split": {
+      "strategy": "stratified_train_validation_test",
+      "train_rows": 345,
+      "validation_rows": 115,
+      "test_rows": 115
+    },
+    "validation": {
+      "accuracy": 0.887,
+      "precision_macro": 0.925,
+      "recall_macro": 0.8927,
+      "f1_macro": 0.8971
+    },
+    "test": {
+      "accuracy": 0.9565,
+      "precision_macro": 0.9635,
+      "recall_macro": 0.9627,
+      "f1_macro": 0.9607
+    },
+    "classes": [
+      "Housing",
+      "Food",
+      "Transport",
+      "Shopping",
+      "Entertainment",
+      "Healthcare",
+      "Income"
+    ]
+  }
+}

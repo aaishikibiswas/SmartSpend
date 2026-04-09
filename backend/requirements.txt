@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pandas
+prophet
+pdfplumber
+pytesseract
+scikit-learn
+xgboost
+tensorflow
+shap
+numpy
+python-multipart
+pydantic

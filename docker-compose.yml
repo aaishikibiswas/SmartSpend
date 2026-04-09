@@ -1,0 +1,86 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartspend-backend
+    environment:
+      FRONTEND_ORIGINS: http://localhost:3001,http://127.0.0.1:3001
+      FRONTEND_ORIGIN_REGEX: https://.*\\.vercel\\.app
+      SMARTSPEND_LOG_DIR: /app/backend/logs
+    ports:
+      - "8001:8001"
+    volumes:
+      - smartspend_backend_data:/app/backend/data
+      - smartspend_backend_logs:/app/backend/logs
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: smartspend-frontend
+    environment:
+      BACKEND_API_BASE: http://backend:8001
+      NEXT_PUBLIC_BACKEND_API_BASE: http://backend:8001
+      NEXT_PUBLIC_BACKEND_WS_BASE: ws://localhost:8001
+      APP_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartspend-postgres
+    profiles: ["data"]
+    environment:
+      POSTGRES_DB: smartspend
+      POSTGRES_USER: smartspend
+      POSTGRES_PASSWORD: smartspend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartspend -d smartspend"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartspend-redis
+    profiles: ["cache"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  smartspend_backend_data:
+  smartspend_backend_logs:
+  postgres_data:
+  redis_data:
