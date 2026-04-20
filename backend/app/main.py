@@ -605,6 +605,11 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.post("/api/parse/upload")
 async def parse_upload(file: UploadFile = File(...)) -> dict[str, Any]:
     content = await file.read()
