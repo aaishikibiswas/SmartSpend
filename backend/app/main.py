@@ -4,6 +4,8 @@ import io
 import json
 import math
 import os
+import secrets
+import time
 from datetime import date
 from typing import Any
 
@@ -11,13 +13,16 @@ import pandas as pd
 import pdfplumber
 import pytesseract
 import requests
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fpdf import FPDF
 from langdetect import LangDetectException, detect
 from PIL import Image
 from pydantic import BaseModel, Field
+from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
+from pymongo.collection import ReturnDocument
 
 
 app = FastAPI(title="Expense Analyzer API", version="1.0.0")
@@ -142,6 +147,248 @@ class ChatRequest(BaseModel):
 
 class SuggestionsRequest(ChatRequest):
     pass
+
+
+class RegisterRequest(BaseModel):
+    full_name: str
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: str | None = None
+    plan: str | None = None
+
+
+class AuthStore:
+    def __init__(self) -> None:
+        self.mongodb_uri = os.getenv("MONGODB_URI", "").strip()
+        self.mongo_mode = bool(self.mongodb_uri)
+        self.users_file = os.getenv("USERS_FILE", "users_store.json")
+        self.sessions_file = os.getenv("SESSIONS_FILE", "sessions_store.json")
+        self.session_ttl_seconds = int(os.getenv("SESSION_TTL_SECONDS", str(60 * 60 * 24 * 7)))
+        self.password_salt = os.getenv("AUTH_PASSWORD_SALT", "smartspend-default-salt")
+
+        if self.mongo_mode:
+            client = MongoClient(self.mongodb_uri, serverSelectionTimeoutMS=5000)
+            db_name = os.getenv("MONGODB_DB", "smartspend")
+            self.db = client[db_name]
+            self.users_col = self.db["users"]
+            self.sessions_col = self.db["sessions"]
+            self.users_col.create_index("email", unique=True)
+            self.users_col.create_index("id", unique=True)
+            self.sessions_col.create_index("token", unique=True)
+            self.sessions_col.create_index("expires_at")
+        else:
+            self._ensure_local_files()
+
+    def _ensure_local_files(self) -> None:
+        for path in (self.users_file, self.sessions_file):
+            if not os.path.exists(path):
+                with open(path, "w", encoding="utf-8") as handle:
+                    json.dump([], handle)
+
+    def _hash_password(self, password: str) -> str:
+        import hashlib
+
+        return hashlib.sha256(f"{self.password_salt}:{password}".encode("utf-8")).hexdigest()
+
+    def _public_user(self, user_record: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": int(user_record["id"]),
+            "full_name": str(user_record.get("full_name", "")),
+            "email": str(user_record.get("email", "")),
+            "plan": str(user_record.get("plan", "Starter")),
+            "avatar_seed": str(user_record.get("avatar_seed", "user")),
+        }
+
+    def _load_local(self, path: str) -> list[dict[str, Any]]:
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+
+    def _save_local(self, path: str, data: list[dict[str, Any]]) -> None:
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, ensure_ascii=False, indent=2)
+
+    def register(self, full_name: str, email: str, password: str) -> dict[str, Any]:
+        normalized_email = email.strip().lower()
+        if len(password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters.")
+
+        avatar_seed = normalized_email.split("@")[0] or "user"
+        now_ts = int(time.time())
+        password_hash = self._hash_password(password)
+
+        if self.mongo_mode:
+            user_id = int(time.time() * 1000)
+            user_record = {
+                "id": user_id,
+                "full_name": full_name.strip(),
+                "email": normalized_email,
+                "password_hash": password_hash,
+                "plan": "Starter",
+                "avatar_seed": avatar_seed,
+                "created_at": now_ts,
+            }
+            try:
+                self.users_col.insert_one(user_record)
+            except DuplicateKeyError as exc:
+                raise HTTPException(status_code=409, detail="Email already registered.") from exc
+            return self._public_user(user_record)
+
+        users = self._load_local(self.users_file)
+        if any(str(user.get("email", "")).lower() == normalized_email for user in users):
+            raise HTTPException(status_code=409, detail="Email already registered.")
+        user_id = max([int(user.get("id", 0)) for user in users] + [0]) + 1
+        user_record = {
+            "id": user_id,
+            "full_name": full_name.strip(),
+            "email": normalized_email,
+            "password_hash": password_hash,
+            "plan": "Starter",
+            "avatar_seed": avatar_seed,
+            "created_at": now_ts,
+        }
+        users.append(user_record)
+        self._save_local(self.users_file, users)
+        return self._public_user(user_record)
+
+    def login(self, email: str, password: str) -> dict[str, Any]:
+        normalized_email = email.strip().lower()
+        password_hash = self._hash_password(password)
+
+        if self.mongo_mode:
+            user = self.users_col.find_one({"email": normalized_email})
+            if not user or user.get("password_hash") != password_hash:
+                raise HTTPException(status_code=401, detail="Invalid email or password.")
+            return self._public_user(user)
+
+        users = self._load_local(self.users_file)
+        for user in users:
+            if str(user.get("email", "")).lower() == normalized_email and user.get("password_hash") == password_hash:
+                return self._public_user(user)
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    def create_session(self, user_id: int) -> str:
+        token = secrets.token_urlsafe(32)
+        now_ts = int(time.time())
+        expires_at = now_ts + self.session_ttl_seconds
+
+        if self.mongo_mode:
+            self.sessions_col.insert_one(
+                {
+                    "token": token,
+                    "user_id": int(user_id),
+                    "created_at": now_ts,
+                    "expires_at": expires_at,
+                }
+            )
+            return token
+
+        sessions = self._load_local(self.sessions_file)
+        sessions.append(
+            {
+                "token": token,
+                "user_id": int(user_id),
+                "created_at": now_ts,
+                "expires_at": expires_at,
+            }
+        )
+        self._save_local(self.sessions_file, sessions)
+        return token
+
+    def _find_user_by_id(self, user_id: int) -> dict[str, Any] | None:
+        if self.mongo_mode:
+            user = self.users_col.find_one({"id": int(user_id)})
+            return self._public_user(user) if user else None
+        users = self._load_local(self.users_file)
+        for user in users:
+            if int(user.get("id", 0)) == int(user_id):
+                return self._public_user(user)
+        return None
+
+    def get_user_by_token(self, token: str) -> dict[str, Any]:
+        now_ts = int(time.time())
+        if self.mongo_mode:
+            session = self.sessions_col.find_one({"token": token})
+            if not session or int(session.get("expires_at", 0)) < now_ts:
+                if session:
+                    self.sessions_col.delete_one({"token": token})
+                raise HTTPException(status_code=401, detail="Session expired or invalid.")
+            user = self._find_user_by_id(int(session["user_id"]))
+            if not user:
+                raise HTTPException(status_code=401, detail="Session user not found.")
+            return user
+
+        sessions = self._load_local(self.sessions_file)
+        valid_sessions = [s for s in sessions if int(s.get("expires_at", 0)) >= now_ts]
+        if len(valid_sessions) != len(sessions):
+            self._save_local(self.sessions_file, valid_sessions)
+        for session in valid_sessions:
+            if session.get("token") == token:
+                user = self._find_user_by_id(int(session["user_id"]))
+                if not user:
+                    raise HTTPException(status_code=401, detail="Session user not found.")
+                return user
+        raise HTTPException(status_code=401, detail="Session expired or invalid.")
+
+    def update_user(self, user_id: int, full_name: str | None, plan: str | None) -> dict[str, Any]:
+        updates: dict[str, Any] = {}
+        if full_name is not None and full_name.strip():
+            updates["full_name"] = full_name.strip()
+        if plan is not None and plan.strip():
+            updates["plan"] = plan.strip()
+
+        if not updates:
+            user = self._find_user_by_id(user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found.")
+            return user
+
+        if self.mongo_mode:
+            result = self.users_col.find_one_and_update(
+                {"id": int(user_id)},
+                {"$set": updates},
+                return_document=ReturnDocument.AFTER,
+            )
+            if not result:
+                raise HTTPException(status_code=404, detail="User not found.")
+            return self._public_user(result)
+
+        users = self._load_local(self.users_file)
+        for user in users:
+            if int(user.get("id", 0)) == int(user_id):
+                user.update(updates)
+                self._save_local(self.users_file, users)
+                return self._public_user(user)
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    def delete_session(self, token: str) -> None:
+        if self.mongo_mode:
+            self.sessions_col.delete_many({"token": token})
+            return
+        sessions = self._load_local(self.sessions_file)
+        sessions = [session for session in sessions if session.get("token") != token]
+        self._save_local(self.sessions_file, sessions)
+
+
+auth_store = AuthStore()
+
+
+def _extract_bearer_token(authorization: str | None) -> str:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header missing.")
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization scheme.")
+    token = authorization.replace("Bearer ", "", 1).strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Token missing.")
+    return token
 
 
 def category_label(name: str) -> str:
@@ -661,3 +908,63 @@ def ai_chat(payload: ChatRequest) -> dict[str, str]:
 @app.post("/api/ai/suggestions")
 def ai_suggestions(payload: SuggestionsRequest) -> dict[str, str]:
     return {"answer": call_openrouter(payload, smart_mode=True)}
+
+
+@app.post("/auth/register")
+def auth_register(payload: RegisterRequest) -> dict[str, Any]:
+    user = auth_store.register(payload.full_name, payload.email, payload.password)
+    session_token = auth_store.create_session(int(user["id"]))
+    return {
+        "status": 200,
+        "data": {
+            "user": user,
+            "sessionToken": session_token,
+        },
+        "message": "Registration successful.",
+    }
+
+
+@app.post("/auth/login")
+def auth_login(payload: LoginRequest) -> dict[str, Any]:
+    user = auth_store.login(payload.email, payload.password)
+    session_token = auth_store.create_session(int(user["id"]))
+    return {
+        "status": 200,
+        "data": {
+            "user": user,
+            "sessionToken": session_token,
+        },
+        "message": "Login successful.",
+    }
+
+
+@app.get("/auth/me")
+def auth_me(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    token = _extract_bearer_token(authorization)
+    user = auth_store.get_user_by_token(token)
+    return {
+        "status": 200,
+        "data": user,
+    }
+
+
+@app.put("/auth/me")
+def auth_update_me(payload: ProfileUpdateRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    token = _extract_bearer_token(authorization)
+    user = auth_store.get_user_by_token(token)
+    updated = auth_store.update_user(int(user["id"]), payload.full_name, payload.plan)
+    return {
+        "status": 200,
+        "data": updated,
+        "message": "Profile updated.",
+    }
+
+
+@app.post("/auth/logout")
+def auth_logout(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    token = _extract_bearer_token(authorization)
+    auth_store.delete_session(token)
+    return {
+        "status": 200,
+        "data": {"success": True},
+    }

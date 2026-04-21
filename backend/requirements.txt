@@ -8,3 +8,4 @@ Pillow>=10.0.0
 fpdf2>=2.7.9
 langdetect>=1.0.9
 requests>=2.32.0
+pymongo>=4.8.0
