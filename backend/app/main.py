@@ -968,3 +968,405 @@ def auth_logout(authorization: str | None = Header(default=None)) -> dict[str, A
         "status": 200,
         "data": {"success": True},
     }
+
+
+# ---- SmartSpend compatibility layer for Next.js routes ----
+_demo_transactions: list[dict[str, Any]] = [
+    {"id": 1, "merchant": "Salary Credit", "category": "Income", "date": "2026-04-01", "amount": 84530.0, "type": "credit"},
+    {"id": 2, "merchant": "Rent", "category": "Rent", "date": "2026-04-03", "amount": 18000.0, "type": "debit"},
+    {"id": 3, "merchant": "Internet Fiber", "category": "Utilities", "date": "2026-04-08", "amount": 2400.0, "type": "debit"},
+    {"id": 4, "merchant": "Groceries", "category": "Food", "date": "2026-04-10", "amount": 5200.0, "type": "debit"},
+    {"id": 5, "merchant": "Transport", "category": "Transport", "date": "2026-04-12", "amount": 2337.0, "type": "debit"},
+]
+_demo_alerts: list[dict[str, Any]] = [
+    {"id": 1, "type": "warning", "title": "High fixed expense ratio", "message": "Fixed commitments are above 60% of total spend."},
+    {"id": 2, "type": "info", "title": "Bill due soon", "message": "Internet bill is due today."},
+]
+_demo_goals: list[dict[str, Any]] = [
+    {"id": 1, "name": "Emergency Fund", "target": 300000.0, "achieved": 185603.0, "daysLeft": 180, "color": "#7B6CF6"},
+]
+_demo_bills: list[dict[str, Any]] = [
+    {"id": 1, "name": "Internet (Fiber)", "amount": 2400.0, "due": "Due Today", "icon": "bolt", "color": "red"},
+    {"id": 2, "name": "Electricity", "amount": 4120.0, "due": "Due in 4 days", "icon": "bolt", "color": "blue"},
+]
+_demo_subscriptions: list[dict[str, Any]] = [
+    {"id": 1, "name": "Uber One", "frequency": "monthly", "monthly_cost": 399.0, "yearly_cost": 4788.0, "last_charge_date": "2026-04-01", "next_due_date": "2026-05-01", "source": "auto"},
+]
+_demo_emi_items: list[dict[str, Any]] = [
+    {"id": 1, "name": "Car Loan", "total_amount": 240000.0, "monthly_emi": 12850.0, "remaining_months": 19, "interest_rate": 9.2, "due_date": "2026-05-18", "source": "auto"},
+]
+_demo_budget_global: dict[str, Any] = {
+    "monthly_budget": 35000.0,
+    "weekly_budget": 9000.0,
+    "spent_amount": 27937.0,
+    "remaining_amount": 7063.0,
+    "usage_percent": 79.82,
+    "daily_allowance": 378.0,
+    "auto_distribute": True,
+    "status": "on-track",
+}
+_demo_budget_categories: list[dict[str, Any]] = [
+    {"name": "Food", "allocated_amount": 8000.0, "frequency": "monthly", "spent_amount": 5200.0, "remaining_amount": 2800.0, "usage_percent": 65.0, "status": "on-track", "monthly_equivalent": 8000.0},
+    {"name": "Transport", "allocated_amount": 4000.0, "frequency": "monthly", "spent_amount": 2337.0, "remaining_amount": 1663.0, "usage_percent": 58.4, "status": "on-track", "monthly_equivalent": 4000.0},
+]
+
+
+def _ok(data: Any, message: str | None = None, status: int = 200) -> dict[str, Any]:
+    payload: dict[str, Any] = {"status": status, "data": data}
+    if message:
+        payload["message"] = message
+    return payload
+
+
+def _metrics_from_transactions() -> dict[str, Any]:
+    income = sum(float(item["amount"]) for item in _demo_transactions if item["type"] == "credit")
+    expense = sum(float(item["amount"]) for item in _demo_transactions if item["type"] == "debit")
+    net_savings = income - expense
+    subscription_load = sum(float(item["monthly_cost"]) for item in _demo_subscriptions)
+    emi_load = sum(float(item["monthly_emi"]) for item in _demo_emi_items)
+    fixed_total = sum(float(item["amount"]) for item in _demo_transactions if item["type"] == "debit" and item["category"] in {"Rent", "Utilities", "EMI", "Subscription", "Bills"})
+    variable_total = max(0.0, expense - fixed_total)
+    fixed_percent = (fixed_total / expense * 100.0) if expense else 0.0
+    variable_percent = (variable_total / expense * 100.0) if expense else 0.0
+    net_worth = max(0.0, net_savings * 4) - (sum(float(item["monthly_emi"]) * float(item["remaining_months"]) for item in _demo_emi_items))
+
+    return {
+        "totalIncome": round(income, 2),
+        "totalExpense": round(expense, 2),
+        "netSavings": round(net_savings, 2),
+        "totalBalance": round(net_savings + 120000.0, 2),
+        "savingsRatio": round((net_savings / income * 100.0) if income else 0.0, 2),
+        "volatility": 18.4,
+        "healthScore": 69,
+        "budgetUsagePercent": round(_demo_budget_global["usage_percent"], 2),
+        "remainingBudget": round(_demo_budget_global["remaining_amount"], 2),
+        "dailyAllowance": round(_demo_budget_global["daily_allowance"], 2),
+        "burnRate": round(expense / 30.0, 2),
+        "savingsGrowth": 7.4,
+        "lifestyleInflation": 4.8,
+        "runwayMonths": 6.9,
+        "financialPersonality": "Stable Planner",
+        "subscriptionLoad": round(subscription_load, 2),
+        "monthlyEmiLoad": round(emi_load, 2),
+        "netWorth": round(net_worth, 2),
+        "assets": round(max(0.0, net_worth + 250000.0), 2),
+        "liabilities": round(max(0.0, 250000.0 - net_worth), 2),
+        "fixedExpensePercent": round(fixed_percent, 2),
+        "variableExpensePercent": round(variable_percent, 2),
+        "projectedOutflow": round(expense + subscription_load + emi_load, 2),
+        "creditScore": {
+            "score": 712,
+            "category": "Good",
+            "range": {"min": 300, "max": 900},
+            "indicators": {"spending_stability": "Moderate", "savings_ratio": "Healthy", "risk_level": "Medium"},
+            "feature_contributions": {"savings_ratio": 80, "volatility": -25, "anomalies": -10, "expense_income_ratio": -18},
+            "explainability": {"top_positive_driver": "savings_ratio", "top_negative_driver": "expense_income_ratio"},
+            "suggestions": ["Increase monthly auto-savings by 10%", "Reduce variable spend by Rs.1500"],
+            "disclaimer": "Based on system-generated financial behavior. Not an official credit score.",
+        },
+        "trends": {"balanceTrend": 4.1, "incomeTrend": 2.2, "expenseTrend": -1.3, "savingsTrend": 5.8},
+    }
+
+
+@app.get("/dashboard/")
+def dashboard_compat() -> dict[str, Any]:
+    metrics = _metrics_from_transactions()
+    data = {
+        "metrics": metrics,
+        "budgeting": {"global": _demo_budget_global, "categories": _demo_budget_categories, "feedback": ["Budget usage is under control.", "You can allocate more to emergency fund."]},
+        "goalSuggestion": {"recommendedContribution": 5099.0, "message": "Move Rs.5,099 toward your top goal this month."},
+        "categoryBreakdown": [
+            {"name": "Rent", "amount": 18000.0},
+            {"name": "Food", "amount": 5200.0},
+            {"name": "Utilities", "amount": 2400.0},
+            {"name": "Transport", "amount": 2337.0},
+        ],
+        "subscriptions": _demo_subscriptions,
+        "emi": {"items": _demo_emi_items, "monthly_load": round(sum(float(item["monthly_emi"]) for item in _demo_emi_items), 2), "remaining_liability": round(sum(float(item["monthly_emi"]) * float(item["remaining_months"]) for item in _demo_emi_items), 2)},
+        "expenseSplit": {
+            "fixed_total": 20400.0,
+            "variable_total": 7537.0,
+            "fixed_percent": metrics["fixedExpensePercent"],
+            "variable_percent": metrics["variableExpensePercent"],
+            "breakdown": [{"name": "Fixed", "amount": 20400.0}, {"name": "Variable", "amount": 7537.0}],
+        },
+        "networth": {"assets": metrics["assets"], "liabilities": metrics["liabilities"], "net_worth": metrics["netWorth"]},
+        "cashflow": {"upcoming_payments": [{"name": "Internet", "date": "2026-04-22", "amount": 2400.0, "type": "bill"}], "monthly_outflow_projection": metrics["projectedOutflow"]},
+        "priorities": [{"level": "HIGH", "title": "Build emergency buffer", "message": "Allocate at least 15% of monthly income to emergency fund."}],
+        "bills": _demo_bills,
+        "recentTransactions": _demo_transactions[:8],
+        "allTransactions": _demo_transactions,
+    }
+    return _ok(data)
+
+
+@app.get("/alerts/")
+def alerts_compat() -> dict[str, Any]:
+    return _ok(_demo_alerts)
+
+
+@app.get("/goals/")
+def goals_compat() -> dict[str, Any]:
+    return _ok(_demo_goals)
+
+
+@app.get("/bills/")
+def bills_compat() -> dict[str, Any]:
+    return _ok(_demo_bills)
+
+
+@app.post("/bills/")
+def bills_add_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    next_id = max([int(item.get("id", 0)) for item in _demo_bills] + [0]) + 1
+    item = {
+        "id": next_id,
+        "name": str(payload.get("name", "New Bill")),
+        "amount": float(payload.get("amount", 0)),
+        "due": str(payload.get("due", "Due in 7 days")),
+        "icon": str(payload.get("icon", "bolt")),
+        "color": str(payload.get("color", "blue")),
+    }
+    _demo_bills.append(item)
+    return _ok(item, "Bill added.")
+
+
+@app.delete("/bills/{identifier}")
+def bills_delete_compat(identifier: str) -> dict[str, Any]:
+    global _demo_bills
+    _demo_bills = [item for item in _demo_bills if str(item.get("id")) != identifier and str(item.get("name")) != identifier]
+    return _ok({"removed": identifier})
+
+
+@app.post("/transactions/")
+def transactions_add_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    next_id = max([int(item.get("id", 0)) for item in _demo_transactions] + [0]) + 1
+    item = {
+        "id": next_id,
+        "merchant": str(payload.get("merchant", "Manual Entry")),
+        "category": str(payload.get("category", "Others")),
+        "date": str(payload.get("date", date.today().isoformat())),
+        "amount": float(payload.get("amount", 0)),
+        "type": str(payload.get("type", "debit")),
+    }
+    _demo_transactions.insert(0, item)
+    return _ok(item, "Transaction added.")
+
+
+@app.post("/upload/")
+async def upload_compat(file: UploadFile = File(...)) -> dict[str, Any]:
+    content = await file.read()
+    count = 0
+    if file.filename:
+        try:
+            df = normalize_dataframe(parse_uploaded_file(file.filename, content))
+            count = int(len(df.index))
+            for _, row in df.head(20).iterrows():
+                _demo_transactions.append(
+                    {
+                        "id": max([int(item.get("id", 0)) for item in _demo_transactions] + [0]) + 1,
+                        "merchant": str(row["Description"])[:80] or "Imported",
+                        "category": str(row["Category"]).replace("ðŸ” ", "") if isinstance(row["Category"], str) else "Others",
+                        "date": row["Date"].strftime("%Y-%m-%d"),
+                        "amount": float(row["Debit"] if row["Debit"] > 0 else row["Credit"]),
+                        "type": "debit" if float(row["Debit"]) > 0 else "credit",
+                    }
+                )
+        except Exception:
+            count = 0
+    return _ok({"success": True, "extractedTransactionsCount": count, "message": "Statement processed."})
+
+
+@app.post("/assistant/query")
+def assistant_query_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    q = str(payload.get("question", "")).strip()
+    metrics = _metrics_from_transactions()
+    answer = (
+        f"From your current data: income is Rs{metrics['totalIncome']:,.0f}, expenses are Rs{metrics['totalExpense']:,.0f}, "
+        f"net savings are Rs{metrics['netSavings']:,.2f}. Start by reducing variable spend by 5-10% and automate savings."
+    )
+    if q:
+        answer += f" You asked: '{q}'. Focus first on bills, recurring subscriptions, and your emergency fund."
+    return _ok({"answer": answer, "suggestions": ["What is my next predicted expense?", "Which category am I spending the most on?"]})
+
+
+@app.get("/subscriptions/")
+def subscriptions_get_compat() -> dict[str, Any]:
+    return _ok(_demo_subscriptions)
+
+
+@app.post("/subscriptions/")
+def subscriptions_add_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    next_id = max([int(item.get("id", 0)) for item in _demo_subscriptions] + [0]) + 1
+    monthly = float(payload.get("monthly_cost", 0))
+    item = {
+        "id": next_id,
+        "name": str(payload.get("name", "New Subscription")),
+        "frequency": str(payload.get("frequency", "monthly")),
+        "monthly_cost": monthly,
+        "yearly_cost": round(monthly * 12, 2),
+        "last_charge_date": str(payload.get("last_charge_date", date.today().isoformat())),
+        "next_due_date": str(payload.get("next_due_date", date.today().isoformat())),
+        "source": "manual",
+    }
+    _demo_subscriptions.append(item)
+    return _ok(item, "Subscription added.")
+
+
+@app.delete("/subscriptions/{name}")
+def subscriptions_delete_compat(name: str) -> dict[str, Any]:
+    global _demo_subscriptions
+    _demo_subscriptions = [item for item in _demo_subscriptions if str(item.get("name")).lower() != name.lower()]
+    return _ok({"removed": name})
+
+
+@app.get("/emi/")
+def emi_get_compat() -> dict[str, Any]:
+    return _ok(
+        {
+            "items": _demo_emi_items,
+            "monthly_load": round(sum(float(item["monthly_emi"]) for item in _demo_emi_items), 2),
+            "remaining_liability": round(sum(float(item["monthly_emi"]) * float(item["remaining_months"]) for item in _demo_emi_items), 2),
+        }
+    )
+
+
+@app.post("/emi/")
+def emi_add_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    next_id = max([int(item.get("id", 0)) for item in _demo_emi_items] + [0]) + 1
+    item = {
+        "id": next_id,
+        "name": str(payload.get("name", "New EMI")),
+        "total_amount": float(payload.get("total_amount", 0)),
+        "monthly_emi": float(payload.get("monthly_emi", 0)),
+        "remaining_months": int(payload.get("remaining_months", 0)),
+        "interest_rate": float(payload.get("interest_rate", 0)),
+        "due_date": str(payload.get("due_date", date.today().isoformat())),
+        "source": "manual",
+    }
+    _demo_emi_items.append(item)
+    return _ok(item, "EMI added.")
+
+
+@app.delete("/emi/{identifier}")
+def emi_delete_compat(identifier: str) -> dict[str, Any]:
+    global _demo_emi_items
+    _demo_emi_items = [item for item in _demo_emi_items if str(item.get("id")) != identifier and str(item.get("name")) != identifier]
+    return _ok({"removed": identifier})
+
+
+@app.get("/expense-split/")
+def expense_split_compat() -> dict[str, Any]:
+    metrics = _metrics_from_transactions()
+    return _ok({"fixed_total": 20400.0, "variable_total": 7537.0, "fixed_percent": metrics["fixedExpensePercent"], "variable_percent": metrics["variableExpensePercent"], "breakdown": [{"name": "Fixed", "amount": 20400.0}, {"name": "Variable", "amount": 7537.0}]})
+
+
+@app.get("/networth/")
+def networth_compat() -> dict[str, Any]:
+    metrics = _metrics_from_transactions()
+    return _ok({"assets": metrics["assets"], "liabilities": metrics["liabilities"], "net_worth": metrics["netWorth"]})
+
+
+@app.get("/cashflow/")
+def cashflow_compat() -> dict[str, Any]:
+    metrics = _metrics_from_transactions()
+    return _ok({"upcoming_payments": [{"name": "Internet", "date": "2026-04-22", "amount": 2400.0, "type": "bill"}], "monthly_outflow_projection": metrics["projectedOutflow"]})
+
+
+@app.get("/priorities/")
+def priorities_compat() -> dict[str, Any]:
+    return _ok([{"level": "HIGH", "title": "Build emergency buffer", "message": "Allocate 15% of monthly income to emergency fund."}])
+
+
+@app.post("/predict/")
+def predict_compat(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    return _ok({"forecast": {"peakAlert": {"day": "2026-04-28", "amount": 9200.0}, "series": [3200, 4100, 3700, 5200, 6200, 5800, 6400]}, "next_expense_prediction": {"predicted_expense": 1083.72, "risk_level": "Medium", "budget_usage_percent": 79.8, "recurring_load": 13249.0}})
+
+
+@app.post("/simulate/")
+def simulate_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    metrics = _metrics_from_transactions()
+    income_adj = float(payload.get("income_adjustment", 0))
+    expense_adj = float(payload.get("expense_adjustment", 0))
+    months = int(payload.get("months", 6))
+    new_income = metrics["totalIncome"] + income_adj
+    new_expense = metrics["totalExpense"] + expense_adj
+    monthly_savings = new_income - new_expense
+    return _ok(
+        {
+            "new_income": round(new_income, 2),
+            "new_expense": round(new_expense, 2),
+            "monthly_savings": round(monthly_savings, 2),
+            "projected_savings": round(monthly_savings * months, 2),
+            "risk_level": "Low" if monthly_savings > 0 else "High",
+            "expense_split": {"fixed_total": 20400.0, "variable_total": max(0.0, new_expense - 20400.0), "fixed_percent": (20400.0 / new_expense * 100.0) if new_expense else 0.0, "variable_percent": max(0.0, 100.0 - ((20400.0 / new_expense * 100.0) if new_expense else 0.0)), "breakdown": [{"name": "Fixed", "amount": 20400.0}, {"name": "Variable", "amount": max(0.0, new_expense - 20400.0)}]},
+            "updated_metrics": _metrics_from_transactions(),
+            "networth": {"assets": metrics["assets"], "liabilities": metrics["liabilities"], "net_worth": metrics["netWorth"]},
+            "cashflow": {"upcoming_payments": [{"name": "Internet", "date": "2026-04-22", "amount": 2400.0, "type": "bill"}], "monthly_outflow_projection": round(new_expense, 2)},
+            "priorities": [{"level": "MEDIUM", "title": "Control variable spend", "message": "Keep discretionary expenses under target."}],
+            "months": months,
+        }
+    )
+
+
+@app.get("/budget/global/")
+def budget_global_get_compat() -> dict[str, Any]:
+    return _ok(_demo_budget_global)
+
+
+@app.put("/budget/global/")
+def budget_global_update_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    _demo_budget_global.update({k: payload[k] for k in ("monthly_budget", "weekly_budget", "auto_distribute") if k in payload})
+    return _ok({"global": _demo_budget_global, "categories": _demo_budget_categories, "feedback": ["Global budget updated."], "alerts": _demo_alerts})
+
+
+@app.get("/budget/category/")
+def budget_category_get_compat() -> dict[str, Any]:
+    return _ok(_demo_budget_categories)
+
+
+@app.post("/budget/category/")
+def budget_category_upsert_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    name = str(payload.get("name", "")).strip()
+    amount = float(payload.get("amount", 0))
+    frequency = str(payload.get("frequency", "monthly"))
+    if not name:
+        raise HTTPException(status_code=400, detail="Category name required.")
+    existing = next((item for item in _demo_budget_categories if item["name"].lower() == name.lower()), None)
+    if existing:
+        existing["allocated_amount"] = amount
+        existing["frequency"] = frequency
+        existing["monthly_equivalent"] = amount
+        category = existing
+    else:
+        category = {"name": name, "allocated_amount": amount, "frequency": frequency, "spent_amount": 0.0, "remaining_amount": amount, "usage_percent": 0.0, "status": "on-track", "monthly_equivalent": amount}
+        _demo_budget_categories.append(category)
+    return _ok({"category": category, "categories": _demo_budget_categories, "feedback": ["Category budget saved."], "alerts": _demo_alerts})
+
+
+@app.delete("/budget/category/{name}")
+def budget_category_delete_compat(name: str) -> dict[str, Any]:
+    global _demo_budget_categories
+    _demo_budget_categories = [item for item in _demo_budget_categories if item["name"].lower() != name.lower()]
+    return _ok({"categories": _demo_budget_categories, "feedback": ["Category removed."], "alerts": _demo_alerts})
+
+
+@app.post("/decision/")
+def decision_compat(payload: dict[str, Any]) -> dict[str, Any]:
+    price = float(payload.get("price", 0))
+    remaining = max(0.0, float(_demo_budget_global.get("remaining_amount", 0)) - price)
+    status = "Affordable" if remaining >= 0 else "Risky"
+    return _ok(
+        {
+            "item_name": str(payload.get("item_name", "Item")),
+            "category": "General",
+            "price": price,
+            "affordability": "Within budget" if remaining >= 0 else "Over budget",
+            "status": status,
+            "budget_impact_percent": (price / float(_demo_budget_global.get("monthly_budget", 1))) * 100.0,
+            "current_risk_level": "Medium",
+            "new_risk_level": "High" if remaining < 0 else "Medium",
+            "remaining_global_budget": remaining,
+            "remaining_category_budget": remaining,
+            "recommendation": "Proceed cautiously." if remaining >= 0 else "Delay purchase.",
+        }
+    )
