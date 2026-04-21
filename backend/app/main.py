@@ -175,15 +175,22 @@ class AuthStore:
         self.password_salt = os.getenv("AUTH_PASSWORD_SALT", "smartspend-default-salt")
 
         if self.mongo_mode:
-            client = MongoClient(self.mongodb_uri, serverSelectionTimeoutMS=5000)
-            db_name = os.getenv("MONGODB_DB", "smartspend")
-            self.db = client[db_name]
-            self.users_col = self.db["users"]
-            self.sessions_col = self.db["sessions"]
-            self.users_col.create_index("email", unique=True)
-            self.users_col.create_index("id", unique=True)
-            self.sessions_col.create_index("token", unique=True)
-            self.sessions_col.create_index("expires_at")
+            try:
+                client = MongoClient(self.mongodb_uri, serverSelectionTimeoutMS=5000)
+                db_name = os.getenv("MONGODB_DB", "smartspend")
+                self.db = client[db_name]
+                self.users_col = self.db["users"]
+                self.sessions_col = self.db["sessions"]
+                # Force an early connectivity check; fallback if unreachable.
+                self.db.command("ping")
+                self.users_col.create_index("email", unique=True)
+                self.users_col.create_index("id", unique=True)
+                self.sessions_col.create_index("token", unique=True)
+                self.sessions_col.create_index("expires_at")
+            except Exception:
+                # Keep service alive even if Mongo is temporarily misconfigured/unreachable.
+                self.mongo_mode = False
+                self._ensure_local_files()
         else:
             self._ensure_local_files()
 
