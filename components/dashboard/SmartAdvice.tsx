@@ -1,3 +1,6 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { ArrowRight, Landmark, Lightbulb, Shield, TrendingUp } from "lucide-react";
 import { type DashboardMetrics, type GoalSuggestion } from "@/lib/api-client";
 
@@ -6,6 +9,8 @@ function formatCurrency(value: number) {
 }
 
 export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }: { metrics: DashboardMetrics; budgetFeedback: string[]; goalSuggestion: GoalSuggestion }) {
+  const router = useRouter();
+
   const adviceCards = [
     {
       title: `Set aside ${formatCurrency(Math.max(3000, Math.round(goalSuggestion.recommendedContribution)))} for your next goal`,
@@ -13,6 +18,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "Setup Now",
       label: "Investment",
       icon: TrendingUp,
+      href: "/goals",
     },
     {
       title: `Allocate ${formatCurrency(Math.max(10000, Math.round(metrics.netSavings * 4)))} to Emergency Fund`,
@@ -20,6 +26,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "Transfer Funds",
       label: "Security",
       icon: Shield,
+      href: "/wallet",
     },
     {
       title: "High savings month - consider a lump sum investment",
@@ -27,6 +34,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "View Options",
       label: "Efficiency",
       icon: Landmark,
+      href: "/analytics",
     },
   ];
 
@@ -37,6 +45,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "View Controls",
       label: "Budgeting",
       icon: Landmark,
+      href: "/budget",
     };
   }
 
@@ -63,7 +72,11 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
               <p className="mb-2 text-sm font-semibold text-[#dee5ff]">{card.title}</p>
               <p className="text-[11px] text-[#a3aac4]">{card.body}</p>
             </div>
-            <button className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2">
+            <button
+              type="button"
+              onClick={() => router.push(card.href)}
+              className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2"
+            >
               {card.action}
               <ArrowRight className="h-3 w-3" />
             </button>

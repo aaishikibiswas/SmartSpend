@@ -118,12 +118,12 @@ export default function BillReminders() {
         <span className="rounded-md bg-rose-500/10 px-2 py-1 text-[10px] font-semibold text-rose-400">{actionLabel}</span>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-4 grid grid-cols-[minmax(0,1.2fr)_110px_110px_44px] gap-2">
+      <form onSubmit={handleSubmit} className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.2fr)_110px] lg:grid-cols-[minmax(0,1.2fr)_110px_110px_44px]">
         <input
           value={form.name}
           onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
           placeholder="Bill name"
-          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
+          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60 sm:col-span-2 lg:col-span-1"
         />
         <input
           value={form.amount}
@@ -136,12 +136,12 @@ export default function BillReminders() {
           value={form.due}
           onChange={(event) => setForm((current) => ({ ...current, due: event.target.value }))}
           placeholder="Due in 3 days"
-          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
+          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60 sm:col-span-1 lg:col-span-1"
         />
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#7B6CF6] text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#7B6CF6] text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1 lg:col-span-1"
           aria-label="Add bill reminder"
         >
           <Plus className="h-4 w-4" />
@@ -153,17 +153,17 @@ export default function BillReminders() {
       <div className="flex flex-col gap-3">
         {bills.map((bill) => (
           <div key={bill.id} className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 p-3 transition-colors hover:bg-white/10">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className={`rounded-lg bg-white/5 p-2 ${bill.color === "red" ? "text-red-400" : "text-blue-400"}`}>
                 <Zap className="h-4 w-4" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[13px] font-bold text-white">{bill.name}</p>
                 <p className={`text-[11px] ${bill.color === "red" ? "font-semibold text-rose-400" : "text-gray-400"}`}>{bill.due}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <p className="text-[13px] font-bold text-white">Rs. {bill.amount}</p>
+            <div className="ml-3 flex shrink-0 items-center gap-3">
+              <p className="text-right text-[13px] font-bold text-white">Rs. {bill.amount}</p>
               <button
                 type="button"
                 onClick={() => void handleRemoveBill(bill.id)}
