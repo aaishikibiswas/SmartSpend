@@ -8,10 +8,35 @@ function formatCurrency(value: number) {
   return `Rs${Math.round(value).toLocaleString()}`;
 }
 
+type AdviceCard = {
+  title: string;
+  body: string;
+  action: string;
+  label: string;
+  icon: typeof TrendingUp;
+  href?: string;
+};
+
+function resolveAdviceHref(card: AdviceCard) {
+  if (card.href) return card.href;
+
+  const context = `${card.label} ${card.action} ${card.title} ${card.body}`.toLowerCase();
+
+  if (context.includes("goal") || context.includes("investment")) return "/goals";
+  if (context.includes("emergency") || context.includes("security") || context.includes("transfer")) return "/wallet";
+  if (context.includes("budget") || context.includes("allowance") || context.includes("control")) return "/budget";
+  if (context.includes("alert") || context.includes("risk")) return "/alerts";
+  if (context.includes("forecast") || context.includes("predict") || context.includes("trend")) return "/analytics";
+  if (context.includes("transaction") || context.includes("spending")) return "/transactions";
+
+  // Always keep the CTA connected even when new advice text appears.
+  return "/analytics";
+}
+
 export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }: { metrics: DashboardMetrics; budgetFeedback: string[]; goalSuggestion: GoalSuggestion }) {
   const router = useRouter();
 
-  const adviceCards = [
+  const adviceCards: AdviceCard[] = [
     {
       title: `Set aside ${formatCurrency(Math.max(3000, Math.round(goalSuggestion.recommendedContribution)))} for your next goal`,
       body: goalSuggestion.message,
@@ -74,7 +99,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
             </div>
             <button
               type="button"
-              onClick={() => router.push(card.href)}
+              onClick={() => router.push(resolveAdviceHref(card))}
               className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2"
             >
               {card.action}
