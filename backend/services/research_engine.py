@@ -42,7 +42,15 @@ def get_research_report() -> dict:
             "categorization": categorizer_evaluation,
             "anomaly_detection": anomaly_evaluation,
         },
+        "benchmarking": {
+            "forecast_benchmark": forecast_evaluation.get("benchmark_dataset", {}),
+        },
         "behavioral_modeling": behavior,
+        "persistence": {
+            "mode": "json_file_backed_local_persistence",
+            "storage_dir": "backend/data",
+            "aws_ready_target": ["RDS", "S3"],
+        },
         "limitations": [
             "SHAP explanations are available only if the shap package is installed; otherwise XGBoost contribution scores are used as the explainability backend.",
             "The LSTM path is enabled only when TensorFlow/Keras is available in the runtime.",

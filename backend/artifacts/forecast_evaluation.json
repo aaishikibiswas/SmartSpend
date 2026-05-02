@@ -19,31 +19,220 @@
     "behavior_trend",
     "behavior_top_category_share"
   ],
-  "training_rows": 11,
+  "training_rows": 364,
+  "evaluation_source": "hybrid_live_plus_benchmark",
   "evaluation": {
     "data_split": {
       "strategy": "time_series",
-      "train_rows": 11,
-      "validation_rows": 0,
-      "test_rows": 0
+      "evaluation_source": "hybrid_live_plus_benchmark",
+      "train_rows": 218,
+      "validation_rows": 73,
+      "test_rows": 73
     },
-    "models": {},
-    "ensemble": {},
-    "ablation": {},
+    "models": {
+      "lag_rf": {
+        "validation": {
+          "rmse": 1297.4598,
+          "mae": 724.1314,
+          "mape": 34.8266,
+          "r2": 0.9812
+        },
+        "test": {
+          "rmse": 573.1156,
+          "mae": 423.6341,
+          "mape": 75.9299,
+          "r2": 0.9469
+        }
+      },
+      "xgb_trend": {
+        "validation": {
+          "rmse": 1781.1518,
+          "mae": 650.9806,
+          "mape": 21.7272,
+          "r2": 0.9645
+        },
+        "test": {
+          "rmse": 406.6972,
+          "mae": 284.5013,
+          "mape": 46.5527,
+          "r2": 0.9733
+        }
+      },
+      "sequence_mlp": {
+        "validation": {
+          "rmse": 3377.0186,
+          "mae": 2594.0577,
+          "mape": 170.3477,
+          "r2": 0.8723
+        },
+        "test": {
+          "rmse": 3778.2632,
+          "mae": 3601.9138,
+          "mape": 604.5868,
+          "r2": -1.3082
+        }
+      },
+      "lstm": {
+        "status": "trained",
+        "validation": {
+          "rmse": 10277.7178,
+          "mae": 4040.4557,
+          "mape": 89.979,
+          "r2": -0.1828
+        },
+        "test": {
+          "rmse": 2806.0184,
+          "mae": 1299.6796,
+          "mape": 76.6691,
+          "r2": -0.2731
+        }
+      }
+    },
+    "ensemble": {
+      "weights": {
+        "lag_rf": 0.28,
+        "xgb_trend": 0.28,
+        "sequence_mlp": 0.18,
+        "lstm": 0.26
+      },
+      "validation": {
+        "rmse": 3404.5606,
+        "mae": 1237.808,
+        "mape": 35.4283,
+        "r2": 0.8702
+      },
+      "test": {
+        "rmse": 981.8073,
+        "mae": 727.6781,
+        "mape": 123.466,
+        "r2": 0.8441
+      }
+    },
+    "ablation": {
+      "full_features": {
+        "rmse": 427.6374,
+        "mae": 301.2561,
+        "mape": 49.5697,
+        "r2": 0.9704
+      },
+      "without_behavioral_features": {
+        "rmse": 521.7488,
+        "mae": 373.9624,
+        "mape": 66.0718,
+        "r2": 0.956
+      },
+      "without_rolling": {
+        "rmse": 693.5498,
+        "mae": 626.542,
+        "mape": 117.3378,
+        "r2": 0.9222
+      },
+      "without_calendar": {
+        "rmse": 552.1534,
+        "mae": 323.2923,
+        "mape": 43.9425,
+        "r2": 0.9507
+      },
+      "lags_only": {
+        "rmse": 5271.0493,
+        "mae": 2945.5529,
+        "mape": 512.5956,
+        "r2": -3.4925
+      },
+      "without_trend": {
+        "rmse": 872.2978,
+        "mae": 561.7204,
+        "mape": 81.1731,
+        "r2": 0.877
+      }
+    },
     "deep_learning": {
-      "tensorflow_available": false,
-      "lstm_status": "insufficient_data"
+      "tensorflow_available": true,
+      "lstm_status": "trained"
     },
     "comparison": {
-      "table": {},
-      "best_model": null,
+      "table": {
+        "LAG_RF": {
+          "rmse": 573.1156,
+          "mae": 423.6341,
+          "mape": 75.9299,
+          "r2": 0.9469
+        },
+        "XGB": {
+          "rmse": 406.6972,
+          "mae": 284.5013,
+          "mape": 46.5527,
+          "r2": 0.9733
+        },
+        "SEQUENCE_MLP": {
+          "rmse": 3778.2632,
+          "mae": 3601.9138,
+          "mape": 604.5868,
+          "r2": -1.3082
+        },
+        "LSTM": {
+          "rmse": 2806.0184,
+          "mae": 1299.6796,
+          "mape": 76.6691,
+          "r2": -0.2731
+        }
+      },
+      "best_model": "XGB",
       "selection_metric": "rmse"
     },
-    "note": "Insufficient data for full train/validation/test reporting. Production model still trained on available history."
+    "benchmark_dataset": {
+      "rows": 1129,
+      "profiles": [
+        "balanced_saver",
+        "high_variable_spend",
+        "fixed_burden",
+        "subscription_heavy"
+      ],
+      "date_range": {
+        "start": "2025-12-31",
+        "end": "2026-12-25"
+      },
+      "categories": [
+        "Bills",
+        "Entertainment",
+        "Food",
+        "Healthcare",
+        "Housing",
+        "Income",
+        "Shopping",
+        "Transport"
+      ],
+      "artifact_path": "D:\\newwork\\finset\\backend\\artifacts\\benchmark_transactions.csv"
+    }
   },
   "comparison": {
-    "table": {},
-    "best_model": null,
+    "table": {
+      "LAG_RF": {
+        "rmse": 573.1156,
+        "mae": 423.6341,
+        "mape": 75.9299,
+        "r2": 0.9469
+      },
+      "XGB": {
+        "rmse": 406.6972,
+        "mae": 284.5013,
+        "mape": 46.5527,
+        "r2": 0.9733
+      },
+      "SEQUENCE_MLP": {
+        "rmse": 3778.2632,
+        "mae": 3601.9138,
+        "mape": 604.5868,
+        "r2": -1.3082
+      },
+      "LSTM": {
+        "rmse": 2806.0184,
+        "mae": 1299.6796,
+        "mape": 76.6691,
+        "r2": -0.2731
+      }
+    },
+    "best_model": "XGB",
     "selection_metric": "rmse"
   }
 }

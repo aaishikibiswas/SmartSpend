@@ -16,6 +16,14 @@ export type GoalItem = {
   color: string;
 };
 
+export type GoalCreatePayload = {
+  name: string;
+  target: number;
+  achieved: number;
+  daysLeft: number;
+  color?: string;
+};
+
 export type BillItem = {
   id: number;
   name: string;
@@ -226,6 +234,11 @@ export type UploadResult = {
   message: string;
 };
 
+export type AssistantChatMessage = {
+  role: "ai" | "user";
+  text: string;
+};
+
 export type AssistantResponse = {
   answer: string;
   suggestions: string[];
@@ -237,6 +250,10 @@ export type AuthUser = {
   email: string;
   plan: string;
   avatar_seed: string;
+  preferred_currency: string;
+  timezone: string;
+  city: string;
+  occupation: string;
 };
 
 export type TransactionCreatePayload = {
@@ -290,6 +307,10 @@ export type RegisterPayload = {
 export type ProfileUpdatePayload = {
   full_name: string;
   plan?: string;
+  preferred_currency?: string;
+  timezone?: string;
+  city?: string;
+  occupation?: string;
 };
 
 export type EmiCreatePayload = {
@@ -327,15 +348,22 @@ type ApiEnvelope<T> = {
   message?: string;
 };
 
-async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
+type RequestOptions = RequestInit & {
+  timeoutMs?: number;
+};
+
+async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvelope<T>> {
+  const timeoutMs = init?.timeoutMs ?? 10000;
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const requestInit = { ...(init || {}) } as RequestInit & { timeoutMs?: number };
+  delete requestInit.timeoutMs;
 
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       cache: "no-store",
       redirect: "follow",
-      ...init,
+      ...requestInit,
       signal: controller.signal,
     });
 
@@ -367,7 +395,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`Request to ${API_BASE || "same-origin"}${path} timed out after 10 seconds.`);
+      throw new Error(`Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
     }
 
     if (error instanceof Error) {
@@ -400,6 +428,7 @@ export const apiClient = {
     return request<UploadResult>("/api/upload", {
       method: "POST",
       body: formData,
+      timeoutMs: 120000,
     });
   },
 
@@ -409,6 +438,14 @@ export const apiClient = {
 
   getGoals() {
     return request<GoalItem[]>("/api/goals");
+  },
+
+  addGoal(payload: GoalCreatePayload) {
+    return request<GoalItem>("/api/goals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
   },
 
   getBills() {
@@ -433,11 +470,12 @@ export const apiClient = {
     return request<GlobalBudgetSummary>("/api/budget/global");
   },
 
-  askAssistant(question: string) {
+  askAssistant(question: string, history: AssistantChatMessage[] = []) {
     return request<AssistantResponse>("/api/assistant/query", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, history }),
+      timeoutMs: 30000,
     });
   },
 

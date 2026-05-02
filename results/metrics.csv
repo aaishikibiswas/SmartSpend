@@ -1,0 +1,8 @@
+timestamp_utc,run_tag,dataset,model_version,selected_best_model,model_name,accuracy,precision,recall,f1_score,reason_for_selection
+2026-04-23T05:00:52.975470+00:00,local-verify,data\transactions.csv,1.0,True,RandomForest,1.0,1.0,1.0,1.0,
+2026-04-23T05:00:52.981142+00:00,local-verify,data\transactions.csv,,False,LogisticRegression,1.0,1.0,1.0,1.0,
+2026-04-23T05:02:27.830265+00:00,local-verify-eval,data\transactions.csv,1.0,True,RandomForest,1.0,1.0,1.0,1.0,
+2026-04-23T05:04:00.875912+00:00,manual,data\transactions.csv,2.0,True,RandomForest,1.0,1.0,1.0,1.0,
+2026-04-23T05:04:00.903203+00:00,manual,data\transactions.csv,,False,LogisticRegression,1.0,1.0,1.0,1.0,
+2026-04-23T05:04:04.881123+00:00,manual-eval,data\transactions.csv,2.0,True,RandomForest,1.0,1.0,1.0,1.0,
+2026-04-23T07:06:52.451132+00:00,consolidated-eval,data\transactions.csv,2.0,True,RandomForest,1.0,1.0,1.0,1.0,Evaluation run

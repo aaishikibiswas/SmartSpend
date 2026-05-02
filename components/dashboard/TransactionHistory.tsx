@@ -18,8 +18,15 @@ const defaultTransactions = [
 ];
 
 function formatDisplayDate(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return value;
+
+  const [, year, month, day] = match;
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthIndex = Number(month) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return value;
+
+  return `${monthNames[monthIndex]} ${Number(day)}, ${year}`;
 }
 
 function iconForCategory(category: string) {

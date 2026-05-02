@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, Landmark, Lightbulb, Shield, TrendingUp } from "lucide-react";
 import { type DashboardMetrics, type GoalSuggestion } from "@/lib/api-client";
 
@@ -13,6 +14,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "Setup Now",
       label: "Investment",
       icon: TrendingUp,
+      href: "/#goal-tracker",
     },
     {
       title: `Allocate ${formatCurrency(Math.max(10000, Math.round(metrics.netSavings * 4)))} to Emergency Fund`,
@@ -20,6 +22,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "Transfer Funds",
       label: "Security",
       icon: Shield,
+      href: "/wallet#savings-health",
     },
     {
       title: "High savings month - consider a lump sum investment",
@@ -27,6 +30,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "View Options",
       label: "Efficiency",
       icon: Landmark,
+      href: "/analytics#ai-recommendations",
     },
   ];
 
@@ -37,6 +41,7 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
       action: "View Controls",
       label: "Budgeting",
       icon: Landmark,
+      href: "/#budget-panel",
     };
   }
 
@@ -63,10 +68,10 @@ export default function SmartAdvice({ metrics, budgetFeedback, goalSuggestion }:
               <p className="mb-2 text-sm font-semibold text-[#dee5ff]">{card.title}</p>
               <p className="text-[11px] text-[#a3aac4]">{card.body}</p>
             </div>
-            <button className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2">
+            <Link href={card.href} className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2">
               {card.action}
               <ArrowRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
         ))}
       </div>

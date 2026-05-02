@@ -48,14 +48,19 @@ export default function ForecastChart() {
       const prediction = detail?.data?.prediction;
       if (!prediction) return;
 
-      const series = (prediction.forecast?.series || []).map((value: number, index: number) => ({
-        day: `Day ${index + 1}`,
-        value,
-      }));
+      const incomingSeries = Array.isArray(prediction.forecast?.series) ? prediction.forecast.series : [];
+      if (incomingSeries.length > 0) {
+        const series = incomingSeries.map((value: number, index: number) => ({
+          day: `Day ${index + 1}`,
+          value,
+        }));
+        setPoints(series);
+        setPeak(prediction.forecast?.peakAlert || null);
+      }
 
-      setPoints(series);
-      setPeak(prediction.forecast?.peakAlert || null);
-      setSummary(prediction.next_expense_prediction || null);
+      if (prediction.next_expense_prediction) {
+        setSummary(prediction.next_expense_prediction || null);
+      }
     }
 
     window.addEventListener("smartspend:ws-update", handleRealtimeUpdate);

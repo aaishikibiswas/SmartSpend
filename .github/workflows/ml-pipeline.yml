@@ -1,0 +1,64 @@
+name: SmartSpend ML Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  train-and-evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ensure output directories
+        run: |
+          mkdir -p models
+          mkdir -p results
+          mkdir -p reports
+
+      - name: Run training
+        run: |
+          python src/train.py --dataset data/transactions.csv --run-tag github-actions
+
+      - name: Run evaluation
+        run: |
+          python src/evaluate.py --dataset data/transactions.csv --run-tag github-actions-eval
+
+      - name: Export notebook (HTML)
+        run: |
+          python scripts/export_notebook.py --notebook notebooks/smartspend_research_ready.ipynb --output-dir reports
+
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartspend-models
+          path: models/
+          if-no-files-found: error
+
+      - name: Upload results artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartspend-results
+          path: results/
+          if-no-files-found: error
+
+      - name: Upload reports artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartspend-reports
+          path: reports/
+          if-no-files-found: error

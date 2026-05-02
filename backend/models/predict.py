@@ -165,7 +165,7 @@ def _predict_lstm(lstm_bundle: dict, feature_frame: pd.DataFrame) -> float | Non
         return None
 
 
-def predict_next_expense(daily_expenses: pd.DataFrame) -> dict:
+def predict_next_expense(daily_expenses: pd.DataFrame, include_prophet: bool = True) -> dict:
     models = get_trained_model()
     metadata = get_model_metadata()
     budget_summary = get_global_budget_summary()
@@ -197,9 +197,10 @@ def predict_next_expense(daily_expenses: pd.DataFrame) -> dict:
         except Exception:
             continue
 
-    prophet_value = _prophet_next_point(daily_expenses)
-    if prophet_value > 0:
-        ensemble_outputs["prophet"] = prophet_value
+    if include_prophet:
+        prophet_value = _prophet_next_point(daily_expenses)
+        if prophet_value > 0:
+            ensemble_outputs["prophet"] = prophet_value
 
     if not ensemble_outputs:
         return _fallback_prediction(daily_expenses, budget_summary, recurring_load, behavior_profile)

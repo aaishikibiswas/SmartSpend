@@ -15,6 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from xgboost import XGBRegressor
 
+from backend.services.benchmark_engine import get_benchmark_dataset_summary, generate_benchmark_transactions
 from backend.utils.feature_engineering import build_sequence_windows, create_lag_features
 
 Sequential = None
@@ -333,11 +334,30 @@ def train_regression_model(transactions_df: pd.DataFrame):
     _forecast_evaluation = {}
 
     expense_df = transactions_df[transactions_df["amount"] < 0].copy() if not transactions_df.empty else pd.DataFrame()
-    if expense_df.empty:
+    benchmark_df = generate_benchmark_transactions(transactions_df)
+    benchmark_expense_df = benchmark_df[benchmark_df["amount"] < 0].copy() if not benchmark_df.empty else pd.DataFrame()
+
+    if expense_df.empty and benchmark_expense_df.empty:
         return False
 
-    expense_df["amount"] = expense_df["amount"].abs()
-    df_features = create_lag_features(expense_df, "amount")
+    if not expense_df.empty:
+        expense_df["amount"] = expense_df["amount"].abs()
+    if not benchmark_expense_df.empty:
+        benchmark_expense_df["amount"] = benchmark_expense_df["amount"].abs()
+
+    live_features = create_lag_features(expense_df, "amount") if not expense_df.empty else pd.DataFrame()
+    benchmark_features = create_lag_features(benchmark_expense_df, "amount") if not benchmark_expense_df.empty else pd.DataFrame()
+
+    if len(live_features) >= 16:
+        df_features = live_features.copy()
+        evaluation_source = "live_transactions"
+    elif not live_features.empty and not benchmark_features.empty:
+        df_features = pd.concat([live_features, benchmark_features], ignore_index=True)
+        evaluation_source = "hybrid_live_plus_benchmark"
+    else:
+        df_features = benchmark_features.copy() if not benchmark_features.empty else live_features.copy()
+        evaluation_source = "benchmark_fallback" if not benchmark_features.empty else "live_transactions"
+
     if len(df_features) < 8:
         return False
 
@@ -402,6 +422,7 @@ def train_regression_model(transactions_df: pd.DataFrame):
         _forecast_evaluation = {
             "data_split": {
                 "strategy": "time_series",
+                "evaluation_source": evaluation_source,
                 "train_rows": len(train_df),
                 "validation_rows": len(val_df),
                 "test_rows": len(test_df),
@@ -425,11 +446,13 @@ def train_regression_model(transactions_df: pd.DataFrame):
                 "lstm_status": evaluation_models.get("lstm", {}).get("status", "unknown") if isinstance(evaluation_models.get("lstm"), dict) else "unknown",
             },
             "comparison": comparison,
+            "benchmark_dataset": get_benchmark_dataset_summary(transactions_df),
         }
     else:
         _forecast_evaluation = {
             "data_split": {
                 "strategy": "time_series",
+                "evaluation_source": evaluation_source,
                 "train_rows": len(df_features),
                 "validation_rows": 0,
                 "test_rows": 0,
@@ -446,6 +469,7 @@ def train_regression_model(transactions_df: pd.DataFrame):
                 "best_model": None,
                 "selection_metric": "rmse",
             },
+            "benchmark_dataset": get_benchmark_dataset_summary(transactions_df),
             "note": "Insufficient data for full train/validation/test reporting. Production model still trained on available history.",
         }
 
@@ -477,6 +501,7 @@ def train_regression_model(transactions_df: pd.DataFrame):
         "feature_columns": FEATURE_COLUMNS,
         "training_rows": len(df_features),
         "latest_features": df_features.tail(1).to_dict(orient="records")[0],
+        "evaluation_source": evaluation_source,
         "evaluation_available": bool(_forecast_evaluation),
         "tensorflow_available": bool(_load_tensorflow_keras()),
     }
@@ -485,6 +510,7 @@ def train_regression_model(transactions_df: pd.DataFrame):
         "model_family": "ensemble_regression_with_optional_lstm",
         "features": FEATURE_COLUMNS,
         "training_rows": len(df_features),
+        "evaluation_source": evaluation_source,
         "evaluation": _forecast_evaluation,
         "comparison": _forecast_evaluation.get("comparison", {}),
     }

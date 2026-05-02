@@ -1,44 +1,63 @@
 import hashlib
-import json
 import secrets
-from copy import deepcopy
-from pathlib import Path
 from typing import Any, Dict, List
-
 import pandas as pd
+import os
+import logging
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+try:
+    from pymongo import MongoClient as PyMongoClient
+except Exception:
+    PyMongoClient = None
 
+try:
+    import mongomock
+except Exception:
+    mongomock = None
 
-def _write_json(path: Path, payload: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-
-def _read_json(path: Path, default: Any) -> Any:
-    if not path.exists():
-        return default
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return default
+logger = logging.getLogger("smartspend.storage")
 
 
-transactions_db: List[Dict[str, Any]] = []
+def _build_mongo_client():
+    mongo_uri = os.getenv(
+        "MONGODB_URI",
+        "mongodb+srv://aaishikibiswas_db_user:aki9090@cluster0.hc1jgeu.mongodb.net/?appName=Cluster0",
+    )
+    safe_uri = mongo_uri.split("@")[-1] if "@" in mongo_uri else mongo_uri
 
-goals_db: List[Dict[str, Any]] = [
+    if PyMongoClient is not None:
+        try:
+            client = PyMongoClient(mongo_uri, serverSelectionTimeoutMS=1500)
+            client.admin.command("ping")
+            logger.info("Connected to MongoDB at %s", safe_uri)
+            return client
+        except Exception:
+            logger.warning("MongoDB is not reachable at %s; falling back to in-memory storage.", safe_uri)
+
+    if mongomock is not None:
+        logger.warning("Using in-memory mongomock storage for local development.")
+        return mongomock.MongoClient()
+
+    raise RuntimeError(
+        "MongoDB is not reachable and mongomock is not installed. "
+        "Install/start MongoDB, or run `pip install mongomock` for local in-memory fallback."
+    )
+
+mongo_client = _build_mongo_client()
+db = mongo_client["smartspend"]
+
+# Initialization of default data
+DEFAULT_GOALS = [
     {"id": 1, "name": "MacBook Pro M3", "target": 125000, "achieved": 65000, "daysLeft": 124, "color": "bg-[#8B5CF6]"},
     {"id": 2, "name": "Emergency Fund", "target": 500000, "achieved": 458000, "daysLeft": 15, "color": "bg-emerald-400"},
 ]
 
-bills_db: List[Dict[str, Any]] = [
+DEFAULT_BILLS = [
     {"id": 1, "name": "Internet (Fiber)", "due": "Due Today", "amount": 2400, "icon": "Wifi", "color": "red"},
     {"id": 2, "name": "Electricity", "due": "Due in 4 days", "amount": 4120, "icon": "Zap", "color": "blue"},
 ]
 
-subscriptions_db: List[Dict[str, Any]] = []
-
-emis_db: List[Dict[str, Any]] = [
+DEFAULT_EMIS = [
     {
         "id": 1,
         "name": "Car Loan",
@@ -50,14 +69,8 @@ emis_db: List[Dict[str, Any]] = [
     }
 ]
 
-alerts_db: List[Dict[str, Any]] = []
-suppressed_subscriptions_db: set[str] = set()
-suppressed_emis_db: set[str] = set()
-
-users_db: List[Dict[str, Any]] = []
-sessions_db: Dict[str, int] = {}
-
-budget_config = {
+DEFAULT_BUDGET_CONFIG = {
+    "type": "global",
     "monthly": 50000,
     "weekly": 11500,
     "auto_distribute": False,
@@ -69,128 +82,63 @@ budget_config = {
     },
 }
 
-DEFAULT_GOALS = deepcopy(goals_db)
-DEFAULT_BILLS = deepcopy(bills_db)
-DEFAULT_SUBSCRIPTIONS = deepcopy(subscriptions_db)
-DEFAULT_EMIS = deepcopy(emis_db)
-DEFAULT_BUDGET_CONFIG = deepcopy(budget_config)
+def _clean_id(doc):
+    if doc and "_id" in doc:
+        del doc["_id"]
+    return doc
 
+
+# Legacy module compatibility: several services still import these globals.
+goals_db: List[Dict[str, Any]] = []
+bills_db: List[Dict[str, Any]] = []
+alerts_db: List[Dict[str, Any]] = []
+
+
+def _refresh_legacy_views() -> None:
+    global goals_db, bills_db, alerts_db
+    goals_db = [_clean_id(dict(doc)) for doc in db.goals.find({}, {"_id": 0})]
+    bills_db = [_clean_id(dict(doc)) for doc in db.bills.find({}, {"_id": 0})]
+    alerts_db = [_clean_id(dict(doc)) for doc in db.alerts.find({}, {"_id": 0})]
 
 class Storage:
-    TRANSACTIONS_PATH = DATA_DIR / "transactions.json"
-    GOALS_PATH = DATA_DIR / "goals.json"
-    BILLS_PATH = DATA_DIR / "bills.json"
-    SUBSCRIPTIONS_PATH = DATA_DIR / "subscriptions.json"
-    EMIS_PATH = DATA_DIR / "emis.json"
-    ALERTS_PATH = DATA_DIR / "alerts.json"
-    USERS_PATH = DATA_DIR / "users.json"
-    SESSIONS_PATH = DATA_DIR / "sessions.json"
-    BUDGET_PATH = DATA_DIR / "budget.json"
-    SUPPRESSED_SUBSCRIPTIONS_PATH = DATA_DIR / "suppressed_subscriptions.json"
-    SUPPRESSED_EMIS_PATH = DATA_DIR / "suppressed_emis.json"
-
-    @staticmethod
-    def _save_transactions() -> None:
-        _write_json(Storage.TRANSACTIONS_PATH, transactions_db)
-
-    @staticmethod
-    def _save_goals() -> None:
-        _write_json(Storage.GOALS_PATH, goals_db)
-
-    @staticmethod
-    def _save_bills() -> None:
-        _write_json(Storage.BILLS_PATH, bills_db)
-
-    @staticmethod
-    def _save_subscriptions() -> None:
-        _write_json(Storage.SUBSCRIPTIONS_PATH, subscriptions_db)
-
-    @staticmethod
-    def _save_emis() -> None:
-        _write_json(Storage.EMIS_PATH, emis_db)
-
-    @staticmethod
-    def _save_alerts() -> None:
-        _write_json(Storage.ALERTS_PATH, alerts_db)
-
-    @staticmethod
-    def _save_users() -> None:
-        _write_json(Storage.USERS_PATH, users_db)
-
-    @staticmethod
-    def _save_sessions() -> None:
-        _write_json(Storage.SESSIONS_PATH, sessions_db)
-
-    @staticmethod
-    def _save_budget() -> None:
-        _write_json(Storage.BUDGET_PATH, budget_config)
-
-    @staticmethod
-    def _save_suppressed() -> None:
-        _write_json(Storage.SUPPRESSED_SUBSCRIPTIONS_PATH, sorted(suppressed_subscriptions_db))
-        _write_json(Storage.SUPPRESSED_EMIS_PATH, sorted(suppressed_emis_db))
-
     @staticmethod
     def initialize() -> None:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-        transactions_db.clear()
-        transactions_db.extend(_read_json(Storage.TRANSACTIONS_PATH, []))
-
-        goals_db.clear()
-        goals_db.extend(_read_json(Storage.GOALS_PATH, deepcopy(DEFAULT_GOALS)))
-
-        bills_db.clear()
-        bills_db.extend(_read_json(Storage.BILLS_PATH, deepcopy(DEFAULT_BILLS)))
-
-        subscriptions_db.clear()
-        subscriptions_db.extend(_read_json(Storage.SUBSCRIPTIONS_PATH, deepcopy(DEFAULT_SUBSCRIPTIONS)))
-
-        emis_db.clear()
-        emis_db.extend(_read_json(Storage.EMIS_PATH, deepcopy(DEFAULT_EMIS)))
-
-        alerts_db.clear()
-        alerts_db.extend(_read_json(Storage.ALERTS_PATH, []))
-
-        users_db.clear()
-        users_db.extend(_read_json(Storage.USERS_PATH, []))
-
-        sessions_db.clear()
-        sessions_db.update({str(key): int(value) for key, value in _read_json(Storage.SESSIONS_PATH, {}).items()})
-
-        budget_loaded = _read_json(Storage.BUDGET_PATH, deepcopy(DEFAULT_BUDGET_CONFIG))
-        budget_config.clear()
-        budget_config.update(budget_loaded)
-        budget_config.setdefault("monthly", DEFAULT_BUDGET_CONFIG["monthly"])
-        budget_config.setdefault("weekly", DEFAULT_BUDGET_CONFIG["weekly"])
-        budget_config.setdefault("auto_distribute", DEFAULT_BUDGET_CONFIG["auto_distribute"])
-        budget_config.setdefault("categories", deepcopy(DEFAULT_BUDGET_CONFIG["categories"]))
-
-        suppressed_subscriptions_db.clear()
-        suppressed_subscriptions_db.update({str(item).strip().lower() for item in _read_json(Storage.SUPPRESSED_SUBSCRIPTIONS_PATH, [])})
-
-        suppressed_emis_db.clear()
-        suppressed_emis_db.update({str(item).strip().lower() for item in _read_json(Storage.SUPPRESSED_EMIS_PATH, [])})
+        if db.goals.count_documents({}) == 0:
+            db.goals.insert_many(DEFAULT_GOALS)
+        if db.bills.count_documents({}) == 0:
+            db.bills.insert_many(DEFAULT_BILLS)
+        if db.emis.count_documents({}) == 0:
+            db.emis.insert_many(DEFAULT_EMIS)
+        if db.budget.count_documents({}) == 0:
+            db.budget.insert_one(DEFAULT_BUDGET_CONFIG)
+        if db.users.count_documents({}) == 0:
+            Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
+        _refresh_legacy_views()
 
     @staticmethod
     def get_transactions() -> pd.DataFrame:
-        if not transactions_db:
+        txs = list(db.transactions.find({}, {"_id": 0}))
+        if not txs:
             return pd.DataFrame(columns=["id", "date", "merchant", "category", "amount", "type", "language"])
-        return pd.DataFrame(transactions_db)
+        return pd.DataFrame(txs)
 
     @staticmethod
     def replace_transactions(new_txs: List[Dict[str, Any]]):
-        transactions_db.clear()
-        Storage.add_transactions(new_txs)
+        db.transactions.delete_many({})
+        if new_txs:
+            Storage.add_transactions(new_txs)
 
     @staticmethod
     def add_transactions(new_txs: List[Dict[str, Any]]):
-        start_id = max([tx["id"] for tx in transactions_db], default=0) + 1
+        if not new_txs: return
+        max_tx = db.transactions.find_one(sort=[("id", -1)])
+        start_id = max_tx["id"] + 1 if max_tx and "id" in max_tx else 1
+        docs = []
         for i, tx in enumerate(new_txs):
             row = dict(tx)
             row["id"] = start_id + i
-            transactions_db.append(row)
-        Storage._save_transactions()
+            docs.append(row)
+        db.transactions.insert_many(docs)
 
     @staticmethod
     def add_transaction(tx: Dict[str, Any]):
@@ -198,24 +146,27 @@ class Storage:
 
     @staticmethod
     def reset_alerts():
-        alerts_db.clear()
-        Storage._save_alerts()
+        db.alerts.delete_many({})
+        _refresh_legacy_views()
 
     @staticmethod
     def add_alert(alert: Dict[str, Any]):
-        next_alert = dict(alert)
-        next_alert["id"] = max([a["id"] for a in alerts_db], default=0) + 1
-        alerts_db.insert(0, next_alert)
-        Storage._save_alerts()
+        max_alert = db.alerts.find_one(sort=[("id", -1)])
+        next_id = max_alert["id"] + 1 if max_alert and "id" in max_alert else 1
+        doc = dict(alert)
+        doc["id"] = next_id
+        db.alerts.insert_one(doc)
+        _refresh_legacy_views()
 
     @staticmethod
     def get_alerts() -> List[Dict[str, Any]]:
-        return [dict(item) for item in alerts_db]
+        return [_clean_id(doc) for doc in db.alerts.find(sort=[("id", -1)])]
 
     @staticmethod
     def get_budget_config() -> Dict[str, Any]:
+        config = db.budget.find_one({"type": "global"}) or DEFAULT_BUDGET_CONFIG
         categories = {}
-        for name, value in budget_config["categories"].items():
+        for name, value in config.get("categories", {}).items():
             if isinstance(value, dict):
                 categories[name] = {
                     "amount": int(value.get("amount", 0)),
@@ -227,18 +178,19 @@ class Storage:
                     "frequency": "Monthly",
                 }
         return {
-            "monthly": budget_config["monthly"],
-            "weekly": budget_config["weekly"],
-            "auto_distribute": bool(budget_config.get("auto_distribute", False)),
+            "monthly": config.get("monthly", 50000),
+            "weekly": config.get("weekly", 11500),
+            "auto_distribute": bool(config.get("auto_distribute", False)),
             "categories": categories,
         }
 
     @staticmethod
     def update_budget_config(config: Dict[str, Any]):
-        budget_config["monthly"] = int(config.get("monthly", budget_config["monthly"]))
-        budget_config["weekly"] = int(config.get("weekly", budget_config["weekly"]))
-        budget_config["auto_distribute"] = bool(config.get("auto_distribute", budget_config.get("auto_distribute", False)))
-        categories = config.get("categories", budget_config["categories"])
+        current = Storage.get_budget_config()
+        monthly = int(config.get("monthly", current["monthly"]))
+        weekly = int(config.get("weekly", current["weekly"]))
+        auto_distribute = bool(config.get("auto_distribute", current["auto_distribute"]))
+        categories = config.get("categories", current["categories"])
         normalized_categories = {}
         for name, value in categories.items():
             if not str(name).strip():
@@ -254,8 +206,16 @@ class Storage:
                     "amount": amount,
                     "frequency": frequency,
                 }
-        budget_config["categories"] = normalized_categories
-        Storage._save_budget()
+        db.budget.update_one(
+            {"type": "global"},
+            {"$set": {
+                "monthly": monthly,
+                "weekly": weekly,
+                "auto_distribute": auto_distribute,
+                "categories": normalized_categories
+            }},
+            upsert=True
+        )
 
     @staticmethod
     def _hash_password(password: str, salt: str) -> str:
@@ -264,182 +224,190 @@ class Storage:
     @staticmethod
     def create_user(full_name: str, email: str, password: str) -> Dict[str, Any]:
         normalized_email = email.strip().lower()
-        if any(user["email"] == normalized_email for user in users_db):
+        if db.users.find_one({"email": normalized_email}):
             raise ValueError("An account with this email already exists.")
 
         salt = secrets.token_hex(8)
+        max_user = db.users.find_one(sort=[("id", -1)])
+        next_id = max_user["id"] + 1 if max_user and "id" in max_user else 1
+
         user = {
-            "id": max([user["id"] for user in users_db], default=0) + 1,
+            "id": next_id,
             "full_name": full_name.strip(),
             "email": normalized_email,
             "plan": "Pro Plan",
             "avatar_seed": normalized_email.replace("@", "-"),
+            "preferred_currency": "INR",
+            "timezone": "Asia/Kolkata",
+            "city": "Kolkata",
+            "occupation": "Financial Planner",
             "password_hash": Storage._hash_password(password, salt),
             "password_salt": salt,
         }
-        users_db.append(user)
-        Storage._save_users()
-        return {key: value for key, value in user.items() if key not in {"password_hash", "password_salt"}}
+        db.users.insert_one(user)
+        return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
 
     @staticmethod
     def authenticate_user(email: str, password: str) -> Dict[str, Any] | None:
         normalized_email = email.strip().lower()
-        for user in users_db:
-            if user["email"] != normalized_email:
-                continue
-            expected_hash = Storage._hash_password(password, user["password_salt"])
-            if secrets.compare_digest(expected_hash, user["password_hash"]):
-                return {key: value for key, value in user.items() if key not in {"password_hash", "password_salt"}}
+        user = db.users.find_one({"email": normalized_email})
+        if not user:
+            return None
+        expected_hash = Storage._hash_password(password, user["password_salt"])
+        if secrets.compare_digest(expected_hash, user["password_hash"]):
+            return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
         return None
 
     @staticmethod
     def create_session(user_id: int) -> str:
         token = secrets.token_urlsafe(32)
-        sessions_db[token] = user_id
-        Storage._save_sessions()
+        db.sessions.insert_one({"token": token, "user_id": user_id})
         return token
 
     @staticmethod
     def get_user_by_session(token: str | None) -> Dict[str, Any] | None:
         if not token:
             return None
-        user_id = sessions_db.get(token)
-        if user_id is None:
+        session = db.sessions.find_one({"token": token})
+        if not session:
             return None
-        for user in users_db:
-            if user["id"] == user_id:
-                return {key: value for key, value in user.items() if key not in {"password_hash", "password_salt"}}
+        user = db.users.find_one({"id": session["user_id"]})
+        if user:
+            return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
         return None
 
     @staticmethod
     def delete_session(token: str | None):
         if token:
-            sessions_db.pop(token, None)
-            Storage._save_sessions()
+            db.sessions.delete_one({"token": token})
 
     @staticmethod
     def update_user(user_id: int, updates: Dict[str, Any]) -> Dict[str, Any] | None:
-        allowed_fields = {"full_name", "plan", "avatar_seed"}
-        for user in users_db:
-            if user["id"] != user_id:
-                continue
-            for key, value in updates.items():
-                if key in allowed_fields and isinstance(value, str) and value.strip():
-                    user[key] = value.strip()
-            Storage._save_users()
-            return {key: value for key, value in user.items() if key not in {"password_hash", "password_salt"}}
+        allowed_fields = {"full_name", "plan", "avatar_seed", "preferred_currency", "timezone", "city", "occupation"}
+        valid_updates = {}
+        for key, value in updates.items():
+            if key in allowed_fields and isinstance(value, str) and value.strip():
+                valid_updates[key] = value.strip()
+        
+        if valid_updates:
+            db.users.update_one({"id": user_id}, {"$set": valid_updates})
+        
+        user = db.users.find_one({"id": user_id})
+        if user:
+            return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
         return None
 
     @staticmethod
     def get_emis() -> List[Dict[str, Any]]:
-        return [dict(item) for item in emis_db]
+        return [_clean_id(doc) for doc in db.emis.find({}, {"_id": 0})]
 
     @staticmethod
     def get_subscriptions() -> List[Dict[str, Any]]:
-        return [dict(item) for item in subscriptions_db]
+        return [_clean_id(doc) for doc in db.subscriptions.find({}, {"_id": 0})]
 
     @staticmethod
     def add_subscription(subscription: Dict[str, Any]) -> Dict[str, Any]:
-        next_item = dict(subscription)
-        next_item["id"] = max([int(item.get("id", 0)) for item in subscriptions_db], default=0) + 1
-        subscriptions_db.append(next_item)
-        Storage._save_subscriptions()
-        return dict(next_item)
+        max_sub = db.subscriptions.find_one(sort=[("id", -1)])
+        next_id = max_sub["id"] + 1 if max_sub and "id" in max_sub else 1
+        doc = dict(subscription)
+        doc["id"] = next_id
+        db.subscriptions.insert_one(doc)
+        return _clean_id(doc)
 
     @staticmethod
     def remove_subscription(name: str) -> bool:
         normalized = str(name).strip().lower()
-        filtered = [item for item in subscriptions_db if str(item.get("name", "")).strip().lower() != normalized and str(item.get("id")) != str(name)]
-        removed = len(filtered) != len(subscriptions_db)
-        subscriptions_db.clear()
-        subscriptions_db.extend(filtered)
-        if removed:
-            Storage._save_subscriptions()
-            return True
-        return False
+        try:
+            id_val = int(name)
+            result = db.subscriptions.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+        except ValueError:
+            result = db.subscriptions.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+        return result.deleted_count > 0
 
     @staticmethod
     def add_emi(emi: Dict[str, Any]) -> Dict[str, Any]:
-        next_item = dict(emi)
-        next_item["id"] = max([item["id"] for item in emis_db], default=0) + 1
-        emis_db.append(next_item)
-        Storage._save_emis()
-        return dict(next_item)
+        max_emi = db.emis.find_one(sort=[("id", -1)])
+        next_id = max_emi["id"] + 1 if max_emi and "id" in max_emi else 1
+        doc = dict(emi)
+        doc["id"] = next_id
+        db.emis.insert_one(doc)
+        return _clean_id(doc)
 
     @staticmethod
     def remove_emi(identifier: str) -> bool:
-        filtered = [
-            item
-            for item in emis_db
-            if str(item.get("id")) != str(identifier) and str(item.get("name", "")).strip().lower() != str(identifier).strip().lower()
-        ]
-        removed = len(filtered) != len(emis_db)
-        emis_db.clear()
-        emis_db.extend(filtered)
-        if removed:
-            Storage._save_emis()
+        normalized = str(identifier).strip().lower()
+        try:
+            id_val = int(identifier)
+            result = db.emis.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+        except ValueError:
+            result = db.emis.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+            
+        if result.deleted_count > 0:
             return True
-        suppressed_emis_db.add(str(identifier).strip().lower())
-        Storage._save_suppressed()
+        Storage.suppress_emi(str(identifier))
         return False
 
     @staticmethod
     def get_suppressed_subscriptions() -> set[str]:
-        return set(suppressed_subscriptions_db)
+        return {doc["name"] for doc in db.suppressed_subscriptions.find()}
 
     @staticmethod
     def suppress_subscription(name: str) -> None:
         if str(name).strip():
-            suppressed_subscriptions_db.add(str(name).strip().lower())
-            Storage._save_suppressed()
+            db.suppressed_subscriptions.update_one(
+                {"name": str(name).strip().lower()},
+                {"$set": {"name": str(name).strip().lower()}},
+                upsert=True
+            )
 
     @staticmethod
     def get_suppressed_emis() -> set[str]:
-        return set(suppressed_emis_db)
+        return {doc["name"] for doc in db.suppressed_emis.find()}
+
+    @staticmethod
+    def suppress_emi(name: str) -> None:
+        if str(name).strip():
+            db.suppressed_emis.update_one(
+                {"name": str(name).strip().lower()},
+                {"$set": {"name": str(name).strip().lower()}},
+                upsert=True
+            )
 
     @staticmethod
     def get_bills() -> List[Dict[str, Any]]:
-        return [dict(item) for item in bills_db]
+        return [_clean_id(doc) for doc in db.bills.find({}, {"_id": 0})]
 
     @staticmethod
     def add_bill(bill: Dict[str, Any]) -> Dict[str, Any]:
-        next_bill = dict(bill)
-        next_bill["id"] = max([b["id"] for b in bills_db], default=0) + 1
-        bills_db.append(next_bill)
-        Storage._save_bills()
-        return dict(next_bill)
+        max_bill = db.bills.find_one(sort=[("id", -1)])
+        next_id = max_bill["id"] + 1 if max_bill and "id" in max_bill else 1
+        doc = dict(bill)
+        doc["id"] = next_id
+        db.bills.insert_one(doc)
+        _refresh_legacy_views()
+        return _clean_id(doc)
 
     @staticmethod
     def remove_bill(identifier: str) -> bool:
-        filtered = [
-            item
-            for item in bills_db
-            if str(item.get("id")) != str(identifier) and str(item.get("name", "")).strip().lower() != str(identifier).strip().lower()
-        ]
-        removed = len(filtered) != len(bills_db)
-        bills_db.clear()
-        bills_db.extend(filtered)
-        if removed:
-            Storage._save_bills()
-        return removed
+        normalized = str(identifier).strip().lower()
+        try:
+            id_val = int(identifier)
+            result = db.bills.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+        except ValueError:
+            result = db.bills.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+        deleted = result.deleted_count > 0
+        if deleted:
+            _refresh_legacy_views()
+        return deleted
 
     @staticmethod
     def replace_bills(items: List[Dict[str, Any]]) -> None:
-        bills_db.clear()
-        bills_db.extend(items)
-        Storage._save_bills()
-
+        db.bills.delete_many({})
+        if items:
+            docs = []
+            for item in items:
+                docs.append(item)
+            db.bills.insert_many(docs)
+        _refresh_legacy_views()
 
 Storage.initialize()
-if not users_db:
-    Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
-Storage._save_budget()
-Storage._save_goals()
-Storage._save_bills()
-Storage._save_subscriptions()
-Storage._save_emis()
-Storage._save_transactions()
-Storage._save_alerts()
-Storage._save_users()
-Storage._save_sessions()
-Storage._save_suppressed()

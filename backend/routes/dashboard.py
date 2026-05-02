@@ -58,7 +58,7 @@ def get_dashboard():
     expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
     networth = calculate_networth(metrics, emi_summary)
     cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
-    prediction = predict_next_expense(build_daily_expense_series(transactions))
+    prediction = predict_next_expense(build_daily_expense_series(transactions), include_prophet=False)
     anomaly = latest_anomaly_summary(transactions)
     behavior = build_behavior_profile(transactions)
     advisory = generate_financial_advice(metrics, {"global": budget_snapshot["global"]}, prediction, expense_split, behavior)

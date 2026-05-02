@@ -13,3 +13,19 @@ export async function GET() {
   });
 }
 
+export async function POST(request: Request) {
+  const payload = await request.text();
+  const response = await fetch(`${BACKEND_BASE}/goals/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    cache: "no-store",
+  });
+
+  const body = await response.text();
+  return new Response(body, {
+    status: response.status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+

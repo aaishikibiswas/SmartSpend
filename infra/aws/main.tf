@@ -112,10 +112,12 @@ resource "aws_security_group" "app" {
 }
 
 resource "aws_instance" "app" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.public_a.id
-  key_name                    = var.key_name
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.public_a.id
+  key_name      = var.key_name
+  # This attaches the IAM instance profile so EC2 can access AWS services like S3.
+  iam_instance_profile        = aws_iam_instance_profile.smartspend_ec2_profile.name
   vpc_security_group_ids      = [aws_security_group.app.id]
   associate_public_ip_address = true
   user_data                   = templatefile("${path.module}/user_data.sh.tpl", {})

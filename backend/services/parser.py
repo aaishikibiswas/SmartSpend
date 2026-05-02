@@ -6,7 +6,7 @@ from io import BytesIO
 import tempfile
 import os
 from datetime import datetime
-from backend.services.categorizer import predict_transaction_category
+from backend.services.categorizer import fast_categorize_transaction
 from backend.utils.language_detection import detect_language, normalize_text
 
 def parse_csv(file_bytes: bytes) -> list:
@@ -91,8 +91,7 @@ def process_dataframe(df: pd.DataFrame) -> list:
         
         amt = float(row['amount'])
         t_type = "income" if amt > 0 else "expense"
-        categorization = predict_transaction_category(merchant_norm, amount=amt, date=str(row['date'])[:10])
-        cat = categorization["category"]
+        cat = fast_categorize_transaction(merchant_norm)
         
         transactions.append({
             "date": str(row['date'])[:10],

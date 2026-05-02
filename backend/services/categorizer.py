@@ -100,6 +100,10 @@ def _rule_based_fallback(description: str) -> str:
     return "Other"
 
 
+def fast_categorize_transaction(description: str) -> str:
+    return _rule_based_fallback(description)
+
+
 def _make_classifier() -> XGBClassifier:
     return XGBClassifier(
         n_estimators=120,

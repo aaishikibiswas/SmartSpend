@@ -118,34 +118,36 @@ export default function BillReminders() {
         <span className="rounded-md bg-rose-500/10 px-2 py-1 text-[10px] font-semibold text-rose-400">{actionLabel}</span>
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-4 grid grid-cols-[minmax(0,1.2fr)_110px_110px_44px] gap-2">
+      <form onSubmit={handleSubmit} className="mb-4 space-y-2">
         <input
           value={form.name}
           onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
           placeholder="Bill name"
-          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
+          className="h-10 w-full rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
         />
-        <input
-          value={form.amount}
-          onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
-          placeholder="Amount"
-          inputMode="decimal"
-          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
-        />
-        <input
-          value={form.due}
-          onChange={(event) => setForm((current) => ({ ...current, due: event.target.value }))}
-          placeholder="Due in 3 days"
-          className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
-        />
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#7B6CF6] text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60"
-          aria-label="Add bill reminder"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] gap-2">
+          <input
+            value={form.amount}
+            onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
+            placeholder="Amount"
+            inputMode="decimal"
+            className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
+          />
+          <input
+            value={form.due}
+            onChange={(event) => setForm((current) => ({ ...current, due: event.target.value }))}
+            type="date"
+            className="h-10 rounded-xl border border-white/8 bg-white/5 px-3 text-[12px] text-white outline-none placeholder:text-[#6D769B] focus:border-violet-400/60"
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-[#7B6CF6] text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Add bill reminder"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       </form>
 
       {error ? <p className="mb-3 text-[11px] font-medium text-rose-300">{error}</p> : null}

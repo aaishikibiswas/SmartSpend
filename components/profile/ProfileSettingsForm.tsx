@@ -9,9 +9,13 @@ import { apiClient, type AuthUser } from "@/lib/api-client";
 
 export default function ProfileSettingsForm({ initialUser }: { initialUser: AuthUser }) {
   const router = useRouter();
-  const { setUser, logout } = useAuth();
+  const { setUser, logout, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(initialUser.full_name);
   const [plan, setPlan] = useState(initialUser.plan);
+  const [preferredCurrency, setPreferredCurrency] = useState(initialUser.preferred_currency || "INR");
+  const [timezone, setTimezone] = useState(initialUser.timezone || "Asia/Kolkata");
+  const [city, setCity] = useState(initialUser.city || "");
+  const [occupation, setOccupation] = useState(initialUser.occupation || "");
   const [status, setStatus] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -20,7 +24,14 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
     setStatus("");
     setIsSaving(true);
     try {
-      const response = await apiClient.updateProfile({ full_name: fullName, plan });
+      const response = await apiClient.updateProfile({
+        full_name: fullName,
+        plan,
+        preferred_currency: preferredCurrency,
+        timezone,
+        city,
+        occupation,
+      });
       setUser(response.data);
       setStatus("Profile updated successfully.");
       router.refresh();
@@ -58,10 +69,55 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
           />
         </label>
         <label className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Email</span>
+          <input
+            value={initialUser.email}
+            readOnly
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#0f172b] px-4 text-sm text-[#8f9cc0] outline-none"
+          />
+        </label>
+        <label className="space-y-2">
           <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Plan</span>
           <input
             value={plan}
             onChange={(event) => setPlan(event.target.value)}
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+          />
+        </label>
+        <label className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Preferred Currency</span>
+          <select
+            value={preferredCurrency}
+            onChange={(event) => setPreferredCurrency(event.target.value)}
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+          >
+            <option value="INR">INR - Indian Rupee</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="GBP">GBP - British Pound</option>
+          </select>
+        </label>
+        <label className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Timezone</span>
+          <input
+            value={timezone}
+            onChange={(event) => setTimezone(event.target.value)}
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+          />
+        </label>
+        <label className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">City</span>
+          <input
+            value={city}
+            onChange={(event) => setCity(event.target.value)}
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+          />
+        </label>
+        <label className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Occupation</span>
+          <input
+            value={occupation}
+            onChange={(event) => setOccupation(event.target.value)}
             className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
           />
         </label>
@@ -70,6 +126,13 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
       {status ? <p className="mt-4 text-sm text-[#b8c2e7]">{status}</p> : null}
 
       <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => void refreshUser()}
+          className="rounded-xl border border-white/10 bg-[#141f38] px-4 py-2 text-sm font-semibold text-[#dee5ff] transition hover:bg-[#1a2746]"
+        >
+          Refresh Profile
+        </button>
         <button
           type="button"
           onClick={() => router.push("/login")}
@@ -88,4 +151,3 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
     </form>
   );
 }
-

@@ -30,7 +30,7 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div id="ai-recommendations" className="grid gap-6 scroll-mt-28 lg:grid-cols-3">
         {cards.map((card) => (
           <div key={card.title} className="glass-card panel-shell p-6">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8B5CF6]/10 text-[#b89cff]">

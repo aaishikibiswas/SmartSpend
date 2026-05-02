@@ -1,9 +1,13 @@
-import os
-import time
+import asyncio
+import json
 import logging
+import os
+import threading
+import time
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from starlette.requests import Request
 from backend.models.train import train_regression_model
 from backend.logging_config import setup_logging
@@ -101,12 +105,15 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 def warm_up_models():
-    try:
-        transactions = Storage.get_transactions()
-        if not transactions.empty:
-            train_regression_model(transactions)
-    except Exception:
-        pass
+    def _run_training() -> None:
+        try:
+            transactions = Storage.get_transactions()
+            if not transactions.empty:
+                train_regression_model(transactions)
+        except Exception:
+            logger.exception("Background model warm-up failed")
+
+    threading.Thread(target=_run_training, daemon=True).start()
 
 
 @app.websocket("/ws")
@@ -128,3 +135,43 @@ async def websocket_endpoint(websocket: WebSocket):
         websocket_manager.disconnect(websocket)
     except Exception:
         websocket_manager.disconnect(websocket)
+
+
+@app.get("/sse")
+async def sse_endpoint(request: Request, token: str = ""):
+    user = Storage.get_user_by_session(token)
+    if user is None:
+        return StreamingResponse(
+            iter([f"event: error\ndata: {json.dumps({'message': 'Authentication required.'})}\n\n"]),
+            status_code=401,
+            media_type="text/event-stream",
+        )
+
+    async def event_generator():
+        connection_id, queue = websocket_manager.connect_sse()
+        try:
+            snapshot = get_current_snapshot()
+            snapshot["user"] = user
+            yield f"event: {snapshot.get('type', 'snapshot')}\ndata: {json.dumps(snapshot)}\n\n"
+
+            while True:
+                if await request.is_disconnected():
+                    break
+
+                try:
+                    message = await asyncio.wait_for(queue.get(), timeout=15)
+                    yield f"event: {message.get('type', 'update')}\ndata: {json.dumps(message)}\n\n"
+                except TimeoutError:
+                    yield ": keep-alive\n\n"
+        finally:
+            websocket_manager.disconnect_sse(connection_id)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

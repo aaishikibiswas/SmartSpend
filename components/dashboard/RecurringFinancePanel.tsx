@@ -8,7 +8,8 @@ import { apiClient, type EmiItem, type EmiSummary, type SubscriptionCreatePayloa
 type EmiForm = {
   name: string;
   total_amount: string;
-  monthly_emi: string;
+  installment_amount: string;
+  installment_frequency: "Monthly" | "Yearly";
   remaining_months: string;
   interest_rate: string;
   due_date: string;
@@ -17,7 +18,8 @@ type EmiForm = {
 const INITIAL_EMI_FORM: EmiForm = {
   name: "",
   total_amount: "",
-  monthly_emi: "",
+  installment_amount: "",
+  installment_frequency: "Monthly",
   remaining_months: "",
   interest_rate: "",
   due_date: "",
@@ -76,7 +78,10 @@ export default function RecurringFinancePanel({
       const response = await apiClient.addEmi({
         name: form.name,
         total_amount: Number(form.total_amount),
-        monthly_emi: Number(form.monthly_emi),
+        monthly_emi:
+          form.installment_frequency === "Yearly"
+            ? Number(form.installment_amount) / 12
+            : Number(form.installment_amount),
         remaining_months: Number(form.remaining_months),
         interest_rate: Number(form.interest_rate || 0),
         due_date: form.due_date,
@@ -180,8 +185,8 @@ export default function RecurringFinancePanel({
               <option value="Monthly">Monthly</option>
               <option value="Weekly">Weekly</option>
             </select>
-            <input value={subscriptionForm.last_charge_date} onChange={(event) => setSubscriptionForm((current) => ({ ...current, last_charge_date: event.target.value }))} placeholder="Last charge date" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
-            <input value={subscriptionForm.next_due_date} onChange={(event) => setSubscriptionForm((current) => ({ ...current, next_due_date: event.target.value }))} placeholder="Next due date" className="col-span-2 h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
+            <input type="date" value={subscriptionForm.last_charge_date} onChange={(event) => setSubscriptionForm((current) => ({ ...current, last_charge_date: event.target.value }))} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none" />
+            <input type="date" value={subscriptionForm.next_due_date} onChange={(event) => setSubscriptionForm((current) => ({ ...current, next_due_date: event.target.value }))} className="col-span-2 h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none" />
             <button type="submit" disabled={busyKey === "subscription-add"} className="col-span-2 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#7B6CF6] text-sm font-semibold text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60">
               <Plus className="h-4 w-4" />
               Add Subscription
@@ -220,10 +225,21 @@ export default function RecurringFinancePanel({
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">EMI Management</p>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-2 rounded-2xl border border-white/8 bg-white/5 p-3">
             <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="EMI name" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
-            <input value={form.due_date} onChange={(event) => setForm((current) => ({ ...current, due_date: event.target.value }))} placeholder="2026-04-18" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
+            <input type="date" value={form.due_date} onChange={(event) => setForm((current) => ({ ...current, due_date: event.target.value }))} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none" />
             <input value={form.total_amount} onChange={(event) => setForm((current) => ({ ...current, total_amount: event.target.value }))} placeholder="Total amount" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
-            <input value={form.monthly_emi} onChange={(event) => setForm((current) => ({ ...current, monthly_emi: event.target.value }))} placeholder="Monthly EMI" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
-            <input value={form.remaining_months} onChange={(event) => setForm((current) => ({ ...current, remaining_months: event.target.value }))} placeholder="Remaining months" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
+            <select value={form.installment_frequency} onChange={(event) => setForm((current) => ({ ...current, installment_frequency: event.target.value as "Monthly" | "Yearly" }))} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none">
+              <option value="Monthly">Monthly</option>
+              <option value="Yearly">Yearly</option>
+            </select>
+            <select value={form.remaining_months} onChange={(event) => setForm((current) => ({ ...current, remaining_months: event.target.value }))} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none">
+              <option value="">Remaining months</option>
+              {Array.from({ length: 60 }, (_, i) => i + 1).map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
+            <input value={form.installment_amount} onChange={(event) => setForm((current) => ({ ...current, installment_amount: event.target.value }))} placeholder={`${form.installment_frequency} amount`} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
             <input value={form.interest_rate} onChange={(event) => setForm((current) => ({ ...current, interest_rate: event.target.value }))} placeholder="Interest %" className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none placeholder:text-[#6D769B]" />
             <button type="submit" className="col-span-2 h-10 rounded-xl bg-[#7B6CF6] text-sm font-semibold text-white transition hover:bg-[#8B7DFF]">Add EMI</button>
           </form>

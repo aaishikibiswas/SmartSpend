@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { UploadCloud, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 
@@ -14,7 +13,6 @@ export default function UploadPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const router = useRouter();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -134,15 +132,12 @@ export default function UploadPage() {
               >
                 Upload Another
               </button>
-              <button
-                onClick={() => {
-                  router.push(`/?refresh=${Date.now()}`);
-                  router.refresh();
-                }}
+              <Link
+                href="/?focus=forecast-insights#forecast-insights"
                 className="px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#A78BFA] text-white rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)]"
               >
                 View Insights
-              </button>
+              </Link>
               <Link
                 href="/alerts"
                 className="px-6 py-2.5 bg-transparent border border-[#2A324A] hover:border-[#8B5CF6] text-white rounded-xl font-bold transition-all"

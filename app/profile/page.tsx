@@ -1,4 +1,4 @@
-import { Mail, ShieldCheck, Sparkles, UserCircle2 } from "lucide-react";
+import { Globe2, Mail, MapPin, ShieldCheck, Sparkles, BriefcaseBusiness, UserCircle2 } from "lucide-react";
 import { redirect } from "next/navigation";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
 import { getCurrentUser } from "@/lib/auth-session";
@@ -50,6 +50,38 @@ export default async function ProfilePage() {
           </div>
           <p className="mt-4 text-sm text-[#dee5ff]">{user.plan}</p>
         </div>
+
+        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
+          <div className="flex items-center gap-3 text-[#dee5ff]">
+            <Globe2 className="h-5 w-5 text-[#a3a6ff]" />
+            <h2 className="text-lg font-bold">Timezone</h2>
+          </div>
+          <p className="mt-4 text-sm text-[#dee5ff]">{user.timezone}</p>
+        </div>
+
+        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
+          <div className="flex items-center gap-3 text-[#dee5ff]">
+            <MapPin className="h-5 w-5 text-[#a3a6ff]" />
+            <h2 className="text-lg font-bold">City</h2>
+          </div>
+          <p className="mt-4 text-sm text-[#dee5ff]">{user.city}</p>
+        </div>
+
+        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
+          <div className="flex items-center gap-3 text-[#dee5ff]">
+            <BriefcaseBusiness className="h-5 w-5 text-[#a3a6ff]" />
+            <h2 className="text-lg font-bold">Occupation</h2>
+          </div>
+          <p className="mt-4 text-sm text-[#dee5ff]">{user.occupation}</p>
+        </div>
+
+        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
+          <div className="flex items-center gap-3 text-[#dee5ff]">
+            <Sparkles className="h-5 w-5 text-[#a3a6ff]" />
+            <h2 className="text-lg font-bold">Currency</h2>
+          </div>
+          <p className="mt-4 text-sm text-[#dee5ff]">{user.preferred_currency}</p>
+        </div>
       </section>
 
       <section className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
@@ -61,7 +93,7 @@ export default async function ProfilePage() {
           <li>Your sidebar profile card reflects the signed-in user.</li>
           <li>Your dashboard header greets you by your first name.</li>
           <li>Your session persists with secure HTTP-only cookies until logout.</li>
-          <li>Your WebSocket dashboard updates stay tied to your active session.</li>
+          <li>Your live SSE and WebSocket dashboard updates stay tied to your active session.</li>
         </ul>
       </section>
 

@@ -71,7 +71,9 @@ Environment=NEXT_PUBLIC_BACKEND_API_BASE=http://$BACKEND_HOST:$BACKEND_PORT
 Environment=NEXT_PUBLIC_BACKEND_WS_BASE=ws://$BACKEND_HOST:$BACKEND_PORT
 Environment=APP_URL=$APP_URL
 Environment=NEXT_PUBLIC_APP_URL=$APP_URL
-ExecStart=/usr/bin/npm run start -- --hostname 127.0.0.1 --port $FRONTEND_PORT
+Environment=PORT=$FRONTEND_PORT
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=5
 

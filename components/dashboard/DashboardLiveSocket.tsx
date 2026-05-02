@@ -19,14 +19,74 @@ function getWebSocketUrl(token: string) {
   return `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
 }
 
+function getEventSourceUrl(token: string) {
+  const configuredBase = process.env.NEXT_PUBLIC_BACKEND_API_BASE?.replace(/\/+$/, "");
+
+  if (configuredBase) {
+    return `${configuredBase}/sse?token=${encodeURIComponent(token)}`;
+  }
+
+  if (typeof window === "undefined") {
+    return `http://127.0.0.1:8001/sse?token=${encodeURIComponent(token)}`;
+  }
+
+  if (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") {
+    return `http://127.0.0.1:8001/sse?token=${encodeURIComponent(token)}`;
+  }
+
+  return `${window.location.origin.replace(/\/+$/, "")}/sse?token=${encodeURIComponent(token)}`;
+}
+
 export default function DashboardLiveSocket() {
   const router = useRouter();
 
   useEffect(() => {
     let socket: WebSocket | null = null;
+    let eventSource: EventSource | null = null;
     let reconnectTimer: number | null = null;
     let refreshTimer: number | null = null;
     let disposed = false;
+    let usingFallbackSocket = false;
+
+    const handleMessage = (message: Record<string, unknown>, transport: "sse" | "ws") => {
+      window.dispatchEvent(new CustomEvent("smartspend:live-update", { detail: { ...message, transport } }));
+      if (message?.type && typeof message.type === "string") {
+        window.dispatchEvent(new CustomEvent(`smartspend:live-${message.type}`, { detail: { ...message, transport } }));
+        window.dispatchEvent(new CustomEvent(`smartspend:ws-${message.type}`, { detail: { ...message, transport } }));
+      }
+
+      if (message?.type === "update" || message?.type === "new_transaction" || message?.type === "alert_trigger" || message?.type === "prediction_update") {
+        if (refreshTimer) window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => {
+          router.refresh();
+        }, 250);
+      }
+    };
+
+    const connectWebSocket = (token: string) => {
+      usingFallbackSocket = true;
+      socket = new WebSocket(getWebSocketUrl(token));
+
+      socket.onmessage = (event) => {
+        try {
+          handleMessage(JSON.parse(event.data), "ws");
+        } catch (error) {
+          console.error("WebSocket message parse failed", error);
+        }
+      };
+
+      socket.onclose = () => {
+        if (!disposed) {
+          reconnectTimer = window.setTimeout(() => {
+            void connect();
+          }, 1500);
+        }
+      };
+
+      socket.onerror = () => {
+        socket?.close();
+      };
+    };
 
     const connect = async () => {
       let token = "";
@@ -48,38 +108,39 @@ export default function DashboardLiveSocket() {
         return;
       }
 
-      socket = new WebSocket(getWebSocketUrl(token));
+      try {
+        eventSource = new EventSource(getEventSourceUrl(token));
+        usingFallbackSocket = false;
 
-      socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          window.dispatchEvent(new CustomEvent("smartspend:ws-update", { detail: message }));
-          if (message?.type) {
-            window.dispatchEvent(new CustomEvent(`smartspend:ws-${message.type}`, { detail: message }));
+        eventSource.onmessage = (event) => {
+          try {
+            handleMessage(JSON.parse(event.data), "sse");
+          } catch (error) {
+            console.error("SSE message parse failed", error);
           }
+        };
 
-          if (message?.type === "update" || message?.type === "new_transaction" || message?.type === "alert_trigger" || message?.type === "prediction_update") {
-            if (refreshTimer) window.clearTimeout(refreshTimer);
-            refreshTimer = window.setTimeout(() => {
-              router.refresh();
-            }, 250);
+        for (const eventName of ["snapshot", "update", "new_transaction", "alert_trigger", "prediction_update"]) {
+          eventSource.addEventListener(eventName, (event) => {
+            try {
+              handleMessage(JSON.parse((event as MessageEvent).data), "sse");
+            } catch (error) {
+              console.error(`SSE ${eventName} parse failed`, error);
+            }
+          });
+        }
+
+        eventSource.onerror = () => {
+          eventSource?.close();
+          eventSource = null;
+          if (!disposed && !usingFallbackSocket) {
+            connectWebSocket(token);
           }
-        } catch (error) {
-          console.error("WebSocket message parse failed", error);
-        }
-      };
-
-      socket.onclose = () => {
-        if (!disposed) {
-          reconnectTimer = window.setTimeout(() => {
-            void connect();
-          }, 1500);
-        }
-      };
-
-      socket.onerror = () => {
-        socket?.close();
-      };
+        };
+      } catch (error) {
+        console.error("SSE connection failed, falling back to WebSocket", error);
+        connectWebSocket(token);
+      }
     };
 
     void connect();
@@ -88,6 +149,7 @@ export default function DashboardLiveSocket() {
       disposed = true;
       if (refreshTimer) window.clearTimeout(refreshTimer);
       if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      eventSource?.close();
       socket?.close();
     };
   }, [router]);

@@ -11,3 +11,8 @@ shap
 numpy
 python-multipart
 pydantic
+httpx
+faiss-cpu
+sse-starlette
+pymongo
+mongomock

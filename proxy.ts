@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = new Set(["/login", "/register"]);
+const PROTECTED_PATHS = ["/profile", "/settings", "/simulator"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,6 +11,13 @@ export function proxy(request: NextRequest) {
   }
 
   const hasSession = Boolean(request.cookies.get("smartspend_session")?.value);
+  const isProtected = PROTECTED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+  if (!hasSession && isProtected) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
   if (!hasSession && !PUBLIC_ROUTES.has(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));

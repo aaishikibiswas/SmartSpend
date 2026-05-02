@@ -4,21 +4,21 @@
   "evaluation": {
     "data_split": {
       "strategy": "stratified_train_validation_test",
-      "train_rows": 345,
+      "train_rows": 343,
       "validation_rows": 115,
       "test_rows": 115
     },
     "validation": {
-      "accuracy": 0.887,
-      "precision_macro": 0.925,
-      "recall_macro": 0.8927,
-      "f1_macro": 0.8971
+      "accuracy": 0.913,
+      "precision_macro": 0.923,
+      "recall_macro": 0.9163,
+      "f1_macro": 0.9183
     },
     "test": {
-      "accuracy": 0.9565,
-      "precision_macro": 0.9635,
-      "recall_macro": 0.9627,
-      "f1_macro": 0.9607
+      "accuracy": 0.8957,
+      "precision_macro": 0.9196,
+      "recall_macro": 0.9052,
+      "f1_macro": 0.9067
     },
     "classes": [
       "Housing",

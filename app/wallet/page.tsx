@@ -26,7 +26,7 @@ export default async function WalletPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6">
+        <div id="savings-health" className="glass-card scroll-mt-28 p-6">
           <Landmark className="w-6 h-6 text-blue-400 mb-3" />
           <p className="text-sm text-gray-400 mb-2">Current Balance</p>
           <p className="text-2xl font-bold text-white">{formatCurrency(metrics.totalBalance)}</p>

@@ -6,7 +6,11 @@ from backend.models.predict import build_daily_expense_series, generate_prophet_
 from backend.services.alert_engine import get_all_alerts
 from backend.services.analytics import get_dashboard_analytics
 from backend.services.budget_engine import get_budget_snapshot
+from backend.services.cashflow_engine import build_cashflow_timeline
+from backend.services.emi_engine import summarize_emis
+from backend.services.expense_classifier import classify_expense_split
 from backend.services.goal_engine import get_all_goals
+from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage, bills_db
 
 
@@ -51,21 +55,30 @@ def _expense_context() -> dict[str, Any]:
 
 def _suggestions() -> list[str]:
     return [
+        "How can I improve my savings this month?",
         "Which category am I spending the most on?",
-        "What is my next predicted expense?",
         "Do I have any budget alerts right now?",
-        "What are my top 3 recent transactions?",
+        "What recurring payments should I review?",
     ]
 
 
-def answer_finance_query(question: str) -> dict[str, Any]:
+def _line_items(items: list[str]) -> str:
+    return "; ".join(item for item in items if item)
+
+
+def answer_finance_query(question: str, history: list[dict[str, str]] | None = None) -> dict[str, Any]:
     q = (question or "").strip()
     lowered = q.lower()
+    history = history or []
 
     metrics = get_dashboard_analytics()
     budget = get_budget_snapshot(Storage.get_transactions())
     alerts = get_all_alerts()
     goals = get_all_goals()
+    subscriptions = get_all_subscriptions(Storage.get_transactions())
+    emi_summary = summarize_emis()
+    expense_split = classify_expense_split(Storage.get_transactions(), subscriptions, emi_summary, bills_db)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
     prediction = predict_next_expense(build_daily_expense_series(Storage.get_transactions()))
     forecast = generate_prophet_forecast(Storage.get_transactions(), days=15)
     ctx = _expense_context()
@@ -75,6 +88,163 @@ def answer_finance_query(question: str) -> dict[str, Any]:
 
     category_aliases = {item["name"].lower(): item["name"] for item in budget["categories"]}
     mentioned_category = next((actual for key, actual in category_aliases.items() if key in lowered), None)
+
+    recent_history = [item for item in history if item.get("text")]
+    last_user_prompt = next((item["text"] for item in reversed(recent_history) if item.get("role") == "user" and item.get("text", "").strip().lower() != lowered), "")
+    last_ai_reply = next((item["text"] for item in reversed(recent_history) if item.get("role") == "ai"), "")
+    follow_up = lowered in {"why", "why?", "how", "how?", "show me how", "show me how?", "what should i do first", "what should i do first?", "what next", "then what", "explain more", "tell me more"}
+
+    if follow_up:
+        reference = f"{last_user_prompt} {last_ai_reply}".lower()
+        if any(token in reference for token in ["more money", "income", "save", "savings", "surplus"]):
+            steps: list[str] = []
+            if top_category:
+                steps.append(f"cap {top_category[0]} spending first")
+            if subscriptions:
+                steps.append("remove or downgrade one recurring subscription this week")
+            if emi_summary["monthly_load"] > 0:
+                steps.append("do not commit to new discretionary spending before EMI dates")
+            steps.append("move a fixed amount to savings right after income lands")
+            return {
+                "answer": "Start with this order: " + "; ".join(steps[:4]) + ". If you want, I can next break this into a weekly action plan from your current numbers.",
+                "suggestions": [
+                    "Give me a weekly action plan",
+                    "Which subscriptions should I review?",
+                    "How much can I safely move to savings?",
+                    "Which category am I spending the most on?",
+                ],
+            }
+        if any(token in reference for token in ["subscription", "recurring"]):
+            return {
+                "answer": "I would start by cancelling the lowest-value recurring payment first, then watch whether that monthly amount can be redirected to savings or your emergency fund instead of getting re-spent.",
+                "suggestions": [
+                    "Which subscriptions should I review?",
+                    "How much can I safely move to savings?",
+                    "What is my monthly EMI load?",
+                    "What does my cash flow look like this month?",
+                ],
+            }
+        if any(token in reference for token in ["emi", "loan"]):
+            return {
+                "answer": "The safest move is to protect EMI cash flow first, then reduce optional variable spending around those due dates. That lowers financial stress faster than making aggressive new commitments.",
+                "suggestions": [
+                    "What does my cash flow look like this month?",
+                    "How much am I spending on fixed expenses?",
+                    "How can I improve my savings this month?",
+                    "Can I afford a new purchase right now?",
+                ],
+            }
+        if any(token in reference for token in ["fixed expense", "variable expense", "expense split"]):
+            return {
+                "answer": "Your flexible control is mainly in the variable side. Fixed expenses change slower, so the faster win is reducing the biggest variable category and recurring non-essential payments first.",
+                "suggestions": [
+                    "Which category am I spending the most on?",
+                    "What recurring payments should I review?",
+                    "Do I have any budget alerts right now?",
+                    "How can I improve my savings this month?",
+                ],
+            }
+
+    if any(token in lowered for token in ["make more money", "increase income", "earn more", "grow income", "more money"]):
+        ideas: list[str] = []
+        if top_category and top_category[1] > max(metrics["totalExpense"] * 0.25, 1):
+            ideas.append(f"trim {top_category[0]} first because it is your biggest leak at {_format_currency(top_category[1])}")
+        if subscriptions:
+            monthly_subscriptions = sum(float(item.get("monthly_cost", 0)) for item in subscriptions)
+            ideas.append(f"review subscriptions worth about {_format_currency(monthly_subscriptions)} per month")
+        if emi_summary["monthly_load"] > 0:
+            ideas.append(f"protect cash flow around your EMI load of {_format_currency(emi_summary['monthly_load'])}")
+        if metrics["netSavings"] > 0:
+            ideas.append(f"redirect at least {_format_currency(max(metrics['netSavings'] * 0.2, 3000))} of this month's surplus into a goal or emergency fund")
+        if budget["global"]["remaining_amount"] > 0:
+            ideas.append(f"use your remaining budget of {_format_currency(budget['global']['remaining_amount'])} more intentionally instead of letting it disappear in small spends")
+        answer = "To improve your finances, focus on higher-impact moves instead of random cuts: " + _line_items(ideas[:4]) + "."
+        return {
+            "answer": answer,
+            "suggestions": [
+                "Which subscriptions should I review?",
+                "How can I reduce my biggest expense category?",
+                "What is my monthly EMI load?",
+                "How much can I safely move to savings?",
+            ],
+        }
+
+    if any(token in lowered for token in ["improve my savings", "save more", "reduce spending", "cut spending", "spend less"]):
+        guidance: list[str] = []
+        if top_category:
+            guidance.append(f"start with {top_category[0]}, where you have spent {_format_currency(top_category[1])}")
+        guidance.append(f"your current daily allowance is {_format_currency(budget['global']['daily_allowance'])}")
+        if alerts:
+            guidance.append(f"resolve your top alert: {alerts[0]['title']}")
+        if subscriptions:
+            guidance.append(f"check recurring subscriptions before cutting essentials")
+        return {
+            "answer": "The fastest way to save more right now is to " + _line_items(guidance[:4]) + ".",
+            "suggestions": [
+                "Which category am I spending the most on?",
+                "Do I have any budget alerts right now?",
+                "What recurring payments should I review?",
+                "What is my next predicted expense?",
+            ],
+        }
+
+    if any(token in lowered for token in ["subscription", "recurring payment", "recurring payments", "subscriptions"]):
+        if not subscriptions:
+            return {"answer": "I do not see any active subscriptions right now.", "suggestions": _suggestions()}
+        top_subscriptions = sorted(subscriptions, key=lambda item: float(item.get("monthly_cost", 0)), reverse=True)[:3]
+        summary = "; ".join(
+            f"{item['name']} at {_format_currency(item['monthly_cost'])} per month, next due {item['next_due_date']}"
+            for item in top_subscriptions
+        )
+        return {
+            "answer": f"Your recurring subscriptions to review are: {summary}.",
+            "suggestions": [
+                "What is my monthly EMI load?",
+                "How much am I spending on fixed expenses?",
+                "Which category am I spending the most on?",
+                "Do I have any budget alerts right now?",
+            ],
+        }
+
+    if "emi" in lowered or "loan" in lowered:
+        if not emi_summary["items"]:
+            return {"answer": "I do not see any EMI liabilities right now.", "suggestions": _suggestions()}
+        top_emi = sorted(emi_summary["items"], key=lambda item: float(item.get("monthly_emi", 0)), reverse=True)[0]
+        return {
+            "answer": f"Your total monthly EMI load is {_format_currency(emi_summary['monthly_load'])}. The largest EMI is {top_emi['name']} at {_format_currency(top_emi['monthly_emi'])} per month with {top_emi['remaining_months']} months remaining.",
+            "suggestions": [
+                "How much am I spending on fixed expenses?",
+                "What recurring payments should I review?",
+                "Can I afford a new purchase right now?",
+                "What does my cash flow look like this month?",
+            ],
+        }
+
+    if "fixed expense" in lowered or "variable expense" in lowered or "expense split" in lowered:
+        return {
+            "answer": f"Your fixed expenses are about {_format_currency(expense_split['fixed_total'])} ({round(expense_split['fixed_percent'])}%) and your variable expenses are about {_format_currency(expense_split['variable_total'])} ({round(expense_split['variable_percent'])}%).",
+            "suggestions": [
+                "What recurring payments should I review?",
+                "How can I improve my savings this month?",
+                "Which category am I spending the most on?",
+                "Do I have any budget alerts right now?",
+            ],
+        }
+
+    if "cash flow" in lowered or "upcoming payments" in lowered:
+        upcoming = cashflow.get("upcoming_payments", [])[:3]
+        if not upcoming:
+            return {"answer": "I do not see any upcoming bills, subscriptions, or EMIs right now.", "suggestions": _suggestions()}
+        summary = "; ".join(f"{item['name']} on {item['date']} for {_format_currency(item['amount'])}" for item in upcoming)
+        return {
+            "answer": f"Your nearest scheduled outflows are: {summary}. Your monthly projected outflow is {_format_currency(cashflow['monthly_outflow_projection'])}.",
+            "suggestions": [
+                "What is my monthly EMI load?",
+                "Do I have any bill reminders right now?",
+                "Can I afford a new purchase right now?",
+                "How can I improve my savings this month?",
+            ],
+        }
 
     if not q:
         return {
@@ -197,9 +367,10 @@ def answer_finance_query(question: str) -> dict[str, Any]:
 
     return {
         "answer": (
-            f"From your current data: income is {_format_currency(metrics['totalIncome'])}, expenses are {_format_currency(metrics['totalExpense'])}, "
-            f"net savings are {_format_currency(metrics['netSavings'])}, and your next predicted expense is {_format_currency(prediction['predicted_expense'])}. "
-            "Ask me about top categories, alerts, goals, recent transactions, bills, budgets, or forecasts."
+            f"Here is the quickest summary from your live SmartSpend data: income {_format_currency(metrics['totalIncome'])}, expenses {_format_currency(metrics['totalExpense'])}, "
+            f"net savings {_format_currency(metrics['netSavings'])}, monthly budget left {_format_currency(budget['global']['remaining_amount'])}, "
+            f"next predicted expense {_format_currency(prediction['predicted_expense'])}, and fixed expense share {round(expense_split['fixed_percent'])}%. "
+            "Ask me something specific about savings, subscriptions, EMIs, alerts, bills, affordability, or your top spending areas and I will answer directly from your data."
         ),
         "suggestions": _suggestions(),
     }

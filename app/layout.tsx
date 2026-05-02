@@ -17,8 +17,8 @@ export default async function RootLayout({
   const user = await getCurrentUser();
 
   return (
-    <html lang="en" className="min-h-full antialiased">
-      <body className="min-h-screen bg-[#0B0E14] px-2 py-2 text-white [font-family:Inter,Segoe_UI,system-ui,sans-serif] lg:px-3 lg:py-3">
+    <html lang="en" className="min-h-full antialiased" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#0B0E14] px-2 py-2 text-white [font-family:Inter,Segoe_UI,system-ui,sans-serif] lg:px-3 lg:py-3" suppressHydrationWarning>
         <AuthProvider initialUser={user}>
           <AppShell>{children}</AppShell>
         </AuthProvider>

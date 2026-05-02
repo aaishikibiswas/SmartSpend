@@ -22,6 +22,11 @@ function formatCurrency(value: number) {
 
 export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion }) {
   const [goals, setGoals] = useState<GoalItem[]>([]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [name, setName] = useState("");
+  const [target, setTarget] = useState("");
+  const [daysLeft, setDaysLeft] = useState("30");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -36,6 +41,36 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
 
     load();
   }, []);
+
+  async function handleCreateGoal() {
+    setError("");
+    const normalizedName = name.trim();
+    const targetValue = Number(target);
+    const daysValue = Number(daysLeft);
+
+    if (!normalizedName || !Number.isFinite(targetValue) || targetValue <= 0 || !Number.isFinite(daysValue) || daysValue <= 0) {
+      setError("Enter a valid goal name, target amount, and timeline.");
+      return;
+    }
+
+    try {
+      const created = await apiClient.addGoal({
+        name: normalizedName,
+        target: targetValue,
+        achieved: 0,
+        daysLeft: Math.round(daysValue),
+        color: "bg-[#8B5CF6]",
+      });
+      setGoals((current) => [created.data, ...current].slice(0, 3));
+      setName("");
+      setTarget("");
+      setDaysLeft("30");
+      setShowCreate(false);
+      window.dispatchEvent(new Event("smartspend:goals-updated"));
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "Unable to create goal right now.");
+    }
+  }
 
   return (
     <section className="glass-card rounded-[2rem] p-8">
@@ -102,9 +137,20 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
           <span className="font-semibold text-[#dee5ff]">Suggested contribution:</span> Rs{Math.round(suggestion.recommendedContribution).toLocaleString()}
           <p className="mt-1">{suggestion.message}</p>
         </div>
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#40485d]/30 bg-[#192540] py-3 text-xs font-bold text-[#dee5ff] transition-colors hover:bg-[#1f2b49]">
+        <button onClick={() => setShowCreate((current) => !current)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#40485d]/30 bg-[#192540] py-3 text-xs font-bold text-[#dee5ff] transition-colors hover:bg-[#1f2b49]">
           <PlusCircle className="h-4 w-4" /> Create New Goal
         </button>
+        {showCreate ? (
+          <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Goal name" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={target} onChange={(event) => setTarget(event.target.value)} type="number" min="1" placeholder="Target amount" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={daysLeft} onChange={(event) => setDaysLeft(event.target.value)} type="number" min="1" placeholder="Days remaining" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+            <button type="button" onClick={() => void handleCreateGoal()} className="w-full rounded-xl bg-[#7B6CF6] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#8B7DFF]">
+              Add Goal
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

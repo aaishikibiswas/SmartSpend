@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BellRing, CheckCircle2, TriangleAlert } from "lucide-react";
+import { BellRing, CheckCircle2, TriangleAlert, X } from "lucide-react";
 import type { AlertItem, TransactionItem } from "@/lib/api-client";
 
 type Notification = {
@@ -39,16 +39,9 @@ export default function LiveNotificationCenter() {
   const flushTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const dismissLater = (id: number) => {
-      window.setTimeout(() => {
-        setItems((current) => current.filter((item) => item.id !== id));
-      }, 4200);
-    };
-
     const push = (item: Omit<Notification, "id">) => {
       const id = Date.now() + Math.floor(Math.random() * 1000);
-      setItems((current) => [{ id, ...item }, ...current].slice(0, 4));
-      dismissLater(id);
+      setItems((current) => [{ id, ...item }, ...current].slice(0, 6));
     };
 
     const flushTransactions = () => {
@@ -96,6 +89,8 @@ export default function LiveNotificationCenter() {
       });
     };
 
+    window.addEventListener("smartspend:live-new_transaction", onTransaction as EventListener);
+    window.addEventListener("smartspend:live-alert_trigger", onAlert as EventListener);
     window.addEventListener("smartspend:ws-new_transaction", onTransaction as EventListener);
     window.addEventListener("smartspend:ws-alert_trigger", onAlert as EventListener);
 
@@ -103,6 +98,8 @@ export default function LiveNotificationCenter() {
       if (flushTimerRef.current) {
         window.clearTimeout(flushTimerRef.current);
       }
+      window.removeEventListener("smartspend:live-new_transaction", onTransaction as EventListener);
+      window.removeEventListener("smartspend:live-alert_trigger", onAlert as EventListener);
       window.removeEventListener("smartspend:ws-new_transaction", onTransaction as EventListener);
       window.removeEventListener("smartspend:ws-alert_trigger", onAlert as EventListener);
     };
@@ -127,6 +124,14 @@ export default function LiveNotificationCenter() {
                 <p className="text-sm font-semibold text-[#edf2ff]">{item.title}</p>
                 <p className="mt-1 text-xs leading-5 text-[#a8b1ce]">{item.message}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
+                className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#9da8cb] transition hover:border-white/20 hover:text-white"
+                aria-label={`Dismiss ${item.title}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </div>
         );
@@ -134,4 +139,3 @@ export default function LiveNotificationCenter() {
     </div>
   );
 }
-

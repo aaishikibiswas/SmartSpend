@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from backend.services.pipeline import process_uploaded_transactions
@@ -21,7 +23,7 @@ async def upload_statement(file: UploadFile = File(...)):
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type.")
 
-        await process_uploaded_transactions(transactions)
+        await asyncio.wait_for(process_uploaded_transactions(transactions), timeout=8)
 
         return {
             "status": 200,

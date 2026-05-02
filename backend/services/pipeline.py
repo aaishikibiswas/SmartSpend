@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import asyncio
+import threading
+
 import pandas as pd
 
-from backend.models.predict import build_daily_expense_series, generate_prophet_forecast, predict_next_expense
+from backend.models.predict import build_daily_expense_series, predict_next_expense
 from backend.models.train import train_regression_model
 from backend.services.alert_engine import generate_alerts, get_all_alerts
 from backend.services.anomaly_engine import latest_anomaly_summary
@@ -49,7 +52,61 @@ def _refresh_financial_state(transactions_df: pd.DataFrame) -> None:
     sync_budget_with_transactions(transactions_df)
     Storage.reset_alerts()
     generate_alerts(transactions_df)
-    train_regression_model(transactions_df)
+
+    # Keep the request path fast and train in the background after core state updates.
+    threading.Thread(target=train_regression_model, args=(transactions_df.copy(),), daemon=True).start()
+
+
+async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: list[dict] | None = None) -> None:
+    if transactions:
+        for transaction in transactions:
+            await websocket_manager.broadcast(
+                {
+                    "type": "new_transaction",
+                    "data": {
+                        "source": source,
+                        "transaction": transaction,
+                    },
+                }
+            )
+
+    if snapshot["data"]["alerts"]:
+        await websocket_manager.broadcast(
+            {
+                "type": "alert_trigger",
+                "data": {
+                    "source": source,
+                    "alerts": snapshot["data"]["alerts"],
+                    "latest": snapshot["data"]["alerts"][0],
+                },
+            }
+        )
+
+    await websocket_manager.broadcast(
+        {
+            "type": "prediction_update",
+            "data": {
+                "source": source,
+                "prediction": snapshot["data"]["prediction"],
+            },
+        }
+    )
+
+    await websocket_manager.broadcast(snapshot)
+
+
+async def _complete_uploaded_refresh(transactions: list[dict]) -> None:
+    current_df = Storage.get_transactions()
+    _refresh_financial_state(current_df)
+    snapshot = _build_snapshot(latest_transaction=transactions[-1] if transactions else None, event_type="update", source="upload")
+    await _broadcast_post_refresh(snapshot, "upload", transactions)
+
+
+async def _complete_live_refresh(transaction: dict) -> None:
+    current_df = Storage.get_transactions()
+    _refresh_financial_state(current_df)
+    snapshot = _build_snapshot(latest_transaction=transaction, event_type="update", source="stream")
+    await _broadcast_post_refresh(snapshot, "stream")
 
 
 def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> dict:
@@ -62,8 +119,8 @@ def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "u
     networth = calculate_networth(metrics, emi_summary)
     cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
     prediction = {
-        "forecast": generate_prophet_forecast(transactions, days=15),
-        "next_expense_prediction": predict_next_expense(build_daily_expense_series(transactions)),
+        "forecast": {"peakAlert": {"day": "Refreshing...", "amount": 0}, "series": []},
+        "next_expense_prediction": predict_next_expense(build_daily_expense_series(transactions), include_prophet=False),
     }
     anomaly = latest_anomaly_summary(transactions)
     behavior = build_behavior_profile(transactions)
@@ -105,50 +162,14 @@ async def broadcast_snapshot(latest_transaction: dict | None = None, event_type:
 async def process_uploaded_transactions(transactions: list[dict]) -> None:
     Storage.replace_transactions(transactions)
     current_df = Storage.get_transactions()
-    _refresh_financial_state(current_df)
-    snapshot = _build_snapshot(latest_transaction=transactions[-1] if transactions else None, event_type="update", source="upload")
-
-    for transaction in transactions:
-        await websocket_manager.broadcast(
-            {
-                "type": "new_transaction",
-                "data": {
-                    "source": "upload",
-                    "transaction": transaction,
-                },
-            }
-        )
-
-    if snapshot["data"]["alerts"]:
-        await websocket_manager.broadcast(
-            {
-                "type": "alert_trigger",
-                "data": {
-                    "source": "upload",
-                    "alerts": snapshot["data"]["alerts"],
-                    "latest": snapshot["data"]["alerts"][0],
-                },
-            }
-        )
-
-    await websocket_manager.broadcast(
-        {
-            "type": "prediction_update",
-            "data": {
-                "source": "upload",
-                "prediction": snapshot["data"]["prediction"],
-            },
-        }
-    )
-
-    await websocket_manager.broadcast(snapshot)
+    sync_budget_with_transactions(current_df)
+    asyncio.create_task(_complete_uploaded_refresh(transactions))
 
 
 async def process_live_transaction(transaction: dict) -> None:
     Storage.add_transaction(transaction)
     current_df = Storage.get_transactions()
-    _refresh_financial_state(current_df)
-    snapshot = _build_snapshot(latest_transaction=transaction, event_type="update", source="stream")
+    sync_budget_with_transactions(current_df)
 
     await websocket_manager.broadcast(
         {
@@ -159,29 +180,7 @@ async def process_live_transaction(transaction: dict) -> None:
             },
         }
     )
-    if snapshot["data"]["alerts"]:
-        await websocket_manager.broadcast(
-            {
-                "type": "alert_trigger",
-                "data": {
-                    "source": "stream",
-                    "alerts": snapshot["data"]["alerts"],
-                    "latest": snapshot["data"]["alerts"][0],
-                },
-            }
-        )
-
-    await websocket_manager.broadcast(
-        {
-            "type": "prediction_update",
-            "data": {
-                "source": "stream",
-                "prediction": snapshot["data"]["prediction"],
-            },
-        }
-    )
-
-    await websocket_manager.broadcast(snapshot)
+    asyncio.create_task(_complete_live_refresh(transaction))
 
 
 def get_current_snapshot() -> dict:

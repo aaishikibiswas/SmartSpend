@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bell, LayoutDashboard, LogIn, LogOut, PieChart, ReceiptText, Settings, Target, UserCircle2, Wallet } from "lucide-react";
+import { BarChart3, Bell, LayoutDashboard, LogOut, PieChart, ReceiptText, Target, UserCircle2, Wallet } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import SidebarFinancialSimulator from "@/components/SidebarFinancialSimulator";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -14,7 +13,7 @@ const navItems = [
   { name: "Budget", href: "/budget", icon: PieChart },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Alerts", href: "/alerts", icon: Bell },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Simulator", href: "/simulator", icon: BarChart3 },
 ];
 
 export default function Sidebar() {
@@ -25,7 +24,7 @@ export default function Sidebar() {
   const subtitle = user?.plan || "Sign in to sync";
 
   return (
-    <aside className="z-50 w-full border-b border-[#dee5ff]/10 bg-[#060e20] lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
+    <aside className="z-50 w-full border-b border-[#dee5ff]/10 bg-[#060e20] lg:fixed lg:inset-y-0 lg:left-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
       <div className="flex h-full flex-col justify-between">
         <div>
           <div className="p-8">
@@ -56,10 +55,6 @@ export default function Sidebar() {
               );
             })}
           </nav>
-
-          <div className="px-4 pb-4">
-            <SidebarFinancialSimulator />
-          </div>
         </div>
 
         <div className="p-6">
@@ -92,15 +87,7 @@ export default function Sidebar() {
                     <LogOut className="h-3.5 w-3.5" />
                   </button>
                 </>
-              ) : (
-                <Link
-                  href="/login"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#40485d]/30 bg-[#11192c] px-3 py-2 text-[11px] font-semibold text-[#dee5ff] transition-colors hover:bg-[#182238]"
-                >
-                  <LogIn className="h-3.5 w-3.5" />
-                  Log In
-                </Link>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

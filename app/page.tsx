@@ -12,6 +12,7 @@ import HealthScoreCard from "@/components/dashboard/HealthScoreCard";
 import SmartAdvice from "@/components/dashboard/SmartAdvice";
 import DashboardLiveSocket from "@/components/dashboard/DashboardLiveSocket";
 import LiveNotificationCenter from "@/components/dashboard/LiveNotificationCenter";
+import DashboardDeepLinkNavigator from "@/components/dashboard/DashboardDeepLinkNavigator";
 import RecurringFinancePanel from "@/components/dashboard/RecurringFinancePanel";
 import NetWorthCard from "@/components/dashboard/NetWorthCard";
 import CashFlowTimeline from "@/components/dashboard/CashFlowTimeline";
@@ -59,6 +60,7 @@ export default async function Dashboard() {
 
   return (
     <div className="-mx-4 -my-5 pb-36 md:-mx-6 md:-my-6 xl:-mx-7 xl:-my-6">
+      <DashboardDeepLinkNavigator />
       <DashboardLiveSocket />
       <LiveNotificationCenter />
       <Header financialPersonality={metrics.financialPersonality} />
@@ -80,37 +82,53 @@ export default async function Dashboard() {
 
         <section className="grid grid-cols-12 gap-8">
           <div className="col-span-12 space-y-8 lg:col-span-8">
-            <BudgetingPanel
-              key={`${budgeting.global.monthly_budget}-${budgeting.global.weekly_budget}-${budgeting.categories.map((item) => `${item.name}:${item.allocated_amount}:${item.frequency}`).join("|")}`}
-              categories={categoryBreakdown}
-              budgetSnapshot={budgeting}
-            />
+            <section id="budget-panel" className="scroll-mt-28">
+              <BudgetingPanel
+                key={`${budgeting.global.monthly_budget}-${budgeting.global.weekly_budget}-${budgeting.categories.map((item) => `${item.name}:${item.allocated_amount}:${item.frequency}`).join("|")}`}
+                categories={categoryBreakdown}
+                budgetSnapshot={budgeting}
+              />
+            </section>
 
-            <ForecastChart />
+            <section id="forecast-insights" className="scroll-mt-28">
+              <ForecastChart />
+            </section>
 
-            <SmartAdvice metrics={metrics} budgetFeedback={budgeting.feedback} goalSuggestion={goalSuggestion} />
+            <section id="smart-advice" className="scroll-mt-28">
+              <SmartAdvice metrics={metrics} budgetFeedback={budgeting.feedback} goalSuggestion={goalSuggestion} />
+            </section>
 
             <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,0.9fr)_260px]">
               <CategoryChart dataOverride={categoryBreakdown} />
               <BillReminders />
             </div>
 
-            <TransactionHistory dataOverride={recentTransactions} />
-
-            <RecurringFinancePanel subscriptions={subscriptions} emiSummary={emi} />
-
-            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-              <CashFlowTimeline data={cashflow} />
-              <ExpenseSplitCard data={expenseSplit} />
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+              <div className="space-y-8">
+                <TransactionHistory dataOverride={recentTransactions} />
+                <section id="recurring-liabilities" className="scroll-mt-28">
+                  <RecurringFinancePanel subscriptions={subscriptions} emiSummary={emi} />
+                </section>
+              </div>
+              <div className="space-y-8 lg:sticky lg:top-5 lg:self-start">
+                <CashFlowTimeline data={cashflow} />
+                <ExpenseSplitCard data={expenseSplit} />
+              </div>
             </div>
           </div>
 
           <div className="col-span-12 space-y-8 lg:col-span-4">
-            <HealthScoreCard score={metrics.healthScore} savingsRatio={metrics.savingsRatio} creditScore={metrics.creditScore} />
+            <section id="health-score" className="scroll-mt-28">
+              <HealthScoreCard score={metrics.healthScore} savingsRatio={metrics.savingsRatio} creditScore={metrics.creditScore} />
+            </section>
             <NetWorthCard data={networth} />
-            <AlertsPanel />
+            <section id="alerts-panel" className="scroll-mt-28">
+              <AlertsPanel />
+            </section>
             <PriorityPanel items={priorities} />
-            <GoalTracker suggestion={goalSuggestion} />
+            <section id="goal-tracker" className="scroll-mt-28">
+              <GoalTracker suggestion={goalSuggestion} />
+            </section>
           </div>
         </section>
       </div>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -59,6 +60,8 @@ def train_mode(input_path: Path, model_path: Path, metrics_path: Path):
 
     model = build_model(window_size, feature_count)
     model.fit(train_X, train_y, validation_data=(val_X, val_y), epochs=25, batch_size=8, verbose=0)
+    if model_path.exists():
+        shutil.rmtree(model_path, ignore_errors=True)
     model.export(model_path)
 
     val_pred = model.predict(val_X, verbose=0).reshape(-1)

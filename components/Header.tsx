@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Upload } from "lucide-react";
+import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Settings, Upload } from "lucide-react";
 
 function formatRange(now: Date) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -18,9 +18,10 @@ function formatRange(now: Date) {
 }
 
 export default function Header({ financialPersonality }: { financialPersonality: string }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const firstName = user?.full_name?.split(" ")[0] || "there";
   const [now, setNow] = useState<Date | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     const syncClock = () => setNow(new Date());
@@ -68,20 +69,68 @@ export default function Header({ financialPersonality }: { financialPersonality:
 
           <div className="mx-2 hidden h-8 w-px bg-[#40485d]/30 md:block" />
 
+          <Link
+            href="/settings"
+            aria-label="Open settings"
+            className="rounded-full p-2 transition-all hover:bg-[#192540] focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50"
+          >
+            <Settings className="h-5 w-5 text-[#a3aac4]" />
+          </Link>
+
           <button className="relative rounded-full p-2 transition-all hover:bg-[#192540]">
             <Bell className="h-5 w-5 text-[#a3aac4]" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#ff6e84]" />
           </button>
 
-          <Link href="/profile">
-            <img
-              src={`https://i.pravatar.cc/150?u=${user?.avatar_seed || "guest"}`}
-              alt="User profile"
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-full border border-[#a3a6ff]/20"
-            />
-          </Link>
+          <div className="relative">
+            <button 
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="relative rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50"
+            >
+              <img
+                src={`https://i.pravatar.cc/150?u=${user?.avatar_seed || "guest"}`}
+                alt="User profile"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full border border-[#a3a6ff]/20"
+              />
+            </button>
+            
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-[#27314d] bg-[#10192d] p-4 shadow-xl backdrop-blur-xl">
+                <div className="mb-3 border-b border-[#27314d] pb-3">
+                  <p className="font-bold text-[#dee5ff]">{user?.full_name || "Guest User"}</p>
+                  <p className="text-xs text-[#a3aac4]">{user?.email || "No email"}</p>
+                </div>
+                <div className="space-y-2 text-sm text-[#dee5ff]">
+                  <div className="flex justify-between">
+                    <span className="text-[#a3aac4]">Plan</span>
+                    <span>{user?.plan || "Pro Plan"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a3aac4]">Currency</span>
+                    <span>{user?.preferred_currency || "INR"}</span>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-col gap-2 pt-2 border-t border-[#27314d]">
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block rounded-lg px-3 py-2 text-center text-sm font-medium text-[#dee5ff] hover:bg-[#192540]"
+                  >
+                    View Full Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => void logout()}
+                    className="block rounded-lg px-3 py-2 text-center text-sm font-medium text-[#ff6e84] hover:bg-[#192540]"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

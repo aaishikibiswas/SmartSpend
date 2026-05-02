@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from backend.services.categorizer import categorize_transaction
+from backend.services.categorizer import fast_categorize_transaction
 from backend.services.pipeline import process_live_transaction
 
 router = APIRouter()
@@ -19,7 +19,7 @@ async def add_transaction(payload: TransactionCreate):
     transaction = {
         "date": payload.date,
         "merchant": payload.merchant.strip().title(),
-        "category": payload.category.strip() if payload.category and payload.category.strip() else categorize_transaction(payload.merchant, amount=payload.amount, date=payload.date),
+        "category": payload.category.strip() if payload.category and payload.category.strip() else fast_categorize_transaction(payload.merchant),
         "amount": payload.amount,
         "type": "income" if payload.amount > 0 else "expense",
         "language": "English",

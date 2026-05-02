@@ -22,6 +22,10 @@ class LoginPayload(BaseModel):
 class ProfileUpdatePayload(BaseModel):
     full_name: str = Field(min_length=2, max_length=80)
     plan: str | None = Field(default=None, max_length=80)
+    preferred_currency: str | None = Field(default=None, max_length=12)
+    timezone: str | None = Field(default=None, max_length=80)
+    city: str | None = Field(default=None, max_length=80)
+    occupation: str | None = Field(default=None, max_length=80)
 
 
 def _extract_bearer_token(authorization: Optional[str]) -> Optional[str]:
@@ -93,6 +97,10 @@ def update_me(payload: ProfileUpdatePayload, authorization: Optional[str] = Head
             "full_name": payload.full_name,
             "plan": payload.plan or user.get("plan", "Pro Plan"),
             "avatar_seed": user["email"].replace("@", "-"),
+            "preferred_currency": payload.preferred_currency or user.get("preferred_currency", "INR"),
+            "timezone": payload.timezone or user.get("timezone", "Asia/Kolkata"),
+            "city": payload.city or user.get("city", "Kolkata"),
+            "occupation": payload.occupation or user.get("occupation", "Financial Planner"),
         },
     )
     if updated is None:
