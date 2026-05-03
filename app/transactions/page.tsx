@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Search, Filter, Plus } from "lucide-react";
-import { apiClient, type TransactionCreatePayload, type TransactionItem } from "@/lib/api-client";
+import { apiClient, type TransactionCreatePayload } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
+import { formatDateTime } from "@/lib/mock-bank-sync";
 
 const categoryOptions = ["Food", "Transport", "Shopping", "Entertainment", "Health", "Housing", "Income", "Other"];
 
@@ -15,28 +17,14 @@ const initialForm: TransactionCreatePayload = {
 };
 
 export default function TransactionsPage() {
+  const { transactions, appendUploadedTransaction } = useFinance();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
-  const [allTransactions, setAllTransactions] = useState<TransactionItem[]>([]);
   const [form, setForm] = useState<TransactionCreatePayload>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function loadTransactions() {
-    try {
-      const res = await apiClient.getDashboardData();
-      setAllTransactions(res.data.allTransactions);
-    } catch (error) {
-      console.error(error);
-      setAllTransactions([]);
-    }
-  }
-
-  useEffect(() => {
-    loadTransactions();
-  }, []);
-
-  const filtered = allTransactions.filter((t) => {
+  const filtered = transactions.filter((t) => {
     const matchesSearch = t.merchant.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "All" || (filterType === "Income" && t.type === "income") || (filterType === "Expense" && t.type === "expense");
     return matchesSearch && matchesType;
@@ -48,11 +36,11 @@ export default function TransactionsPage() {
     setMessage("");
 
     try {
-      await apiClient.addTransaction({
+      const created = await apiClient.addTransaction({
         ...form,
         amount: Number(form.amount),
       });
-      await loadTransactions();
+      appendUploadedTransaction(created.data);
       setForm(initialForm);
       setMessage("Transaction added successfully.");
     } catch (error) {
@@ -117,7 +105,7 @@ export default function TransactionsPage() {
               <tbody>
                 {filtered.map((tx, index) => (
                   <tr key={`${tx.id ?? index}-${tx.merchant}`} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-4">{tx.date}</td>
+                    <td className="px-4 py-4">{formatDateTime(tx.rawDate || tx.date)}</td>
                     <td className="px-4 py-4 font-bold text-white">{tx.merchant}</td>
                     <td className="px-4 py-4">
                       <span className="bg-[#1A2035] text-xs px-2.5 py-1 rounded-md border border-[#2A324A]">{tx.category}</span>

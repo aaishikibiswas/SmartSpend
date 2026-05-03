@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { MoreHorizontal } from "lucide-react";
 import { type CategoryBreakdownItem } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
 
 const defaultData = [
   { name: "Food", amount: 0 },
@@ -12,22 +13,23 @@ const defaultData = [
 ];
 
 export default function CategoryChart({ dataOverride }: { dataOverride?: CategoryBreakdownItem[] }) {
-  const [liveData, setLiveData] = useState<CategoryBreakdownItem[] | null>(null);
-  const baseData = useMemo(() => (dataOverride && dataOverride.length > 0 ? dataOverride : defaultData).slice(0, 6), [dataOverride]);
-  const data = liveData ?? baseData;
-
-  useEffect(() => {
-    function handleRealtimeUpdate(event: Event) {
-      const detail = (event as CustomEvent).detail;
-      const nextBreakdown = detail?.data?.categoryBreakdown;
-      if (Array.isArray(nextBreakdown)) {
-        setLiveData((nextBreakdown.length > 0 ? nextBreakdown : defaultData).slice(0, 6));
+  const { transactions } = useFinance();
+  const data = useMemo(() => {
+    if (transactions.length > 0) {
+      const totals = new Map<string, number>();
+      for (const tx of transactions) {
+        if (tx.type === "expense") {
+          totals.set(tx.category, (totals.get(tx.category) || 0) + Math.abs(tx.amount));
+        }
       }
+      const computed = Array.from(totals.entries())
+        .map(([name, amount]) => ({ name, amount }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 6);
+      if (computed.length > 0) return computed;
     }
-
-    window.addEventListener("smartspend:ws-update", handleRealtimeUpdate);
-    return () => window.removeEventListener("smartspend:ws-update", handleRealtimeUpdate);
-  }, []);
+    return (dataOverride && dataOverride.length > 0 ? dataOverride : defaultData).slice(0, 6);
+  }, [transactions, dataOverride]);
 
   return (
     <div className="glass-card panel-shell flex flex-col justify-between p-5">
@@ -41,8 +43,8 @@ export default function CategoryChart({ dataOverride }: { dataOverride?: Categor
         </button>
       </div>
 
-      <div className="h-[185px] w-full min-w-0">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <div className="w-full min-w-0">
+        <ResponsiveContainer width="100%" height={185} minWidth={0}>
           <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={8}>
             <defs>
               <linearGradient id="categoryFill" x1="0" y1="0" x2="0" y2="1">

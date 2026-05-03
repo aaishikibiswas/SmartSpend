@@ -3,13 +3,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Send, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { type AssistantChatMessage, type DashboardMetrics } from "@/lib/api-client";
+import {
+  type AssistantChatMessage,
+  type BudgetSnapshot,
+  type CashflowData,
+  type CategoryBreakdownItem,
+  type DashboardMetrics,
+  type EmiSummary,
+  type GoalSuggestion,
+  type TransactionItem,
+  type SubscriptionItem,
+} from "@/lib/api-client";
 
 type Message = AssistantChatMessage & {
   suggestions?: string[];
 };
 
 const STORAGE_KEY = "smartspend-ai-chat";
+const OPEN_STATE_KEY = "smartspend-ai-chat-open";
 
 function initialGreeting(name: string) {
   return {
@@ -24,14 +35,45 @@ function initialGreeting(name: string) {
   };
 }
 
-export default function AIChatbot({ metrics, floating = false }: { metrics?: DashboardMetrics; floating?: boolean }) {
+export default function AIChatbot({
+  metrics,
+  categoryBreakdown,
+  subscriptions,
+  emi,
+  cashflow,
+  goalSuggestion,
+  budgeting,
+  recentTransactions,
+  floating = false,
+}: {
+  metrics?: DashboardMetrics;
+  categoryBreakdown?: CategoryBreakdownItem[];
+  subscriptions?: SubscriptionItem[];
+  emi?: EmiSummary;
+  cashflow?: CashflowData;
+  goalSuggestion?: GoalSuggestion;
+  budgeting?: BudgetSnapshot;
+  recentTransactions?: TransactionItem[];
+  floating?: boolean;
+}) {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isAsking, setIsAsking] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const firstName = user?.full_name?.split(" ")[0] || "there";
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(OPEN_STATE_KEY);
+    if (saved === "1") {
+      setIsOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(OPEN_STATE_KEY, isOpen ? "1" : "0");
+  }, [isOpen]);
 
   useEffect(() => {
     try {
@@ -77,10 +119,30 @@ export default function AIChatbot({ metrics, floating = false }: { metrics?: Das
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: question }),
+        body: JSON.stringify({
+          message: question,
+          contextData: {
+            income: metrics?.totalIncome ?? 0,
+            expenses: metrics?.totalExpense ?? 0,
+            categoryBreakdown: categoryBreakdown ?? [],
+            subscriptions: subscriptions ?? [],
+            emi: emi?.items ?? [],
+            alerts: budgeting?.feedback ?? [],
+            goals: goalSuggestion ? [goalSuggestion] : [],
+            cashflow: cashflow ?? { upcoming_payments: [], monthly_outflow_projection: 0 },
+            recentTransactions: (recentTransactions ?? []).slice(0, 8).map((tx) => ({
+              merchant: tx.merchant,
+              category: tx.category,
+              amount: tx.amount,
+              type: tx.type,
+              date: tx.date,
+              source: tx.source || "uploaded",
+            })),
+          },
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { reply?: string };
-      const reply = data.reply || "No response";
+      const reply = (data.reply || "No response").replace(/\*\*/g, "").replace(/\*/g, "");
       setMessages((current) => [
         ...current,
         {
@@ -101,10 +163,7 @@ export default function AIChatbot({ metrics, floating = false }: { metrics?: Das
         {
           role: "ai",
           text: error instanceof Error ? error.message : "I couldn't read your latest financial context just now.",
-          suggestions: [
-            "How can I improve my savings this month?",
-            "Which category am I spending the most on?",
-          ],
+          suggestions: ["How can I improve my savings this month?", "Which category am I spending the most on?"],
         },
       ]);
     } finally {
@@ -156,9 +215,7 @@ export default function AIChatbot({ metrics, floating = false }: { metrics?: Das
                   </div>
                 ) : (
                   <div key={`${message.role}-${index}-${message.text.slice(0, 12)}`} className="flex flex-col items-end gap-1">
-                    <div className="max-w-[88%] rounded-3xl rounded-tr-none border border-[#a3a6ff]/20 bg-[#a3a6ff]/20 p-4 text-xs text-[#dee5ff]">
-                      {message.text}
-                    </div>
+                    <div className="max-w-[88%] rounded-3xl rounded-tr-none border border-[#a3a6ff]/20 bg-[#a3a6ff]/20 p-4 text-xs text-[#dee5ff]">{message.text}</div>
                     <span className="mr-2 text-[9px] text-[#a3aac4]">Seen</span>
                   </div>
                 ),

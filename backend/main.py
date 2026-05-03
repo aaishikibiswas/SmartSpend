@@ -92,14 +92,16 @@ async def log_requests(request: Request, call_next):
         logger.exception("Request failed | method=%s path=%s", request.method, request.url.path)
         raise
 
-    duration_ms = (time.perf_counter() - started) * 1000
-    logger.info(
-        "Request completed | method=%s path=%s status=%s duration_ms=%.2f",
-        request.method,
-        request.url.path,
-        response.status_code,
-        duration_ms,
-    )
+    # Request-level INFO logs are intentionally muted for cleaner terminals.
+    # Uncomment this block when you want per-request timing again.
+    # duration_ms = (time.perf_counter() - started) * 1000
+    # logger.info(
+    #     "Request completed | method=%s path=%s status=%s duration_ms=%.2f",
+    #     request.method,
+    #     request.url.path,
+    #     response.status_code,
+    #     duration_ms,
+    # )
     return response
 
 

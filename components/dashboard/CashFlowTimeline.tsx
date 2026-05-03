@@ -15,8 +15,8 @@ export default function CashFlowTimeline({ data }: { data: CashflowData }) {
       </div>
 
       <div className="mt-5 space-y-3">
-        {data.upcoming_payments.slice(0, 6).map((item) => (
-          <div key={`${item.type}-${item.name}-${item.date}`} className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3">
+        {data.upcoming_payments.slice(0, 6).map((item, index) => (
+          <div key={`${item.type}-${item.name}-${item.date}-${item.amount}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/5 px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-[#edf2ff]">{item.name}</p>
               <p className="mt-1 text-xs text-[#8f9aba]">{item.type} · {item.date}</p>

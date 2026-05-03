@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, BarChart3, BrainCircuit, Sparkles } from "lucide-react";
+import { useFinance } from "@/context/FinanceContext";
 
 const cards = [
   {
@@ -20,6 +23,8 @@ const cards = [
 ];
 
 export default function AnalyticsPage() {
+  const { transactions } = useFinance();
+
   return (
     <div className="space-y-8">
       <div>
@@ -28,6 +33,7 @@ export default function AnalyticsPage() {
         <p className="mt-3 max-w-2xl text-sm text-[#93A1C7]">
           This space is ready for deeper views like trend decomposition, recurring spend clusters, and what-if simulations driven by uploaded statements.
         </p>
+        <p className="mt-2 text-xs text-[#a3aac4]">Live synced transactions: {transactions.length}</p>
       </div>
 
       <div id="ai-recommendations" className="grid gap-6 scroll-mt-28 lg:grid-cols-3">

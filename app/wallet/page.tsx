@@ -1,28 +1,31 @@
+"use client";
+
+import { useMemo } from "react";
 import { Landmark, ArrowUpRight, ArrowDownRight, PiggyBank } from "lucide-react";
-
-const BACKEND_BASE = process.env.BACKEND_API_BASE || "http://127.0.0.1:8001";
-
-async function getDashboard() {
-  const response = await fetch(`${BACKEND_BASE}/dashboard/`, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Failed to load wallet data.");
-  }
-  return response.json();
-}
+import { useFinance } from "@/context/FinanceContext";
 
 function formatCurrency(value: number) {
   return `Rs. ${Number(value || 0).toLocaleString()}`;
 }
 
-export default async function WalletPage() {
-  const payload = await getDashboard();
-  const metrics = payload.data.metrics;
+export default function WalletPage() {
+  const { transactions } = useFinance();
+
+  const metrics = useMemo(() => {
+    const totalIncome = transactions.filter((tx) => tx.type === "income").reduce((sum, tx) => sum + tx.amount, 0);
+    const totalExpense = transactions.filter((tx) => tx.type === "expense").reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    const netSavings = totalIncome - totalExpense;
+    const totalBalance = netSavings;
+    const savingsRatio = totalIncome > 0 ? Number(((netSavings / totalIncome) * 100).toFixed(2)) : 0;
+    const healthScore = Math.max(0, Math.min(100, Math.round(50 + savingsRatio / 2)));
+    return { totalBalance, totalIncome, totalExpense, netSavings, savingsRatio, healthScore };
+  }, [transactions]);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Wallet Overview</h1>
-        <p className="text-gray-400 mt-2">A clean summary of the balances and cashflow coming from your imported data.</p>
+        <p className="text-gray-400 mt-2">A clean summary of the balances and cashflow coming from your imported and synced data.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

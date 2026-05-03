@@ -1,4 +1,8 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+// Default to same-origin so browser calls always go through Next.js `/api/*` routes.
+// This avoids direct backend fetch failures in local dev when backend host/port changes.
+const API_BASE = "";
+// To force direct backend calls later, switch to:
+// const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
 export type AlertItem = {
   id: number;
@@ -54,9 +58,11 @@ export type TransactionItem = {
   merchant: string;
   category: string;
   date: string;
+  rawDate?: string | Date;
   amount: number;
   type: string;
   language?: string;
+  source?: string;
 };
 
 export type DashboardMetrics = {
@@ -353,7 +359,7 @@ type RequestOptions = RequestInit & {
 };
 
 async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvelope<T>> {
-  const timeoutMs = init?.timeoutMs ?? 10000;
+  const timeoutMs = init?.timeoutMs ?? 20000;
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
   const requestInit = { ...(init || {}) } as RequestInit & { timeoutMs?: number };
@@ -418,6 +424,7 @@ export const apiClient = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
+      timeoutMs: 20000,
     });
   },
 

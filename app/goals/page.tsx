@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Target, Plus } from "lucide-react";
 import { apiClient, type GoalItem } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
+
+function classifyTransaction(tx: { type?: string; amount?: number }) {
+  const normalizedType = String(tx.type || "").toLowerCase();
+  const amount = Number(tx.amount || 0);
+  if (normalizedType === "income" || normalizedType === "credit") return "income";
+  if (normalizedType === "expense" || normalizedType === "debit") return "expense";
+  return amount >= 0 ? "income" : "expense";
+}
 
 export default function GoalsPage() {
+  const { transactions } = useFinance();
   const [goals, setGoals] = useState<GoalItem[]>([]);
 
   useEffect(() => {
@@ -22,6 +32,36 @@ export default function GoalsPage() {
     load();
   }, []);
 
+  const monthlyNetSavings = useMemo(() => {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    let income = 0;
+    let expense = 0;
+    for (const tx of transactions) {
+      const parsed = new Date(tx.rawDate || tx.date);
+      if (Number.isNaN(parsed.getTime())) continue;
+      if (parsed.getMonth() !== month || parsed.getFullYear() !== year) continue;
+      const kind = classifyTransaction(tx);
+      if (kind === "income") income += Math.abs(Number(tx.amount || 0));
+      if (kind === "expense") expense += Math.abs(Number(tx.amount || 0));
+    }
+    return Math.max(0, income - expense);
+  }, [transactions]);
+
+  const liveGoals = useMemo(() => {
+    if (goals.length === 0) return goals;
+    const totalTarget = goals.reduce((sum, goal) => sum + Math.max(0, Number(goal.target || 0)), 0);
+    if (totalTarget <= 0) return goals;
+    return goals.map((goal) => {
+      const target = Math.max(0, Number(goal.target || 0));
+      const share = target / totalTarget;
+      const inferredContribution = monthlyNetSavings * share;
+      const achieved = Math.min(target, Math.max(Number(goal.achieved || 0), Number(goal.achieved || 0) + inferredContribution));
+      return { ...goal, achieved };
+    });
+  }, [goals, monthlyNetSavings]);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center mb-2">
@@ -32,7 +72,7 @@ export default function GoalsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {goals.map((goal) => {
+        {liveGoals.map((goal) => {
           const percent = Math.min(100, Math.round((goal.achieved / goal.target) * 100));
           return (
             <div key={goal.id} className="glass-card p-6 flex flex-col gap-4 group hover:bg-[#1A2035]/80 transition-colors cursor-pointer">

@@ -4,6 +4,8 @@ import { CarFront, Search, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { type TransactionItem } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
+import { formatDateTime } from "@/lib/mock-bank-sync";
 
 const defaultTransactions = [
   {
@@ -18,15 +20,10 @@ const defaultTransactions = [
 ];
 
 function formatDisplayDate(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
-  if (!match) return value;
-
-  const [, year, month, day] = match;
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const monthIndex = Number(month) - 1;
-  if (monthIndex < 0 || monthIndex > 11) return value;
-
-  return `${monthNames[monthIndex]} ${Number(day)}, ${year}`;
+  if (/^\d{4}-\d{2}-\d{2}\s{3}\d{2}:\d{2}$/.test(value)) {
+    return value;
+  }
+  return formatDateTime(value);
 }
 
 function iconForCategory(category: string) {
@@ -44,10 +41,11 @@ function pillTone(category: string) {
 }
 
 export default function TransactionHistory({ dataOverride }: { dataOverride?: TransactionItem[] }) {
+  const { transactions } = useFinance();
   const [liveTransactions, setLiveTransactions] = useState<TransactionItem[] | null>(null);
   const txs = useMemo(
-    () => liveTransactions ?? (dataOverride && dataOverride.length > 0 ? dataOverride : defaultTransactions).slice(0, 3),
-    [dataOverride, liveTransactions],
+    () => liveTransactions ?? (transactions.length > 0 ? transactions : dataOverride && dataOverride.length > 0 ? dataOverride : defaultTransactions).slice(0, 3),
+    [dataOverride, liveTransactions, transactions],
   );
 
   useEffect(() => {

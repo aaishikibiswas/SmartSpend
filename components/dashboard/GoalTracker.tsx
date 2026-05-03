@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Laptop, PlusCircle, ShieldAlert, Plane } from "lucide-react";
 import { apiClient, type GoalItem, type GoalSuggestion } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
 
 function goalIcon(index: number) {
   return [Laptop, ShieldAlert, Plane][index] ?? Laptop;
@@ -20,7 +21,16 @@ function formatCurrency(value: number) {
   return `Rs${Math.round(value).toLocaleString()}`;
 }
 
+function classifyTransaction(tx: { type?: string; amount?: number }) {
+  const normalizedType = String(tx.type || "").toLowerCase();
+  const amount = Number(tx.amount || 0);
+  if (normalizedType === "income" || normalizedType === "credit") return "income";
+  if (normalizedType === "expense" || normalizedType === "debit") return "expense";
+  return amount >= 0 ? "income" : "expense";
+}
+
 export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion }) {
+  const { transactions } = useFinance();
   const [goals, setGoals] = useState<GoalItem[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
@@ -72,6 +82,45 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
     }
   }
 
+  const monthlyNetSavings = useMemo(() => {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+
+    let income = 0;
+    let expense = 0;
+    for (const tx of transactions) {
+      const parsed = new Date(tx.rawDate || tx.date);
+      if (Number.isNaN(parsed.getTime())) continue;
+      if (parsed.getMonth() !== month || parsed.getFullYear() !== year) continue;
+      const kind = classifyTransaction(tx);
+      if (kind === "income") income += Math.abs(Number(tx.amount || 0));
+      if (kind === "expense") expense += Math.abs(Number(tx.amount || 0));
+    }
+    return Math.max(0, income - expense);
+  }, [transactions]);
+
+  const liveGoals = useMemo(() => {
+    if (goals.length === 0) return goals;
+    const totalTarget = goals.reduce((sum, goal) => sum + Math.max(0, Number(goal.target || 0)), 0);
+    if (totalTarget <= 0) return goals;
+
+    return goals.map((goal) => {
+      const target = Math.max(0, Number(goal.target || 0));
+      const share = target / totalTarget;
+      const inferredContribution = monthlyNetSavings * share;
+      const achieved = Math.min(target, Math.max(Number(goal.achieved || 0), Number(goal.achieved || 0) + inferredContribution));
+      return {
+        ...goal,
+        achieved,
+      };
+    });
+  }, [goals, monthlyNetSavings]);
+
+  const liveSuggestedContribution = useMemo(() => {
+    return Math.max(Math.round(monthlyNetSavings * 0.3), Math.round(suggestion.recommendedContribution || 0));
+  }, [monthlyNetSavings, suggestion.recommendedContribution]);
+
   return (
     <section className="glass-card rounded-[2rem] p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -80,9 +129,9 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
       </div>
 
       <div className="space-y-10">
-        {goals.length === 0 ? <p className="text-sm text-[#a3aac4]">No goals yet.</p> : null}
+        {liveGoals.length === 0 ? <p className="text-sm text-[#a3aac4]">No goals yet.</p> : null}
 
-        {goals.map((goal, index) => {
+        {liveGoals.map((goal, index) => {
           const percent = Math.min(100, Math.round((goal.achieved / goal.target) * 100));
           const remaining = Math.max(0, goal.target - goal.achieved);
           const Icon = goalIcon(index);
@@ -134,7 +183,7 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
 
       <div className="mt-8">
         <div className="mb-4 rounded-2xl border border-[#40485d]/20 bg-[#10192d] px-4 py-3 text-xs text-[#a3aac4]">
-          <span className="font-semibold text-[#dee5ff]">Suggested contribution:</span> Rs{Math.round(suggestion.recommendedContribution).toLocaleString()}
+          <span className="font-semibold text-[#dee5ff]">Suggested contribution:</span> Rs{Math.round(liveSuggestedContribution).toLocaleString()}
           <p className="mt-1">{suggestion.message}</p>
         </div>
         <button onClick={() => setShowCreate((current) => !current)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#40485d]/30 bg-[#192540] py-3 text-xs font-bold text-[#dee5ff] transition-colors hover:bg-[#1f2b49]">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, ReferenceDot } from "recharts";
 import { apiClient } from "@/lib/api-client";
+import { useFinance } from "@/context/FinanceContext";
 
 type ForecastPoint = {
   day: string;
@@ -16,6 +17,7 @@ type PredictionSummary = {
 };
 
 export default function ForecastChart() {
+  const { transactions } = useFinance();
   const [points, setPoints] = useState<ForecastPoint[]>([]);
   const [peak, setPeak] = useState<{ day: string; amount: number } | null>(null);
   const [summary, setSummary] = useState<PredictionSummary | null>(null);
@@ -40,7 +42,7 @@ export default function ForecastChart() {
     }
 
     load();
-  }, []);
+  }, [transactions]);
 
   useEffect(() => {
     function handleRealtimeUpdate(event: Event) {
@@ -110,8 +112,8 @@ export default function ForecastChart() {
         </div>
       </div>
 
-      <div className="mt-2 h-[220px] w-full min-w-0">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <div className="mt-2 w-full min-w-0">
+        <ResponsiveContainer width="100%" height={220} minWidth={0}>
           <AreaChart data={points} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">

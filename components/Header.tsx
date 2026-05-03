@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useFinance } from "@/context/FinanceContext";
 import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Settings, Upload } from "lucide-react";
 
 function formatRange(now: Date) {
@@ -17,11 +20,14 @@ function formatRange(now: Date) {
   return `${format(start)} - ${format(end)}`;
 }
 
-export default function Header({ financialPersonality }: { financialPersonality: string }) {
+export default function Header({ financialPersonality }: { financialPersonality?: string } = {}) {
+  const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { transactions, syncOn, setSyncOn } = useFinance();
   const firstName = user?.full_name?.split(" ")[0] || "there";
   const [now, setNow] = useState<Date | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const isDashboard = pathname === "/";
 
   useEffect(() => {
     const syncClock = () => setNow(new Date());
@@ -40,6 +46,46 @@ export default function Header({ financialPersonality }: { financialPersonality:
       minute: "2-digit",
     }) || "Syncing local time...";
 
+  const exportRows = transactions.map((tx) => ({
+    Date: tx.date,
+    Name: tx.merchant,
+    Category: tx.category,
+    Amount: tx.amount,
+    Type: tx.type,
+    Source: tx.source || "uploaded",
+  }));
+
+  const exportCSV = () => {
+    if (!exportRows.length) return;
+    const headers = Object.keys(exportRows[0]) as Array<keyof (typeof exportRows)[number]>;
+    const csv = [headers.join(","), ...exportRows.map((row) => headers.map((h) => `"${String(row[h] ?? "")}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "smartspend_report.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    if (!exportRows.length) return;
+    const pdf = new jsPDF();
+    pdf.setFontSize(16);
+    pdf.text("SmartSpend Financial Report", 10, 10);
+    let y = 20;
+    for (const tx of exportRows) {
+      if (y > 280) {
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.setFontSize(10);
+      pdf.text(`${tx.Date} | ${tx.Name} | ${tx.Category} | Rs${tx.Amount} | ${tx.Type} | ${tx.Source}`, 10, y);
+      y += 6;
+    }
+    pdf.save("smartspend_report.pdf");
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl">
@@ -57,13 +103,19 @@ export default function Header({ financialPersonality }: { financialPersonality:
 
         <div className="flex items-center gap-4">
           <div className="hidden gap-2 md:flex">
-            <button className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
+            <button onClick={exportCSV} className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
               <Download className="h-3.5 w-3.5" />
               CSV
             </button>
-            <button className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
+            <button onClick={exportPDF} className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
               <Download className="h-3.5 w-3.5" />
               PDF
+            </button>
+            <button
+              onClick={() => setSyncOn((prev) => !prev)}
+              className={`rounded-full px-3 py-1 text-[10px] font-bold transition-colors ${syncOn ? "bg-[#16a34a]/20 text-[#22c55e]" : "bg-[#a3aac4]/20 text-[#a3aac4]"}`}
+            >
+              {syncOn ? "🟢 Bank Sync ON" : "⚪ Bank Sync OFF"}
             </button>
           </div>
 
@@ -148,11 +200,11 @@ export default function Header({ financialPersonality }: { financialPersonality:
         </div>
         <button className="ml-auto flex items-center gap-1 text-xs font-bold text-[#a3a6ff] hover:underline">
           <ListFilter className="h-4 w-4" />
-          {liveStamp}
+          {syncOn ? "Syncing transactions every few seconds" : "Sync paused"} | {liveStamp}
         </button>
       </div>
 
-      <section className="flex flex-col items-start justify-between gap-4 px-8 pb-2 pt-8 md:flex-row md:items-center">
+      {isDashboard ? <section className="flex flex-col items-start justify-between gap-4 px-8 pb-2 pt-8 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#dee5ff] md:text-4xl">Welcome back, {firstName}!</h1>
           <p className="mt-2 font-medium text-[#a3aac4]">Your AI finance assistant has fresh budget, alert, and forecast insights today.</p>
@@ -165,7 +217,7 @@ export default function Header({ financialPersonality }: { financialPersonality:
           <Upload className="h-4 w-4" />
           Upload Statement
         </Link>
-      </section>
+      </section> : null}
     </>
   );
 }

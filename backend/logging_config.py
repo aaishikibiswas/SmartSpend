@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import warnings
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -20,7 +21,9 @@ def setup_logging() -> None:
     if root_logger.handlers:
         return
 
-    root_logger.setLevel(os.getenv("SMARTSPEND_LOG_LEVEL", "INFO").upper())
+    # Default to ERROR in local dev so terminal stays readable.
+    # To restore verbose logs later, set SMARTSPEND_LOG_LEVEL=INFO.
+    root_logger.setLevel(os.getenv("SMARTSPEND_LOG_LEVEL", "ERROR").upper())
 
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
@@ -30,3 +33,32 @@ def setup_logging() -> None:
 
     root_logger.addHandler(stream_handler)
     root_logger.addHandler(file_handler)
+
+    # Keep third-party libraries quiet unless they emit errors.
+    noisy_loggers = [
+        "uvicorn",
+        "uvicorn.access",
+        "uvicorn.error",
+        "prophet",
+        "cmdstanpy",
+        "tensorflow",
+        "faiss",
+        "absl",
+    ]
+    for name in noisy_loggers:
+        logging.getLogger(name).setLevel(logging.ERROR)
+
+    # Suppress warning-level noise from ML stack in terminal.
+    # Comment these back in if you want to debug model convergence/training behavior.
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings("ignore", message=".*ConvergenceWarning.*")
+    warnings.filterwarnings("ignore", message=".*oneDNN custom operations are on.*")
+    warnings.filterwarnings("ignore", message=".*Do not pass an `input_shape`/`input_dim` argument.*")
+
+    try:
+        from sklearn.exceptions import ConvergenceWarning  # type: ignore
+
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
+    except Exception:
+        pass

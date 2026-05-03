@@ -1,20 +1,40 @@
 import { BACKEND_API_BASE as BACKEND_BASE } from "@/lib/backend-config";
 
 export async function POST(request: Request) {
-  const payload = await request.text();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const body = await request.json().catch(() => ({}));
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 20000);
 
-  const response = await fetch(`${BACKEND_BASE}/predict/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: payload,
-    cache: "no-store",
-  });
+    const response = await fetch(`${BACKEND_BASE}/predict/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: controller.signal,
+    });
 
-  const body = await response.text();
+    if (!response.ok) {
+      return Response.json({ error: "Prediction failed" }, { status: response.status });
+    }
 
-  return new Response(body, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
-  });
+    const data = await response.json().catch(() => null);
+    if (!data) {
+      return Response.json({ error: "Prediction failed" }, { status: 502 });
+    }
+
+    return Response.json(data);
+  } catch (error) {
+    console.error("Predict API error:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      return Response.json({ error: "Prediction timed out" }, { status: 504 });
+    }
+    return Response.json({ error: "Prediction service unavailable" }, { status: 503 });
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
 }
 
