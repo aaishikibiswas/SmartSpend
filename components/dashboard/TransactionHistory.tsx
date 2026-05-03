@@ -44,16 +44,16 @@ export default function TransactionHistory({ dataOverride }: { dataOverride?: Tr
   const { transactions } = useFinance();
   const [liveTransactions, setLiveTransactions] = useState<TransactionItem[] | null>(null);
   const txs = useMemo(
-    () => liveTransactions ?? (transactions.length > 0 ? transactions : dataOverride && dataOverride.length > 0 ? dataOverride : defaultTransactions).slice(0, 3),
+    () => liveTransactions ?? (transactions.length > 0 ? transactions : dataOverride && dataOverride.length > 0 ? dataOverride : defaultTransactions),
     [dataOverride, liveTransactions, transactions],
   );
 
   useEffect(() => {
     function handleRealtimeUpdate(event: Event) {
       const detail = (event as CustomEvent).detail;
-      const recentTransactions = detail?.data?.recentTransactions;
-      if (Array.isArray(recentTransactions) && recentTransactions.length > 0) {
-        setLiveTransactions(recentTransactions.slice(0, 3));
+      const allTransactions = detail?.data?.allTransactions;
+      if (Array.isArray(allTransactions) && allTransactions.length > 0) {
+        setLiveTransactions(allTransactions);
       }
     }
 
@@ -62,8 +62,8 @@ export default function TransactionHistory({ dataOverride }: { dataOverride?: Tr
   }, []);
 
   return (
-    <div className="glass-card overflow-hidden rounded-[2rem]">
-      <div className="flex items-center justify-between p-8">
+    <div className="glass-card flex flex-col overflow-hidden rounded-[2rem]">
+      <div className="shrink-0 flex items-center justify-between p-8">
         <h3 className="text-lg font-bold text-[#dee5ff]">Transaction History</h3>
 
         <div className="flex items-center gap-4">
@@ -81,7 +81,7 @@ export default function TransactionHistory({ dataOverride }: { dataOverride?: Tr
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="flex-1 min-h-0 max-h-[280px] overflow-y-auto custom-scrollbar">
         <table className="w-full border-collapse text-left">
           <thead className="bg-[#091328]/50 text-[10px] uppercase tracking-widest text-[#a3aac4]">
             <tr>

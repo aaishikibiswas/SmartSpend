@@ -98,20 +98,20 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
 async def _complete_uploaded_refresh(transactions: list[dict]) -> None:
     current_df = Storage.get_transactions()
     _refresh_financial_state(current_df)
-    snapshot = _build_snapshot(latest_transaction=transactions[-1] if transactions else None, event_type="update", source="upload")
+    snapshot = await _build_snapshot(latest_transaction=transactions[-1] if transactions else None, event_type="update", source="upload")
     await _broadcast_post_refresh(snapshot, "upload", transactions)
 
 
 async def _complete_live_refresh(transaction: dict) -> None:
     current_df = Storage.get_transactions()
     _refresh_financial_state(current_df)
-    snapshot = _build_snapshot(latest_transaction=transaction, event_type="update", source="stream")
+    snapshot = await _build_snapshot(latest_transaction=transaction, event_type="update", source="stream")
     await _broadcast_post_refresh(snapshot, "stream")
 
 
-def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> dict:
+async def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> dict:
     transactions = Storage.get_transactions()
-    metrics = get_dashboard_analytics()
+    metrics = await get_dashboard_analytics()
     budgeting = build_budget_snapshot(transactions)
     subscriptions = get_all_subscriptions(transactions)
     emi_summary = summarize_emis()
@@ -124,7 +124,7 @@ def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "u
     }
     anomaly = latest_anomaly_summary(transactions)
     behavior = build_behavior_profile(transactions)
-    advisory = generate_financial_advice(metrics, {"global": budgeting["global"]}, prediction["next_expense_prediction"], expense_split, behavior)
+    advisory = await generate_financial_advice(metrics, {"global": budgeting["global"]}, prediction["next_expense_prediction"], expense_split, behavior)
     recent_transactions = transactions.sort_values("date", ascending=False).head(5).to_dict(orient="records") if not transactions.empty else []
 
     return {
@@ -151,12 +151,13 @@ def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "u
             "advisory": advisory,
             "categoryBreakdown": _build_category_comparison(transactions),
             "recentTransactions": recent_transactions,
+            "allTransactions": transactions.sort_values("date", ascending=False).to_dict(orient="records") if not transactions.empty else [],
         },
     }
 
 
 async def broadcast_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> None:
-    await websocket_manager.broadcast(_build_snapshot(latest_transaction=latest_transaction, event_type=event_type, source=source))
+    await websocket_manager.broadcast(await _build_snapshot(latest_transaction=latest_transaction, event_type=event_type, source=source))
 
 
 async def process_uploaded_transactions(transactions: list[dict]) -> None:
@@ -183,5 +184,5 @@ async def process_live_transaction(transaction: dict) -> None:
     asyncio.create_task(_complete_live_refresh(transaction))
 
 
-def get_current_snapshot() -> dict:
-    return _build_snapshot(event_type="snapshot", source="initial")
+async def get_current_snapshot() -> dict:
+    return await _build_snapshot(event_type="snapshot", source="initial")

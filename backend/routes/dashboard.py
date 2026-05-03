@@ -48,20 +48,20 @@ def build_goal_suggestion(metrics: dict, budget_snapshot: dict) -> dict:
 
 
 @router.get("/")
-def get_dashboard():
+async def get_dashboard():
     transactions = Storage.get_transactions()
-    metrics = get_dashboard_analytics()
+    metrics = await get_dashboard_analytics()
     budget_snapshot = build_budget_snapshot(transactions)
     category_chart = build_category_comparison(transactions)
     subscriptions = get_all_subscriptions(transactions)
     emi_summary = summarize_emis()
     expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
     networth = calculate_networth(metrics, emi_summary)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db, transactions)
     prediction = predict_next_expense(build_daily_expense_series(transactions), include_prophet=False)
     anomaly = latest_anomaly_summary(transactions)
     behavior = build_behavior_profile(transactions)
-    advisory = generate_financial_advice(metrics, {"global": budget_snapshot["global"]}, prediction, expense_split, behavior)
+    advisory = await generate_financial_advice(metrics, {"global": budget_snapshot["global"]}, prediction, expense_split, behavior)
     priorities = build_priorities(metrics, budget_snapshot, subscriptions, emi_summary, cashflow)
     sorted_transactions = transactions.sort_values("date", ascending=False)
     recent_transactions = sorted_transactions.head(5).to_dict(orient="records")

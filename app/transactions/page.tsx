@@ -55,7 +55,7 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-[calc(100vh-120px)]">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Transactions</h1>
         <Link href="/upload" className="flex items-center gap-2 bg-[#1A2035] hover:bg-[#2A324A] text-white px-4 py-2 rounded-xl transition-colors border border-[#2A324A]">
@@ -63,9 +63,9 @@ export default function TransactionsPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.9fr)] gap-6">
-        <div className="glass-card p-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.9fr)] gap-6 flex-1 min-h-0">
+        <div className="glass-card p-6 flex flex-col min-h-0">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 shrink-0">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
@@ -95,7 +95,7 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
             <table className="w-full text-left text-sm text-gray-400">
               <thead className="text-xs uppercase bg-[#1A2035]/50 font-semibold border-b border-white/5">
                 <tr>

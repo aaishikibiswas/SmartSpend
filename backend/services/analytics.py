@@ -19,7 +19,7 @@ from backend.storage import Storage
 from backend.storage import bills_db
 
 
-def get_dashboard_analytics() -> dict:
+async def get_dashboard_analytics() -> dict:
     df = Storage.get_transactions()
 
     if df.empty:
@@ -29,7 +29,7 @@ def get_dashboard_analytics() -> dict:
         cashflow = build_cashflow_timeline([], emi_summary, bills_db)
         prediction = predict_next_expense(build_daily_expense_series(df))
         behavior = build_behavior_profile(df)
-        advisory = generate_financial_advice({"totalIncome": 0, "netSavings": 0, "savingsRatio": 0}, {"global": {"usage_percent": 0}}, prediction, expense_split, behavior)
+        advisory = await generate_financial_advice({"totalIncome": 0, "netSavings": 0, "savingsRatio": 0}, {"global": {"usage_percent": 0}}, prediction, expense_split, behavior)
         anomaly = latest_anomaly_summary(df)
         credit_score = calculate_credit_score(
             {
@@ -94,7 +94,7 @@ def get_dashboard_analytics() -> dict:
     cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
     prediction = predict_next_expense(build_daily_expense_series(df))
     behavior = build_behavior_profile(df)
-    advisory = generate_financial_advice(
+    advisory = await generate_financial_advice(
         {"totalIncome": total_income, "netSavings": net_savings, "savingsRatio": savings_ratio},
         {"global": budget_summary},
         prediction,

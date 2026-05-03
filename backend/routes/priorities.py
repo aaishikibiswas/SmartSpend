@@ -12,12 +12,12 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_priorities():
+async def get_priorities():
     transactions = Storage.get_transactions()
     subscriptions = get_all_subscriptions(transactions)
     emi_summary = summarize_emis()
     cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
-    actions = build_priorities(get_dashboard_analytics(), build_budget_snapshot(transactions), subscriptions, emi_summary, cashflow)
+    actions = build_priorities(await get_dashboard_analytics(), build_budget_snapshot(transactions), subscriptions, emi_summary, cashflow)
     return {
         "status": 200,
         "data": actions,

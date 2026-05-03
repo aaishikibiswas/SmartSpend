@@ -128,7 +128,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     await websocket_manager.connect(websocket)
     try:
-        snapshot = get_current_snapshot()
+        snapshot = await get_current_snapshot()
         snapshot["user"] = user
         await websocket_manager.send_json(websocket, snapshot)
         while True:
@@ -152,7 +152,7 @@ async def sse_endpoint(request: Request, token: str = ""):
     async def event_generator():
         connection_id, queue = websocket_manager.connect_sse()
         try:
-            snapshot = get_current_snapshot()
+            snapshot = await get_current_snapshot()
             snapshot["user"] = user
             yield f"event: {snapshot.get('type', 'snapshot')}\ndata: {json.dumps(snapshot)}\n\n"
 

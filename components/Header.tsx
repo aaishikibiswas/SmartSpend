@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFinance } from "@/context/FinanceContext";
-import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Settings, Upload } from "lucide-react";
+import { apiClient, type AlertItem } from "@/lib/api-client";
+import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Settings, Upload, AlertTriangle, Copy, Receipt } from "lucide-react";
 
 function formatRange(now: Date) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -27,7 +28,21 @@ export default function Header({ financialPersonality }: { financialPersonality?
   const firstName = user?.full_name?.split(" ")[0] || "there";
   const [now, setNow] = useState<Date | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const isDashboard = pathname === "/";
+
+  useEffect(() => {
+    async function loadAlerts() {
+      try {
+        const res = await apiClient.getAlerts();
+        setAlerts(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadAlerts();
+  }, []);
 
   useEffect(() => {
     const syncClock = () => setNow(new Date());
@@ -129,10 +144,54 @@ export default function Header({ financialPersonality }: { financialPersonality?
             <Settings className="h-5 w-5 text-[#a3aac4]" />
           </Link>
 
-          <button className="relative rounded-full p-2 transition-all hover:bg-[#192540]">
-            <Bell className="h-5 w-5 text-[#a3aac4]" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#ff6e84]" />
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setIsAlertsOpen(!isAlertsOpen)}
+              className="relative rounded-full p-2 transition-all hover:bg-[#192540] focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50"
+            >
+              <Bell className="h-5 w-5 text-[#a3aac4]" />
+              {alerts.length > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white">
+                  {alerts.length}
+                </span>
+              )}
+            </button>
+
+            {isAlertsOpen && (
+              <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-[#27314d] bg-[#10192d] shadow-xl backdrop-blur-xl z-50">
+                <div className="sticky top-0 bg-[#10192d]/95 backdrop-blur border-b border-[#27314d] p-4 flex justify-between items-center z-10">
+                  <h3 className="font-bold text-[#dee5ff]">Smart Alerts</h3>
+                  {alerts.length > 0 && (
+                    <span className="text-xs text-[#a3aac4]">{alerts.length} new</span>
+                  )}
+                </div>
+                <div className="p-2 flex flex-col gap-1">
+                  {alerts.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-[#a3aac4]">No new alerts.</div>
+                  ) : (
+                    alerts.map((alert) => (
+                      <div key={alert.id} className="flex gap-3 p-3 hover:bg-[#192540] rounded-xl transition-colors cursor-pointer group">
+                        <div className={`mt-0.5 rounded-full p-1.5 h-fit ${alert.type === "breach" ? "bg-rose-500/10 text-rose-500" : alert.type === "duplicate" ? "bg-[#8B5CF6]/10 text-[#8B5CF6]" : "bg-blue-500/10 text-blue-500"}`}>
+                          {alert.type === "breach" ? <AlertTriangle className="w-4 h-4" /> : alert.type === "duplicate" ? <Copy className="w-4 h-4" /> : <Receipt className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-[#dee5ff] group-hover:text-white transition-colors">{alert.title}</p>
+                          <p className="text-xs text-[#a3aac4] mt-0.5 line-clamp-2 leading-relaxed">{alert.message}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {alerts.length > 0 && (
+                  <div className="sticky bottom-0 bg-[#10192d]/95 backdrop-blur border-t border-[#27314d] p-2">
+                    <Link href="/alerts" onClick={() => setIsAlertsOpen(false)} className="block w-full py-2 text-center text-xs font-bold text-[#6366f1] hover:text-[#8183f4] transition-colors">
+                      View All Alerts
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="relative">
             <button 

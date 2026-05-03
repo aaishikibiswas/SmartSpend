@@ -11,7 +11,6 @@ const navItems = [
   { name: "Wallet", href: "/wallet", icon: Wallet },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "Budget", href: "/budget", icon: PieChart },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Alerts", href: "/alerts", icon: Bell },
   { name: "Simulator", href: "/simulator", icon: BarChart3 },
 ];

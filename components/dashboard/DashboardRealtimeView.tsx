@@ -20,9 +20,6 @@ const ForecastChart = dynamic(() => import("./ForecastChart"), {
 import TransactionHistory from "@/components/dashboard/TransactionHistory";
 import RecurringFinancePanel from "@/components/dashboard/RecurringFinancePanel";
 import HealthScoreCard from "@/components/dashboard/HealthScoreCard";
-import NetWorthCard from "@/components/dashboard/NetWorthCard";
-import AlertsPanel from "@/components/dashboard/AlertsPanel";
-import PriorityPanel from "@/components/dashboard/PriorityPanel";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import CashFlowTimeline from "@/components/dashboard/CashFlowTimeline";
 import ExpenseSplitCard from "@/components/dashboard/ExpenseSplitCard";
@@ -135,23 +132,6 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     };
   }, [monthlyTx]);
 
-  const cashflow = useMemo<CashflowData>(() => {
-    const upcoming = txSource
-      .filter((tx) => tx.type === "expense")
-      .sort((a, b) => new Date(b.rawDate || b.date).getTime() - new Date(a.rawDate || a.date).getTime())
-      .slice(0, 6)
-      .map((tx) => ({
-        name: tx.merchant,
-        date: formatDateTime(tx.rawDate || tx.date),
-        amount: Math.abs(tx.amount),
-        type: tx.category,
-      }));
-    return {
-      upcoming_payments: upcoming,
-      monthly_outflow_projection: Number(derived.expense.toFixed(2)),
-    };
-  }, [txSource, derived.expense]);
-
   const priorities = useMemo<PriorityItem[]>(() => {
     const items: PriorityItem[] = [];
     if (derived.savingsRatio < 20) {
@@ -183,8 +163,8 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     [initialData.metrics, derived],
   );
 
-  const recentTransactions: TransactionItem[] = useMemo(
-    () => [...txSource].sort((a, b) => new Date(b.rawDate || b.date).getTime() - new Date(a.rawDate || a.date).getTime()).slice(0, 3),
+  const sortedTransactions: TransactionItem[] = useMemo(
+    () => [...txSource].sort((a, b) => new Date(b.rawDate || b.date).getTime() - new Date(a.rawDate || a.date).getTime()),
     [txSource],
   );
 
@@ -216,15 +196,10 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
             </section>
 
             <section id="smart-advice" className="scroll-mt-28">
-              <SmartAdvice metrics={liveMetrics} budgetFeedback={initialData.budgeting.feedback} goalSuggestion={initialData.goalSuggestion} />
+              <SmartAdvice adviceItems={initialData.advisory.advice} />
             </section>
 
-            <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,0.9fr)_260px]">
-              <CategoryChart dataOverride={categoryBreakdown} />
-              <BillReminders />
-            </div>
-
-            <TransactionHistory dataOverride={recentTransactions} />
+            <TransactionHistory dataOverride={sortedTransactions} />
             <section id="recurring-liabilities" className="scroll-mt-28">
               <RecurringFinancePanel subscriptions={initialData.subscriptions} emiSummary={initialData.emi} />
             </section>
@@ -234,15 +209,12 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
             <section id="health-score" className="scroll-mt-28">
               <HealthScoreCard score={liveMetrics.healthScore} savingsRatio={liveMetrics.savingsRatio} creditScore={liveMetrics.creditScore} />
             </section>
-            <NetWorthCard data={initialData.networth} />
-            <section id="alerts-panel" className="scroll-mt-28">
-              <AlertsPanel />
-            </section>
-            <PriorityPanel items={priorities} />
             <section id="goal-tracker" className="scroll-mt-28">
               <GoalTracker suggestion={initialData.goalSuggestion} />
             </section>
-            <CashFlowTimeline data={cashflow} />
+            <CashFlowTimeline data={initialData.cashflow} />
+            <CategoryChart dataOverride={categoryBreakdown} />
+            <BillReminders />
             <ExpenseSplitCard data={expenseSplit} />
           </div>
         </section>
@@ -253,10 +225,10 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
         categoryBreakdown={categoryBreakdown}
         subscriptions={initialData.subscriptions}
         emi={initialData.emi}
-        cashflow={cashflow}
+        cashflow={initialData.cashflow}
         goalSuggestion={initialData.goalSuggestion}
         budgeting={initialData.budgeting}
-        recentTransactions={recentTransactions}
+        recentTransactions={sortedTransactions}
         floating
       />
     </>

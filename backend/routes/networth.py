@@ -8,8 +8,8 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_networth():
-    data = calculate_networth(get_dashboard_analytics(), summarize_emis())
+async def get_networth():
+    data = calculate_networth(await get_dashboard_analytics(), summarize_emis())
     return {
         "status": 200,
         "data": data,
