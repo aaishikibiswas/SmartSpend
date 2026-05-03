@@ -12,10 +12,10 @@ date,merchant,category,amount,type,language
 2026-01-06,Internet Bill,Bills,-1596.0,debit,en
 2026-01-06,Uber,Transport,-305.58,debit,en
 2026-01-07,Swiggy,Food,-481.96,debit,en
-2026-01-08,Uber,Transport,-359.03,debit,en
-2026-01-08,Prime Membership,Entertainment,-630.0,debit,en
-2026-01-08,Spotify Premium,Entertainment,-280.0,debit,en
 2026-01-08,Netflix Subscription,Entertainment,-490.0,debit,en
+2026-01-08,Spotify Premium,Entertainment,-280.0,debit,en
+2026-01-08,Prime Membership,Entertainment,-630.0,debit,en
+2026-01-08,Uber,Transport,-359.03,debit,en
 2026-01-09,Swiggy,Food,-580.9,debit,en
 2026-01-10,Swiggy,Food,-570.84,debit,en
 2026-01-10,Fuel Station,Transport,-233.41,debit,en
@@ -28,8 +28,8 @@ date,merchant,category,amount,type,language
 2026-01-15,Uber,Transport,-255.59,debit,en
 2026-01-16,Swiggy,Food,-400.6,debit,en
 2026-01-16,Apollo Pharmacy,Healthcare,-1074.29,debit,en
-2026-01-17,Fuel Station,Transport,-250.09,debit,en
 2026-01-17,Swiggy,Food,-584.63,debit,en
+2026-01-17,Fuel Station,Transport,-250.09,debit,en
 2026-01-18,Movie Night,Entertainment,-406.43,debit,en
 2026-01-19,Swiggy,Food,-565.58,debit,en
 2026-01-20,Uber,Transport,-311.26,debit,en
@@ -42,8 +42,8 @@ date,merchant,category,amount,type,language
 2026-01-27,Uber,Transport,-392.12,debit,en
 2026-01-28,Swiggy,Food,-540.59,debit,en
 2026-01-29,Uber,Transport,-382.43,debit,en
-2026-01-30,Refund Credit,Income,385.25,credit,en
 2026-01-30,Swiggy,Food,-483.51,debit,en
+2026-01-30,Refund Credit,Income,385.25,credit,en
 2026-01-31,Swiggy,Food,-424.94,debit,en
 2026-01-31,Fuel Station,Transport,-301.95,debit,en
 2026-01-31,Amazon,Shopping,-1189.2,debit,en
@@ -57,9 +57,9 @@ date,merchant,category,amount,type,language
 2026-02-04,Amazon,Shopping,-577.67,debit,en
 2026-02-04,Apollo Pharmacy,Healthcare,-768.69,debit,en
 2026-02-05,Uber,Transport,-222.5,debit,en
-2026-02-06,Swiggy,Food,-556.03,debit,en
-2026-02-06,Internet Bill,Bills,-1596.0,debit,en
 2026-02-06,Electricity Bill,Bills,-2604.0,debit,en
+2026-02-06,Internet Bill,Bills,-1596.0,debit,en
+2026-02-06,Swiggy,Food,-556.03,debit,en
 2026-02-07,Swiggy,Food,-561.75,debit,en
 2026-02-07,Fuel Station,Transport,-248.15,debit,en
 2026-02-08,Netflix Subscription,Entertainment,-490.0,debit,en
@@ -87,21 +87,21 @@ date,merchant,category,amount,type,language
 2026-02-25,Swiggy,Food,-417.34,debit,en
 2026-02-26,Uber,Transport,-254.22,debit,en
 2026-02-27,Swiggy,Food,-497.04,debit,en
-2026-02-28,Apollo Pharmacy,Healthcare,-1067.88,debit,en
-2026-02-28,Amazon,Shopping,-634.74,debit,en
-2026-02-28,Fuel Station,Transport,-183.76,debit,en
 2026-02-28,Swiggy,Food,-507.47,debit,en
-2026-03-01,Salary Credit,Income,76000.0,credit,en
-2026-03-01,Movie Night,Entertainment,-487.37,debit,en
+2026-02-28,Fuel Station,Transport,-183.76,debit,en
+2026-02-28,Amazon,Shopping,-634.74,debit,en
+2026-02-28,Apollo Pharmacy,Healthcare,-1067.88,debit,en
 2026-03-01,Salary Credit,Income,82000.0,credit,en
 2026-03-01,Movie Night,Entertainment,-456.38,debit,en
-2026-03-02,Swiggy,Food,-891.8,debit,en
+2026-03-01,Salary Credit,Income,76000.0,credit,en
+2026-03-01,Movie Night,Entertainment,-487.37,debit,en
 2026-03-02,Swiggy,Food,-549.62,debit,en
-2026-03-03,Uber,Transport,-390.13,debit,en
-2026-03-03,Home Rent,Housing,-16000.0,debit,en
+2026-03-02,Swiggy,Food,-891.8,debit,en
 2026-03-03,Home Rent,Housing,-18000.0,debit,en
-2026-03-03,Uber,Transport,-297.98,debit,en
+2026-03-03,Uber,Transport,-390.13,debit,en
 2026-03-03,Apollo Pharmacy,Healthcare,-671.9,debit,en
+2026-03-03,Home Rent,Housing,-16000.0,debit,en
+2026-03-03,Uber,Transport,-297.98,debit,en
 2026-03-04,Swiggy,Food,-544.59,debit,en
 2026-03-04,Swiggy,Food,-854.73,debit,en
 2026-03-05,Uber,Transport,-311.81,debit,en
@@ -109,21 +109,21 @@ date,merchant,category,amount,type,language
 2026-03-06,Electricity Bill,Bills,-2604.0,debit,en
 2026-03-06,Internet Bill,Bills,-1596.0,debit,en
 2026-03-06,Swiggy,Food,-524.91,debit,en
-2026-03-06,Swiggy,Food,-734.81,debit,en
-2026-03-06,Internet Bill,Bills,-1482.0,debit,en
 2026-03-06,Electricity Bill,Bills,-2418.0,debit,en
-2026-03-07,Swiggy,Food,-1131.12,debit,en
-2026-03-07,Fuel Station,Transport,-383.0,debit,en
-2026-03-07,Fuel Station,Transport,-384.73,debit,en
+2026-03-06,Internet Bill,Bills,-1482.0,debit,en
+2026-03-06,Swiggy,Food,-734.81,debit,en
 2026-03-07,Swiggy,Food,-534.28,debit,en
+2026-03-07,Fuel Station,Transport,-383.0,debit,en
+2026-03-07,Swiggy,Food,-1131.12,debit,en
+2026-03-07,Fuel Station,Transport,-384.73,debit,en
+2026-03-08,Netflix Subscription,Entertainment,-490.0,debit,en
+2026-03-08,Spotify Premium,Entertainment,-280.0,debit,en
+2026-03-08,Prime Membership,Entertainment,-630.0,debit,en
+2026-03-08,Movie Night,Entertainment,-239.19,debit,en
 2026-03-08,Netflix Subscription,Entertainment,-630.0,debit,en
-2026-03-08,Movie Night,Entertainment,-493.86,debit,en
 2026-03-08,Spotify Premium,Entertainment,-360.0,debit,en
 2026-03-08,Prime Membership,Entertainment,-810.0,debit,en
-2026-03-08,Prime Membership,Entertainment,-630.0,debit,en
-2026-03-08,Netflix Subscription,Entertainment,-490.0,debit,en
-2026-03-08,Movie Night,Entertainment,-239.19,debit,en
-2026-03-08,Spotify Premium,Entertainment,-280.0,debit,en
+2026-03-08,Movie Night,Entertainment,-493.86,debit,en
 2026-03-09,Swiggy,Food,-376.43,debit,en
 2026-03-09,Swiggy,Food,-741.79,debit,en
 2026-03-10,Uber,Transport,-206.3,debit,en
@@ -133,800 +133,800 @@ date,merchant,category,amount,type,language
 2026-03-12,Uber,Transport,-310.73,debit,en
 2026-03-12,Uber,Transport,-316.89,debit,en
 2026-03-12,Flipkart,Shopping,-1469.33,debit,en
-2026-03-13,Swiggy,Food,-644.65,debit,en
 2026-03-13,Swiggy,Food,-454.72,debit,en
+2026-03-13,Swiggy,Food,-644.65,debit,en
+2026-03-14,Swiggy,Food,-502.16,debit,en
+2026-03-14,Fuel Station,Transport,-361.99,debit,en
+2026-03-14,Amazon,Shopping,-1146.06,debit,en
 2026-03-14,Swiggy,Food,-892.67,debit,en
 2026-03-14,Fuel Station,Transport,-314.17,debit,en
-2026-03-14,Amazon,Shopping,-1146.06,debit,en
-2026-03-14,Fuel Station,Transport,-361.99,debit,en
-2026-03-14,Swiggy,Food,-502.16,debit,en
 2026-03-15,Amazon,Shopping,-1493.53,debit,en
-2026-03-16,Swiggy,Food,-994.99,debit,en
 2026-03-16,Swiggy,Food,-454.58,debit,en
-2026-03-17,Uber,Transport,-450.34,debit,en
+2026-03-16,Swiggy,Food,-994.99,debit,en
 2026-03-17,Uber,Transport,-233.02,debit,en
-2026-03-18,Swiggy,Food,-589.29,debit,en
+2026-03-17,Uber,Transport,-450.34,debit,en
 2026-03-18,Swiggy,Food,-576.98,debit,en
+2026-03-18,Swiggy,Food,-589.29,debit,en
+2026-03-19,Uber,Transport,-308.97,debit,en
 2026-03-19,Uber,Transport,-424.05,debit,en
 2026-03-19,Flipkart,Shopping,-2050.9,debit,en
-2026-03-19,Uber,Transport,-308.97,debit,en
 2026-03-20,Swiggy,Food,-575.31,debit,en
-2026-03-20,Swiggy,Food,-615.05,debit,en
 2026-03-20,Flipkart,Shopping,-1061.61,debit,en
-2026-03-21,Amazon,Shopping,-1381.65,debit,en
-2026-03-21,Fuel Station,Transport,-354.67,debit,en
-2026-03-21,Swiggy,Food,-1093.01,debit,en
+2026-03-20,Swiggy,Food,-615.05,debit,en
 2026-03-21,Swiggy,Food,-596.17,debit,en
 2026-03-21,Fuel Station,Transport,-354.79,debit,en
-2026-03-22,Movie Night,Entertainment,-568.49,debit,en
+2026-03-21,Swiggy,Food,-1093.01,debit,en
+2026-03-21,Fuel Station,Transport,-354.67,debit,en
+2026-03-21,Amazon,Shopping,-1381.65,debit,en
 2026-03-22,Movie Night,Entertainment,-431.7,debit,en
 2026-03-22,Amazon,Shopping,-1708.44,debit,en
+2026-03-22,Movie Night,Entertainment,-568.49,debit,en
 2026-03-23,Swiggy,Food,-420.92,debit,en
 2026-03-23,Swiggy,Food,-702.67,debit,en
 2026-03-24,Uber,Transport,-222.44,debit,en
 2026-03-24,Uber,Transport,-386.62,debit,en
 2026-03-25,Swiggy,Food,-644.39,debit,en
 2026-03-25,Swiggy,Food,-824.58,debit,en
-2026-03-26,Uber,Transport,-395.61,debit,en
 2026-03-26,Uber,Transport,-442.94,debit,en
+2026-03-26,Uber,Transport,-395.61,debit,en
 2026-03-26,Flipkart,Shopping,-1503.16,debit,en
-2026-03-27,Flipkart,Shopping,-1020.84,debit,en
 2026-03-27,Swiggy,Food,-477.16,debit,en
+2026-03-27,Flipkart,Shopping,-1020.84,debit,en
 2026-03-27,Swiggy,Food,-897.37,debit,en
-2026-03-28,Fuel Station,Transport,-510.93,debit,en
-2026-03-28,Swiggy,Food,-993.86,debit,en
-2026-03-28,Fuel Station,Transport,-310.77,debit,en
 2026-03-28,Swiggy,Food,-445.67,debit,en
+2026-03-28,Fuel Station,Transport,-310.77,debit,en
+2026-03-28,Swiggy,Food,-993.86,debit,en
+2026-03-28,Fuel Station,Transport,-510.93,debit,en
 2026-03-29,Movie Night,Entertainment,-407.32,debit,en
-2026-03-30,Swiggy,Food,-908.58,debit,en
 2026-03-30,Swiggy,Food,-585.7,debit,en
-2026-03-31,Apollo Pharmacy,Healthcare,-1292.64,debit,en
-2026-03-31,Uber,Transport,-470.14,debit,en
-2026-03-31,Apollo Pharmacy,Healthcare,-773.83,debit,en
+2026-03-30,Swiggy,Food,-908.58,debit,en
 2026-03-31,Uber,Transport,-333.21,debit,en
-2026-04-01,Swiggy,Food,-538.42,debit,en
-2026-04-01,Swiggy,Food,-1193.17,debit,en
-2026-04-01,Salary Credit,Income,76000.0,credit,en
+2026-03-31,Apollo Pharmacy,Healthcare,-773.83,debit,en
+2026-03-31,Uber,Transport,-470.14,debit,en
+2026-03-31,Apollo Pharmacy,Healthcare,-1292.64,debit,en
 2026-04-01,Salary Credit,Income,82000.0,credit,en
-2026-04-02,Refund Credit,Income,404.35,credit,en
+2026-04-01,Swiggy,Food,-538.42,debit,en
+2026-04-01,Salary Credit,Income,76000.0,credit,en
+2026-04-01,Swiggy,Food,-1193.17,debit,en
 2026-04-02,Uber,Transport,-261.39,debit,en
 2026-04-02,Flipkart,Shopping,-903.23,debit,en
 2026-04-02,Uber,Transport,-433.76,debit,en
+2026-04-02,Refund Credit,Income,404.35,credit,en
+2026-04-03,Home Rent,Housing,-18000.0,debit,en
+2026-04-03,Swiggy,Food,-301.57,debit,en
+2026-04-03,Flipkart,Shopping,-883.61,debit,en
 2026-04-03,Home Rent,Housing,-16000.0,debit,en
 2026-04-03,Swiggy,Food,-810.86,debit,en
 2026-04-03,Amazon,Shopping,-1985.29,debit,en
-2026-04-03,Home Rent,Housing,-18000.0,debit,en
-2026-04-03,Flipkart,Shopping,-883.61,debit,en
-2026-04-03,Swiggy,Food,-301.57,debit,en
+2026-04-04,Swiggy,Food,-644.27,debit,en
 2026-04-04,Fuel Station,Transport,-275.16,debit,en
 2026-04-04,Swiggy,Food,-884.14,debit,en
 2026-04-04,Fuel Station,Transport,-484.77,debit,en
-2026-04-04,Swiggy,Food,-644.27,debit,en
+2026-04-06,Electricity Bill,Bills,-2604.0,debit,en
+2026-04-06,Internet Bill,Bills,-1596.0,debit,en
+2026-04-06,Swiggy,Food,-436.87,debit,en
 2026-04-06,Electricity Bill,Bills,-2418.0,debit,en
 2026-04-06,Internet Bill,Bills,-1482.0,debit,en
 2026-04-06,Swiggy,Food,-615.8,debit,en
 2026-04-06,Flipkart,Shopping,-1886.18,debit,en
 2026-04-06,Apollo Pharmacy,Healthcare,-598.93,debit,en
-2026-04-06,Internet Bill,Bills,-1596.0,debit,en
-2026-04-06,Swiggy,Food,-436.87,debit,en
-2026-04-06,Electricity Bill,Bills,-2604.0,debit,en
 2026-04-07,Uber,Transport,-183.25,debit,en
-2026-04-07,Uber,Transport,-388.22,debit,en
 2026-04-07,Amazon,Shopping,-445.07,debit,en
+2026-04-07,Uber,Transport,-388.22,debit,en
+2026-04-08,Netflix Subscription,Entertainment,-490.0,debit,en
+2026-04-08,Spotify Premium,Entertainment,-280.0,debit,en
+2026-04-08,Prime Membership,Entertainment,-630.0,debit,en
+2026-04-08,Swiggy,Food,-606.89,debit,en
+2026-04-08,Flipkart,Shopping,-569.19,debit,en
 2026-04-08,Netflix Subscription,Entertainment,-630.0,debit,en
 2026-04-08,Spotify Premium,Entertainment,-360.0,debit,en
 2026-04-08,Prime Membership,Entertainment,-810.0,debit,en
 2026-04-08,Swiggy,Food,-1124.54,debit,en
-2026-04-08,Spotify Premium,Entertainment,-280.0,debit,en
-2026-04-08,Prime Membership,Entertainment,-630.0,debit,en
-2026-04-08,Swiggy,Food,-606.89,debit,en
-2026-04-08,Netflix Subscription,Entertainment,-490.0,debit,en
-2026-04-08,Flipkart,Shopping,-569.19,debit,en
 2026-04-09,Uber,Transport,-266.75,debit,en
 2026-04-09,Uber,Transport,-500.52,debit,en
 2026-04-10,Swiggy,Food,-487.92,debit,en
 2026-04-10,Swiggy,Food,-840.93,debit,en
-2026-04-11,Fuel Station,Transport,-455.72,debit,en
-2026-04-11,Swiggy,Food,-850.46,debit,en
 2026-04-11,Swiggy,Food,-624.33,debit,en
 2026-04-11,Fuel Station,Transport,-306.84,debit,en
+2026-04-11,Swiggy,Food,-850.46,debit,en
+2026-04-11,Fuel Station,Transport,-455.72,debit,en
 2026-04-12,Amazon,Shopping,-717.0,debit,en
 2026-04-12,Movie Night,Entertainment,-348.52,debit,en
 2026-04-12,Amazon,Shopping,-851.72,debit,en
 2026-04-13,Swiggy,Food,-549.38,debit,en
 2026-04-13,Swiggy,Food,-693.78,debit,en
 2026-04-13,Amazon,Shopping,-1356.23,debit,en
-2026-04-14,Amazon,Shopping,-628.17,debit,en
 2026-04-14,Uber,Transport,-201.78,debit,en
+2026-04-14,Amazon,Shopping,-628.17,debit,en
 2026-04-14,Uber,Transport,-453.19,debit,en
 2026-04-14,Flipkart,Shopping,-1823.47,debit,en
 2026-04-15,Swiggy,Food,-552.55,debit,en
 2026-04-15,Swiggy,Food,-855.52,debit,en
+2026-04-16,Uber,Transport,-323.34,debit,en
 2026-04-16,Uber,Transport,-441.29,debit,en
 2026-04-16,Apollo Pharmacy,Healthcare,-818.02,debit,en
-2026-04-16,Uber,Transport,-323.34,debit,en
-2026-04-17,Swiggy,Food,-1000.88,debit,en
 2026-04-17,Swiggy,Food,-520.59,debit,en
+2026-04-17,Swiggy,Food,-1000.88,debit,en
 2026-04-18,Swiggy,Food,-528.57,debit,en
-2026-04-18,Swiggy,Food,-703.92,debit,en
 2026-04-18,Fuel Station,Transport,-320.65,debit,en
+2026-04-18,Swiggy,Food,-703.92,debit,en
 2026-04-18,Fuel Station,Transport,-522.26,debit,en
 2026-04-20,Swiggy,Food,-582.3,debit,en
-2026-04-20,Swiggy,Food,-916.94,debit,en
 2026-04-20,Apollo Pharmacy,Healthcare,-878.44,debit,en
+2026-04-20,Swiggy,Food,-916.94,debit,en
 2026-04-21,Uber,Transport,-258.39,debit,en
-2026-04-21,Uber,Transport,-676.74,debit,en
 2026-04-21,Refund Credit,Income,291.65,credit,en
-2026-04-22,Swiggy,Food,-912.91,debit,en
+2026-04-21,Uber,Transport,-676.74,debit,en
 2026-04-22,Swiggy,Food,-380.06,debit,en
-2026-04-23,Uber,Transport,-572.68,debit,en
+2026-04-22,Swiggy,Food,-912.91,debit,en
 2026-04-23,Uber,Transport,-174.82,debit,en
-2026-04-24,Swiggy,Food,-840.78,debit,en
+2026-04-23,Uber,Transport,-572.68,debit,en
 2026-04-24,Swiggy,Food,-560.71,debit,en
-2026-04-25,Swiggy,Food,-838.16,debit,en
+2026-04-24,Swiggy,Food,-840.78,debit,en
+2026-04-25,Swiggy,Food,-492.17,debit,en
 2026-04-25,Fuel Station,Transport,-286.96,debit,en
 2026-04-25,Amazon,Shopping,-893.75,debit,en
-2026-04-25,Swiggy,Food,-492.17,debit,en
-2026-04-25,Flipkart,Shopping,-1379.62,debit,en
+2026-04-25,Swiggy,Food,-838.16,debit,en
 2026-04-25,Fuel Station,Transport,-399.33,debit,en
-2026-04-27,Amazon,Shopping,-1727.11,debit,en
-2026-04-27,Swiggy,Food,-887.29,debit,en
+2026-04-25,Flipkart,Shopping,-1379.62,debit,en
 2026-04-27,Swiggy,Food,-645.03,debit,en
+2026-04-27,Swiggy,Food,-887.29,debit,en
+2026-04-27,Amazon,Shopping,-1727.11,debit,en
 2026-04-28,Uber,Transport,-381.85,debit,en
 2026-04-28,Uber,Transport,-273.2,debit,en
 2026-04-29,Swiggy,Food,-486.14,debit,en
 2026-04-29,Swiggy,Food,-758.8,debit,en
-2026-04-30,Uber,Transport,-248.39,debit,en
-2026-04-30,Uber,Transport,-351.11,debit,en
 2026-04-30,Uber,Transport,-170.4,debit,en
+2026-04-30,Uber,Transport,-351.11,debit,en
+2026-04-30,Uber,Transport,-248.39,debit,en
+2026-05-01,Salary Credit,Income,82000.0,credit,en
+2026-05-01,Swiggy,Food,-295.9,debit,en
+2026-05-01,Flipkart,Shopping,-286.82,debit,en
 2026-05-01,Salary Credit,Income,76000.0,credit,en
 2026-05-01,Swiggy,Food,-925.67,debit,en
 2026-05-01,Salary Credit,Income,90000.0,credit,en
 2026-05-01,Swiggy,Food,-526.34,debit,en
-2026-05-01,Flipkart,Shopping,-286.82,debit,en
-2026-05-01,Swiggy,Food,-295.9,debit,en
-2026-05-01,Salary Credit,Income,82000.0,credit,en
+2026-05-02,Swiggy,Food,-496.28,debit,en
+2026-05-02,Fuel Station,Transport,-268.86,debit,en
+2026-05-02,Amazon,Shopping,-452.91,debit,en
 2026-05-02,Swiggy,Food,-943.96,debit,en
+2026-05-02,Fuel Station,Transport,-482.83,debit,en
 2026-05-02,Swiggy,Food,-513.56,debit,en
 2026-05-02,Fuel Station,Transport,-145.61,debit,en
-2026-05-02,Amazon,Shopping,-452.91,debit,en
-2026-05-02,Swiggy,Food,-496.28,debit,en
-2026-05-02,Fuel Station,Transport,-482.83,debit,en
-2026-05-02,Fuel Station,Transport,-268.86,debit,en
+2026-05-03,Home Rent,Housing,-18000.0,debit,en
 2026-05-03,Home Rent,Housing,-16000.0,debit,en
 2026-05-03,Home Rent,Housing,-26000.0,debit,en
-2026-05-03,Home Rent,Housing,-18000.0,debit,en
 2026-05-04,Swiggy,Food,-491.26,debit,en
-2026-05-04,Swiggy,Food,-419.85,debit,en
 2026-05-04,Swiggy,Food,-1077.57,debit,en
+2026-05-04,Swiggy,Food,-419.85,debit,en
 2026-05-05,Uber,Transport,-217.78,debit,en
-2026-05-05,Uber,Transport,-214.59,debit,en
 2026-05-05,Uber,Transport,-430.71,debit,en
+2026-05-05,Uber,Transport,-214.59,debit,en
 2026-05-06,Electricity Bill,Bills,-2604.0,debit,en
-2026-05-06,Refund Credit,Income,532.48,credit,en
+2026-05-06,Internet Bill,Bills,-1596.0,debit,en
 2026-05-06,Swiggy,Food,-448.35,debit,en
+2026-05-06,Refund Credit,Income,532.48,credit,en
 2026-05-06,Electricity Bill,Bills,-2418.0,debit,en
 2026-05-06,Internet Bill,Bills,-1482.0,debit,en
 2026-05-06,Swiggy,Food,-903.86,debit,en
 2026-05-06,Amazon,Shopping,-1736.42,debit,en
-2026-05-06,Internet Bill,Bills,-1596.0,debit,en
 2026-05-06,Electricity Bill,Bills,-3224.0,debit,en
 2026-05-06,Internet Bill,Bills,-1976.0,debit,en
 2026-05-06,Swiggy,Food,-518.88,debit,en
+2026-05-07,Uber,Transport,-318.39,debit,en
 2026-05-07,Refund Credit,Income,697.17,credit,en
+2026-05-07,Uber,Transport,-400.66,debit,en
 2026-05-07,Uber,Transport,-283.69,debit,en
 2026-05-07,Apollo Pharmacy,Healthcare,-574.83,debit,en
-2026-05-07,Uber,Transport,-318.39,debit,en
-2026-05-07,Uber,Transport,-400.66,debit,en
-2026-05-08,Netflix Subscription,Entertainment,-385.0,debit,en
-2026-05-08,Spotify Premium,Entertainment,-220.0,debit,en
-2026-05-08,Prime Membership,Entertainment,-495.0,debit,en
-2026-05-08,Netflix Subscription,Entertainment,-630.0,debit,en
-2026-05-08,Spotify Premium,Entertainment,-360.0,debit,en
-2026-05-08,Prime Membership,Entertainment,-810.0,debit,en
-2026-05-08,Swiggy,Food,-812.68,debit,en
-2026-05-08,Apollo Pharmacy,Healthcare,-1110.05,debit,en
 2026-05-08,Netflix Subscription,Entertainment,-490.0,debit,en
 2026-05-08,Spotify Premium,Entertainment,-280.0,debit,en
 2026-05-08,Prime Membership,Entertainment,-630.0,debit,en
 2026-05-08,Swiggy,Food,-435.79,debit,en
+2026-05-08,Netflix Subscription,Entertainment,-630.0,debit,en
+2026-05-08,Spotify Premium,Entertainment,-360.0,debit,en
+2026-05-08,Prime Membership,Entertainment,-810.0,debit,en
+2026-05-08,Swiggy,Food,-812.68,debit,en
+2026-05-08,Netflix Subscription,Entertainment,-385.0,debit,en
+2026-05-08,Spotify Premium,Entertainment,-220.0,debit,en
+2026-05-08,Prime Membership,Entertainment,-495.0,debit,en
 2026-05-08,Swiggy,Food,-433.53,debit,en
-2026-05-09,Fuel Station,Transport,-565.08,debit,en
+2026-05-08,Apollo Pharmacy,Healthcare,-1110.05,debit,en
 2026-05-09,Swiggy,Food,-636.81,debit,en
 2026-05-09,Fuel Station,Transport,-262.32,debit,en
-2026-05-09,Apollo Pharmacy,Healthcare,-556.87,debit,en
-2026-05-09,Fuel Station,Transport,-250.81,debit,en
-2026-05-09,Swiggy,Food,-501.42,debit,en
 2026-05-09,Swiggy,Food,-745.06,debit,en
+2026-05-09,Fuel Station,Transport,-565.08,debit,en
+2026-05-09,Swiggy,Food,-501.42,debit,en
+2026-05-09,Fuel Station,Transport,-250.81,debit,en
+2026-05-09,Apollo Pharmacy,Healthcare,-556.87,debit,en
 2026-05-10,Movie Night,Entertainment,-450.46,debit,en
 2026-05-11,Swiggy,Food,-409.87,debit,en
 2026-05-11,Swiggy,Food,-543.76,debit,en
 2026-05-11,Amazon,Shopping,-1507.63,debit,en
-2026-05-11,Refund Credit,Income,446.97,credit,en
 2026-05-11,Swiggy,Food,-439.76,debit,en
+2026-05-11,Refund Credit,Income,446.97,credit,en
+2026-05-12,Uber,Transport,-194.43,debit,en
 2026-05-12,Uber,Transport,-527.0,debit,en
 2026-05-12,Uber,Transport,-227.93,debit,en
-2026-05-12,Uber,Transport,-194.43,debit,en
-2026-05-13,Swiggy,Food,-891.71,debit,en
 2026-05-13,Swiggy,Food,-480.32,debit,en
 2026-05-13,Apollo Pharmacy,Healthcare,-844.1,debit,en
+2026-05-13,Swiggy,Food,-891.71,debit,en
 2026-05-13,Swiggy,Food,-644.41,debit,en
-2026-05-14,Uber,Transport,-249.34,debit,en
-2026-05-14,Uber,Transport,-420.14,debit,en
 2026-05-14,Uber,Transport,-336.88,debit,en
-2026-05-15,Swiggy,Food,-470.22,debit,en
-2026-05-15,Swiggy,Food,-668.38,debit,en
-2026-05-15,Flipkart,Shopping,-546.24,debit,en
+2026-05-14,Uber,Transport,-420.14,debit,en
+2026-05-14,Uber,Transport,-249.34,debit,en
 2026-05-15,Swiggy,Food,-465.94,debit,en
-2026-05-16,Fuel Station,Transport,-329.61,debit,en
-2026-05-16,Fuel Station,Transport,-299.41,debit,en
-2026-05-16,Swiggy,Food,-434.34,debit,en
-2026-05-16,Swiggy,Food,-699.27,debit,en
-2026-05-16,Refund Credit,Income,584.56,credit,en
-2026-05-16,Flipkart,Shopping,-446.59,debit,en
-2026-05-16,Fuel Station,Transport,-162.01,debit,en
+2026-05-15,Flipkart,Shopping,-546.24,debit,en
+2026-05-15,Swiggy,Food,-668.38,debit,en
+2026-05-15,Swiggy,Food,-470.22,debit,en
 2026-05-16,Swiggy,Food,-561.94,debit,en
-2026-05-17,Amazon,Shopping,-920.17,debit,en
+2026-05-16,Fuel Station,Transport,-162.01,debit,en
+2026-05-16,Flipkart,Shopping,-446.59,debit,en
+2026-05-16,Swiggy,Food,-699.27,debit,en
+2026-05-16,Fuel Station,Transport,-329.61,debit,en
+2026-05-16,Refund Credit,Income,584.56,credit,en
+2026-05-16,Swiggy,Food,-434.34,debit,en
+2026-05-16,Fuel Station,Transport,-299.41,debit,en
 2026-05-17,Movie Night,Entertainment,-435.97,debit,en
+2026-05-17,Amazon,Shopping,-920.17,debit,en
 2026-05-17,Movie Night,Entertainment,-337.14,debit,en
-2026-05-18,Swiggy,Food,-483.24,debit,en
-2026-05-18,Swiggy,Food,-605.17,debit,en
 2026-05-18,Swiggy,Food,-462.53,debit,en
 2026-05-18,Refund Credit,Income,698.4,credit,en
+2026-05-18,Swiggy,Food,-605.17,debit,en
+2026-05-18,Swiggy,Food,-483.24,debit,en
+2026-05-19,Uber,Transport,-236.62,debit,en
 2026-05-19,Flipkart,Shopping,-569.3,debit,en
 2026-05-19,Uber,Transport,-463.83,debit,en
 2026-05-19,Uber,Transport,-166.27,debit,en
-2026-05-19,Uber,Transport,-236.62,debit,en
-2026-05-20,Flipkart,Shopping,-777.4,debit,en
-2026-05-20,Swiggy,Food,-946.83,debit,en
-2026-05-20,Swiggy,Food,-463.62,debit,en
 2026-05-20,Swiggy,Food,-294.16,debit,en
-2026-05-21,Uber,Transport,-356.03,debit,en
-2026-05-21,Uber,Transport,-405.2,debit,en
+2026-05-20,Swiggy,Food,-946.83,debit,en
+2026-05-20,Flipkart,Shopping,-777.4,debit,en
+2026-05-20,Swiggy,Food,-463.62,debit,en
 2026-05-21,Uber,Transport,-144.42,debit,en
+2026-05-21,Uber,Transport,-405.2,debit,en
+2026-05-21,Uber,Transport,-356.03,debit,en
 2026-05-22,Swiggy,Food,-415.79,debit,en
 2026-05-22,Flipkart,Shopping,-828.5,debit,en
-2026-05-22,Amazon,Shopping,-610.41,debit,en
-2026-05-22,Swiggy,Food,-413.07,debit,en
-2026-05-22,Amazon,Shopping,-2529.25,debit,en
 2026-05-22,Swiggy,Food,-964.77,debit,en
-2026-05-23,Fuel Station,Transport,-281.13,debit,en
-2026-05-23,Swiggy,Food,-688.08,debit,en
+2026-05-22,Amazon,Shopping,-2529.25,debit,en
+2026-05-22,Swiggy,Food,-413.07,debit,en
+2026-05-22,Amazon,Shopping,-610.41,debit,en
 2026-05-23,Swiggy,Food,-536.1,debit,en
+2026-05-23,Fuel Station,Transport,-256.39,debit,en
+2026-05-23,Swiggy,Food,-688.08,debit,en
+2026-05-23,Fuel Station,Transport,-281.13,debit,en
 2026-05-23,Swiggy,Food,-426.52,debit,en
 2026-05-23,Fuel Station,Transport,-217.34,debit,en
-2026-05-23,Fuel Station,Transport,-256.39,debit,en
-2026-05-24,Apollo Pharmacy,Healthcare,-1520.41,debit,en
 2026-05-24,Movie Night,Entertainment,-364.52,debit,en
-2026-05-25,Flipkart,Shopping,-1402.37,debit,en
+2026-05-24,Apollo Pharmacy,Healthcare,-1520.41,debit,en
 2026-05-25,Swiggy,Food,-692.96,debit,en
 2026-05-25,Swiggy,Food,-985.67,debit,en
+2026-05-25,Flipkart,Shopping,-1402.37,debit,en
 2026-05-25,Swiggy,Food,-378.38,debit,en
-2026-05-26,Uber,Transport,-229.89,debit,en
-2026-05-26,Uber,Transport,-191.63,debit,en
 2026-05-26,Uber,Transport,-321.11,debit,en
 2026-05-26,Flipkart,Shopping,-487.08,debit,en
+2026-05-26,Uber,Transport,-229.89,debit,en
+2026-05-26,Uber,Transport,-191.63,debit,en
+2026-05-27,Swiggy,Food,-361.63,debit,en
 2026-05-27,Swiggy,Food,-843.2,debit,en
 2026-05-27,Swiggy,Food,-400.71,debit,en
-2026-05-27,Swiggy,Food,-361.63,debit,en
-2026-05-28,Uber,Transport,-230.66,debit,en
-2026-05-28,Uber,Transport,-325.41,debit,en
 2026-05-28,Uber,Transport,-274.29,debit,en
-2026-05-29,Swiggy,Food,-576.72,debit,en
+2026-05-28,Uber,Transport,-325.41,debit,en
+2026-05-28,Uber,Transport,-230.66,debit,en
 2026-05-29,Swiggy,Food,-471.07,debit,en
 2026-05-29,Swiggy,Food,-935.61,debit,en
-2026-05-30,Amazon,Shopping,-568.37,debit,en
-2026-05-30,Fuel Station,Transport,-355.05,debit,en
+2026-05-29,Swiggy,Food,-576.72,debit,en
+2026-05-30,Swiggy,Food,-453.18,debit,en
+2026-05-30,Fuel Station,Transport,-187.82,debit,en
 2026-05-30,Swiggy,Food,-668.83,debit,en
 2026-05-30,Fuel Station,Transport,-429.08,debit,en
-2026-05-30,Fuel Station,Transport,-187.82,debit,en
-2026-05-30,Swiggy,Food,-453.18,debit,en
 2026-05-30,Swiggy,Food,-383.11,debit,en
+2026-05-30,Fuel Station,Transport,-355.05,debit,en
+2026-05-30,Amazon,Shopping,-568.37,debit,en
 2026-05-31,Movie Night,Entertainment,-636.23,debit,en
-2026-06-01,Swiggy,Food,-596.45,debit,en
-2026-06-01,Swiggy,Food,-567.74,debit,en
 2026-06-01,Salary Credit,Income,82000.0,credit,en
+2026-06-01,Swiggy,Food,-596.45,debit,en
 2026-06-01,Salary Credit,Income,76000.0,credit,en
 2026-06-01,Swiggy,Food,-1107.59,debit,en
 2026-06-01,Salary Credit,Income,90000.0,credit,en
+2026-06-01,Swiggy,Food,-567.74,debit,en
 2026-06-01,Apollo Pharmacy,Healthcare,-1018.46,debit,en
-2026-06-02,Amazon,Shopping,-486.99,debit,en
-2026-06-02,Uber,Transport,-139.61,debit,en
 2026-06-02,Uber,Transport,-249.52,debit,en
 2026-06-02,Uber,Transport,-376.72,debit,en
-2026-06-03,Home Rent,Housing,-26000.0,debit,en
-2026-06-03,Swiggy,Food,-476.57,debit,en
-2026-06-03,Swiggy,Food,-998.0,debit,en
-2026-06-03,Home Rent,Housing,-16000.0,debit,en
+2026-06-02,Uber,Transport,-139.61,debit,en
+2026-06-02,Amazon,Shopping,-486.99,debit,en
 2026-06-03,Home Rent,Housing,-18000.0,debit,en
 2026-06-03,Swiggy,Food,-477.05,debit,en
+2026-06-03,Home Rent,Housing,-16000.0,debit,en
+2026-06-03,Swiggy,Food,-998.0,debit,en
+2026-06-03,Home Rent,Housing,-26000.0,debit,en
+2026-06-03,Swiggy,Food,-476.57,debit,en
+2026-06-04,Uber,Transport,-346.64,debit,en
 2026-06-04,Uber,Transport,-343.83,debit,en
 2026-06-04,Uber,Transport,-266.0,debit,en
-2026-06-04,Uber,Transport,-346.64,debit,en
-2026-06-05,Amazon,Shopping,-2024.65,debit,en
-2026-06-05,Swiggy,Food,-1116.17,debit,en
-2026-06-05,Amazon,Shopping,-475.79,debit,en
 2026-06-05,Swiggy,Food,-302.81,debit,en
+2026-06-05,Amazon,Shopping,-475.79,debit,en
+2026-06-05,Swiggy,Food,-1116.17,debit,en
+2026-06-05,Amazon,Shopping,-2024.65,debit,en
 2026-06-05,Swiggy,Food,-483.43,debit,en
-2026-06-06,Internet Bill,Bills,-1976.0,debit,en
-2026-06-06,Internet Bill,Bills,-1482.0,debit,en
-2026-06-06,Electricity Bill,Bills,-2418.0,debit,en
-2026-06-06,Swiggy,Food,-503.66,debit,en
-2026-06-06,Fuel Station,Transport,-259.54,debit,en
-2026-06-06,Electricity Bill,Bills,-3224.0,debit,en
 2026-06-06,Electricity Bill,Bills,-2604.0,debit,en
 2026-06-06,Internet Bill,Bills,-1596.0,debit,en
 2026-06-06,Swiggy,Food,-423.52,debit,en
 2026-06-06,Fuel Station,Transport,-276.01,debit,en
 2026-06-06,Amazon,Shopping,-460.89,debit,en
+2026-06-06,Electricity Bill,Bills,-2418.0,debit,en
+2026-06-06,Internet Bill,Bills,-1482.0,debit,en
 2026-06-06,Swiggy,Food,-842.42,debit,en
 2026-06-06,Fuel Station,Transport,-407.87,debit,en
-2026-06-07,Movie Night,Entertainment,-623.92,debit,en
+2026-06-06,Electricity Bill,Bills,-3224.0,debit,en
+2026-06-06,Internet Bill,Bills,-1976.0,debit,en
+2026-06-06,Swiggy,Food,-503.66,debit,en
+2026-06-06,Fuel Station,Transport,-259.54,debit,en
 2026-06-07,Movie Night,Entertainment,-534.2,debit,en
-2026-06-07,Movie Night,Entertainment,-418.7,debit,en
 2026-06-07,Refund Credit,Income,612.08,credit,en
-2026-06-08,Netflix Subscription,Entertainment,-630.0,debit,en
-2026-06-08,Netflix Subscription,Entertainment,-385.0,debit,en
-2026-06-08,Spotify Premium,Entertainment,-360.0,debit,en
+2026-06-07,Movie Night,Entertainment,-623.92,debit,en
+2026-06-07,Movie Night,Entertainment,-418.7,debit,en
 2026-06-08,Netflix Subscription,Entertainment,-490.0,debit,en
 2026-06-08,Spotify Premium,Entertainment,-280.0,debit,en
 2026-06-08,Prime Membership,Entertainment,-630.0,debit,en
 2026-06-08,Swiggy,Food,-406.19,debit,en
-2026-06-08,Prime Membership,Entertainment,-495.0,debit,en
-2026-06-08,Swiggy,Food,-585.56,debit,en
-2026-06-08,Spotify Premium,Entertainment,-220.0,debit,en
-2026-06-08,Refund Credit,Income,864.85,credit,en
+2026-06-08,Netflix Subscription,Entertainment,-630.0,debit,en
+2026-06-08,Spotify Premium,Entertainment,-360.0,debit,en
 2026-06-08,Prime Membership,Entertainment,-810.0,debit,en
 2026-06-08,Swiggy,Food,-754.59,debit,en
 2026-06-08,Flipkart,Shopping,-1185.13,debit,en
-2026-06-09,Refund Credit,Income,695.08,credit,en
-2026-06-09,Uber,Transport,-192.09,debit,en
+2026-06-08,Refund Credit,Income,864.85,credit,en
+2026-06-08,Netflix Subscription,Entertainment,-385.0,debit,en
+2026-06-08,Spotify Premium,Entertainment,-220.0,debit,en
+2026-06-08,Prime Membership,Entertainment,-495.0,debit,en
+2026-06-08,Swiggy,Food,-585.56,debit,en
 2026-06-09,Uber,Transport,-208.44,debit,en
+2026-06-09,Uber,Transport,-192.09,debit,en
+2026-06-09,Refund Credit,Income,695.08,credit,en
 2026-06-09,Uber,Transport,-315.93,debit,en
 2026-06-10,Swiggy,Food,-379.91,debit,en
 2026-06-10,Swiggy,Food,-647.06,debit,en
 2026-06-10,Swiggy,Food,-544.56,debit,en
-2026-06-11,Uber,Transport,-437.82,debit,en
-2026-06-11,Flipkart,Shopping,-425.71,debit,en
 2026-06-11,Uber,Transport,-333.71,debit,en
-2026-06-11,Uber,Transport,-297.61,debit,en
+2026-06-11,Flipkart,Shopping,-425.71,debit,en
+2026-06-11,Uber,Transport,-437.82,debit,en
 2026-06-11,Amazon,Shopping,-1292.85,debit,en
-2026-06-12,Swiggy,Food,-607.72,debit,en
-2026-06-12,Swiggy,Food,-608.93,debit,en
+2026-06-11,Uber,Transport,-297.61,debit,en
 2026-06-12,Swiggy,Food,-502.43,debit,en
 2026-06-12,Apollo Pharmacy,Healthcare,-1144.44,debit,en
-2026-06-13,Fuel Station,Transport,-162.67,debit,en
-2026-06-13,Swiggy,Food,-858.18,debit,en
-2026-06-13,Fuel Station,Transport,-122.69,debit,en
+2026-06-12,Swiggy,Food,-608.93,debit,en
+2026-06-12,Swiggy,Food,-607.72,debit,en
 2026-06-13,Swiggy,Food,-368.38,debit,en
-2026-06-13,Swiggy,Food,-555.94,debit,en
+2026-06-13,Fuel Station,Transport,-122.69,debit,en
+2026-06-13,Swiggy,Food,-858.18,debit,en
 2026-06-13,Fuel Station,Transport,-201.14,debit,en
+2026-06-13,Swiggy,Food,-555.94,debit,en
+2026-06-13,Fuel Station,Transport,-162.67,debit,en
 2026-06-14,Movie Night,Entertainment,-561.7,debit,en
 2026-06-14,Movie Night,Entertainment,-529.37,debit,en
-2026-06-15,Swiggy,Food,-454.14,debit,en
-2026-06-15,Flipkart,Shopping,-641.46,debit,en
+2026-06-15,Swiggy,Food,-485.21,debit,en
 2026-06-15,Swiggy,Food,-796.83,debit,en
 2026-06-15,Flipkart,Shopping,-1922.4,debit,en
+2026-06-15,Swiggy,Food,-454.14,debit,en
+2026-06-15,Flipkart,Shopping,-641.46,debit,en
 2026-06-15,Apollo Pharmacy,Healthcare,-1210.94,debit,en
-2026-06-15,Swiggy,Food,-485.21,debit,en
-2026-06-16,Amazon,Shopping,-1697.42,debit,en
-2026-06-16,Uber,Transport,-612.8,debit,en
 2026-06-16,Uber,Transport,-208.95,debit,en
+2026-06-16,Uber,Transport,-612.8,debit,en
+2026-06-16,Amazon,Shopping,-1697.42,debit,en
 2026-06-16,Uber,Transport,-169.2,debit,en
 2026-06-17,Swiggy,Food,-433.81,debit,en
 2026-06-17,Swiggy,Food,-764.2,debit,en
-2026-06-17,Apollo Pharmacy,Healthcare,-897.74,debit,en
 2026-06-17,Swiggy,Food,-568.48,debit,en
-2026-06-18,Uber,Transport,-521.58,debit,en
+2026-06-17,Apollo Pharmacy,Healthcare,-897.74,debit,en
 2026-06-18,Uber,Transport,-367.48,debit,en
+2026-06-18,Uber,Transport,-521.58,debit,en
 2026-06-18,Uber,Transport,-235.9,debit,en
-2026-06-19,Swiggy,Food,-963.53,debit,en
 2026-06-19,Swiggy,Food,-551.9,debit,en
 2026-06-19,Apollo Pharmacy,Healthcare,-810.95,debit,en
+2026-06-19,Swiggy,Food,-963.53,debit,en
 2026-06-19,Swiggy,Food,-426.76,debit,en
-2026-06-20,Fuel Station,Transport,-377.58,debit,en
-2026-06-20,Swiggy,Food,-543.06,debit,en
-2026-06-20,Fuel Station,Transport,-463.26,debit,en
-2026-06-20,Fuel Station,Transport,-401.03,debit,en
 2026-06-20,Swiggy,Food,-677.42,debit,en
+2026-06-20,Fuel Station,Transport,-401.03,debit,en
 2026-06-20,Swiggy,Food,-891.32,debit,en
+2026-06-20,Fuel Station,Transport,-463.26,debit,en
+2026-06-20,Swiggy,Food,-543.06,debit,en
+2026-06-20,Fuel Station,Transport,-377.58,debit,en
 2026-06-21,Movie Night,Entertainment,-318.78,debit,en
 2026-06-21,Apollo Pharmacy,Healthcare,-448.03,debit,en
-2026-06-22,Swiggy,Food,-917.17,debit,en
 2026-06-22,Swiggy,Food,-398.07,debit,en
-2026-06-22,Swiggy,Food,-388.11,debit,en
 2026-06-22,Flipkart,Shopping,-680.47,debit,en
+2026-06-22,Swiggy,Food,-917.17,debit,en
+2026-06-22,Swiggy,Food,-388.11,debit,en
+2026-06-23,Uber,Transport,-297.42,debit,en
 2026-06-23,Uber,Transport,-454.32,debit,en
 2026-06-23,Uber,Transport,-326.59,debit,en
-2026-06-23,Uber,Transport,-297.42,debit,en
 2026-06-24,Swiggy,Food,-505.86,debit,en
 2026-06-24,Amazon,Shopping,-393.67,debit,en
-2026-06-24,Swiggy,Food,-456.98,debit,en
 2026-06-24,Swiggy,Food,-811.31,debit,en
-2026-06-25,Uber,Transport,-495.8,debit,en
+2026-06-24,Swiggy,Food,-456.98,debit,en
 2026-06-25,Uber,Transport,-271.41,debit,en
+2026-06-25,Uber,Transport,-495.8,debit,en
 2026-06-25,Uber,Transport,-230.75,debit,en
-2026-06-26,Swiggy,Food,-772.41,debit,en
 2026-06-26,Swiggy,Food,-523.64,debit,en
+2026-06-26,Swiggy,Food,-772.41,debit,en
 2026-06-26,Swiggy,Food,-532.09,debit,en
 2026-06-26,Flipkart,Shopping,-669.18,debit,en
 2026-06-26,Apollo Pharmacy,Healthcare,-986.83,debit,en
 2026-06-27,Swiggy,Food,-555.5,debit,en
-2026-06-27,Fuel Station,Transport,-209.27,debit,en
-2026-06-27,Fuel Station,Transport,-238.01,debit,en
-2026-06-27,Swiggy,Food,-990.2,debit,en
-2026-06-27,Swiggy,Food,-517.62,debit,en
 2026-06-27,Fuel Station,Transport,-370.11,debit,en
+2026-06-27,Swiggy,Food,-990.2,debit,en
+2026-06-27,Fuel Station,Transport,-238.01,debit,en
+2026-06-27,Swiggy,Food,-517.62,debit,en
+2026-06-27,Fuel Station,Transport,-209.27,debit,en
 2026-06-28,Movie Night,Entertainment,-425.75,debit,en
 2026-06-28,Movie Night,Entertainment,-599.48,debit,en
+2026-06-29,Swiggy,Food,-976.86,debit,en
 2026-06-29,Swiggy,Food,-452.59,debit,en
 2026-06-29,Swiggy,Food,-516.4,debit,en
-2026-06-29,Swiggy,Food,-976.86,debit,en
-2026-06-30,Uber,Transport,-301.21,debit,en
 2026-06-30,Uber,Transport,-458.28,debit,en
 2026-06-30,Uber,Transport,-135.1,debit,en
-2026-07-01,Swiggy,Food,-429.62,debit,en
+2026-06-30,Uber,Transport,-301.21,debit,en
 2026-07-01,Salary Credit,Income,76000.0,credit,en
-2026-07-01,Salary Credit,Income,90000.0,credit,en
 2026-07-01,Swiggy,Food,-1075.46,debit,en
-2026-07-01,Swiggy,Food,-663.09,debit,en
+2026-07-01,Salary Credit,Income,90000.0,credit,en
+2026-07-01,Swiggy,Food,-429.62,debit,en
 2026-07-01,Salary Credit,Income,68000.0,credit,en
+2026-07-01,Swiggy,Food,-663.09,debit,en
 2026-07-02,Uber,Transport,-402.71,debit,en
-2026-07-02,Apollo Pharmacy,Healthcare,-1404.13,debit,en
-2026-07-02,Uber,Transport,-315.88,debit,en
 2026-07-02,Uber,Transport,-148.25,debit,en
-2026-07-03,Home Rent,Housing,-26000.0,debit,en
-2026-07-03,Swiggy,Food,-363.35,debit,en
+2026-07-02,Uber,Transport,-315.88,debit,en
+2026-07-02,Apollo Pharmacy,Healthcare,-1404.13,debit,en
 2026-07-03,Home Rent,Housing,-16000.0,debit,en
 2026-07-03,Swiggy,Food,-683.76,debit,en
-2026-07-03,Apollo Pharmacy,Healthcare,-921.42,debit,en
-2026-07-03,Swiggy,Food,-623.48,debit,en
+2026-07-03,Home Rent,Housing,-26000.0,debit,en
+2026-07-03,Swiggy,Food,-363.35,debit,en
 2026-07-03,Home Rent,Housing,-15000.0,debit,en
+2026-07-03,Swiggy,Food,-623.48,debit,en
+2026-07-03,Apollo Pharmacy,Healthcare,-921.42,debit,en
 2026-07-04,Swiggy,Food,-1076.04,debit,en
 2026-07-04,Fuel Station,Transport,-363.03,debit,en
-2026-07-04,Fuel Station,Transport,-403.33,debit,en
-2026-07-04,Swiggy,Food,-691.58,debit,en
 2026-07-04,Flipkart,Shopping,-517.61,debit,en
 2026-07-04,Swiggy,Food,-421.48,debit,en
 2026-07-04,Fuel Station,Transport,-207.89,debit,en
+2026-07-04,Swiggy,Food,-691.58,debit,en
+2026-07-04,Fuel Station,Transport,-403.33,debit,en
 2026-07-05,Movie Night,Entertainment,-233.66,debit,en
 2026-07-05,Movie Night,Entertainment,-541.91,debit,en
-2026-07-06,Electricity Bill,Bills,-3224.0,debit,en
-2026-07-06,Flipkart,Shopping,-1195.16,debit,en
-2026-07-06,Swiggy,Food,-818.78,debit,en
-2026-07-06,Internet Bill,Bills,-1482.0,debit,en
 2026-07-06,Electricity Bill,Bills,-2418.0,debit,en
+2026-07-06,Internet Bill,Bills,-1482.0,debit,en
+2026-07-06,Swiggy,Food,-818.78,debit,en
+2026-07-06,Flipkart,Shopping,-1195.16,debit,en
+2026-07-06,Electricity Bill,Bills,-3224.0,debit,en
+2026-07-06,Internet Bill,Bills,-1976.0,debit,en
+2026-07-06,Swiggy,Food,-404.73,debit,en
 2026-07-06,Electricity Bill,Bills,-2170.0,debit,en
 2026-07-06,Internet Bill,Bills,-1330.0,debit,en
-2026-07-06,Internet Bill,Bills,-1976.0,debit,en
 2026-07-06,Swiggy,Food,-838.75,debit,en
-2026-07-06,Swiggy,Food,-404.73,debit,en
-2026-07-07,Apollo Pharmacy,Healthcare,-1254.43,debit,en
-2026-07-07,Amazon,Shopping,-924.05,debit,en
-2026-07-07,Uber,Transport,-392.39,debit,en
-2026-07-07,Flipkart,Shopping,-1280.1,debit,en
 2026-07-07,Uber,Transport,-419.08,debit,en
+2026-07-07,Flipkart,Shopping,-1280.1,debit,en
 2026-07-07,Uber,Transport,-144.53,debit,en
-2026-07-08,Netflix Subscription,Entertainment,-1120.0,debit,en
-2026-07-08,Swiggy,Food,-1059.29,debit,en
-2026-07-08,Prime Membership,Entertainment,-810.0,debit,en
-2026-07-08,Spotify Premium,Entertainment,-360.0,debit,en
+2026-07-07,Uber,Transport,-392.39,debit,en
+2026-07-07,Amazon,Shopping,-924.05,debit,en
+2026-07-07,Apollo Pharmacy,Healthcare,-1254.43,debit,en
 2026-07-08,Netflix Subscription,Entertainment,-630.0,debit,en
+2026-07-08,Spotify Premium,Entertainment,-360.0,debit,en
+2026-07-08,Prime Membership,Entertainment,-810.0,debit,en
+2026-07-08,Swiggy,Food,-1059.29,debit,en
 2026-07-08,Amazon,Shopping,-2670.37,debit,en
 2026-07-08,Netflix Subscription,Entertainment,-385.0,debit,en
-2026-07-08,Prime Membership,Entertainment,-1440.0,debit,en
 2026-07-08,Spotify Premium,Entertainment,-220.0,debit,en
 2026-07-08,Prime Membership,Entertainment,-495.0,debit,en
 2026-07-08,Swiggy,Food,-558.46,debit,en
-2026-07-08,Swiggy,Food,-764.34,debit,en
+2026-07-08,Netflix Subscription,Entertainment,-1120.0,debit,en
 2026-07-08,Spotify Premium,Entertainment,-640.0,debit,en
-2026-07-09,Uber,Transport,-270.68,debit,en
+2026-07-08,Prime Membership,Entertainment,-1440.0,debit,en
+2026-07-08,Swiggy,Food,-764.34,debit,en
 2026-07-09,Uber,Transport,-397.19,debit,en
+2026-07-09,Uber,Transport,-270.68,debit,en
 2026-07-09,Uber,Transport,-254.89,debit,en
-2026-07-09,Apollo Pharmacy,Healthcare,-803.37,debit,en
 2026-07-09,Flipkart,Shopping,-914.32,debit,en
+2026-07-09,Apollo Pharmacy,Healthcare,-803.37,debit,en
+2026-07-10,Swiggy,Food,-877.74,debit,en
 2026-07-10,Swiggy,Food,-416.55,debit,en
 2026-07-10,Amazon,Shopping,-595.89,debit,en
-2026-07-10,Swiggy,Food,-877.74,debit,en
 2026-07-10,Swiggy,Food,-755.09,debit,en
+2026-07-11,Swiggy,Food,-950.16,debit,en
 2026-07-11,Fuel Station,Transport,-498.28,debit,en
+2026-07-11,Swiggy,Food,-459.62,debit,en
 2026-07-11,Fuel Station,Transport,-240.06,debit,en
+2026-07-11,Amazon,Shopping,-876.59,debit,en
 2026-07-11,Swiggy,Food,-792.49,debit,en
 2026-07-11,Fuel Station,Transport,-283.97,debit,en
-2026-07-11,Swiggy,Food,-459.62,debit,en
-2026-07-11,Amazon,Shopping,-876.59,debit,en
-2026-07-11,Swiggy,Food,-950.16,debit,en
 2026-07-12,Movie Night,Entertainment,-439.99,debit,en
+2026-07-12,Amazon,Shopping,-853.2,debit,en
 2026-07-12,Movie Night,Entertainment,-382.75,debit,en
 2026-07-12,Amazon,Shopping,-739.5,debit,en
 2026-07-12,Movie Night,Entertainment,-587.79,debit,en
-2026-07-12,Amazon,Shopping,-853.2,debit,en
+2026-07-13,Swiggy,Food,-659.16,debit,en
 2026-07-13,Swiggy,Food,-412.09,debit,en
 2026-07-13,Amazon,Shopping,-588.19,debit,en
-2026-07-13,Swiggy,Food,-659.16,debit,en
 2026-07-13,Swiggy,Food,-615.72,debit,en
-2026-07-14,Uber,Transport,-285.4,debit,en
-2026-07-14,Flipkart,Shopping,-1032.8,debit,en
-2026-07-14,Uber,Transport,-235.1,debit,en
 2026-07-14,Uber,Transport,-273.98,debit,en
+2026-07-14,Uber,Transport,-285.4,debit,en
 2026-07-14,Apollo Pharmacy,Healthcare,-1191.29,debit,en
+2026-07-14,Uber,Transport,-235.1,debit,en
+2026-07-14,Flipkart,Shopping,-1032.8,debit,en
+2026-07-15,Swiggy,Food,-1205.84,debit,en
 2026-07-15,Swiggy,Food,-513.87,debit,en
 2026-07-15,Swiggy,Food,-565.38,debit,en
-2026-07-15,Swiggy,Food,-1205.84,debit,en
-2026-07-16,Uber,Transport,-403.92,debit,en
 2026-07-16,Uber,Transport,-385.82,debit,en
-2026-07-16,Uber,Transport,-276.61,debit,en
+2026-07-16,Uber,Transport,-403.92,debit,en
 2026-07-16,Amazon,Shopping,-421.82,debit,en
+2026-07-16,Uber,Transport,-276.61,debit,en
 2026-07-17,Swiggy,Food,-1074.48,debit,en
 2026-07-17,Swiggy,Food,-577.0,debit,en
 2026-07-17,Flipkart,Shopping,-336.15,debit,en
 2026-07-17,Swiggy,Food,-418.66,debit,en
 2026-07-18,Swiggy,Food,-1123.15,debit,en
 2026-07-18,Fuel Station,Transport,-457.52,debit,en
-2026-07-18,Fuel Station,Transport,-271.5,debit,en
-2026-07-18,Swiggy,Food,-642.02,debit,en
 2026-07-18,Swiggy,Food,-633.55,debit,en
 2026-07-18,Fuel Station,Transport,-302.82,debit,en
 2026-07-18,Apollo Pharmacy,Healthcare,-1347.55,debit,en
+2026-07-18,Swiggy,Food,-642.02,debit,en
+2026-07-18,Fuel Station,Transport,-271.5,debit,en
 2026-07-19,Movie Night,Entertainment,-519.82,debit,en
-2026-07-20,Swiggy,Food,-781.7,debit,en
-2026-07-20,Amazon,Shopping,-572.0,debit,en
 2026-07-20,Swiggy,Food,-641.88,debit,en
+2026-07-20,Amazon,Shopping,-572.0,debit,en
 2026-07-20,Swiggy,Food,-411.75,debit,en
+2026-07-20,Swiggy,Food,-781.7,debit,en
+2026-07-21,Uber,Transport,-182.66,debit,en
 2026-07-21,Uber,Transport,-164.33,debit,en
 2026-07-21,Uber,Transport,-332.96,debit,en
-2026-07-21,Uber,Transport,-182.66,debit,en
-2026-07-22,Swiggy,Food,-438.69,debit,en
-2026-07-22,Amazon,Shopping,-2395.57,debit,en
 2026-07-22,Swiggy,Food,-627.06,debit,en
+2026-07-22,Amazon,Shopping,-2395.57,debit,en
+2026-07-22,Swiggy,Food,-438.69,debit,en
 2026-07-22,Swiggy,Food,-669.11,debit,en
+2026-07-23,Uber,Transport,-454.64,debit,en
 2026-07-23,Uber,Transport,-234.2,debit,en
 2026-07-23,Uber,Transport,-328.6,debit,en
-2026-07-23,Uber,Transport,-454.64,debit,en
 2026-07-24,Swiggy,Food,-639.93,debit,en
 2026-07-24,Amazon,Shopping,-1593.84,debit,en
-2026-07-24,Swiggy,Food,-748.21,debit,en
 2026-07-24,Swiggy,Food,-566.1,debit,en
-2026-07-25,Fuel Station,Transport,-384.57,debit,en
-2026-07-25,Swiggy,Food,-537.03,debit,en
+2026-07-24,Swiggy,Food,-748.21,debit,en
 2026-07-25,Swiggy,Food,-686.03,debit,en
 2026-07-25,Fuel Station,Transport,-382.87,debit,en
-2026-07-25,Fuel Station,Transport,-334.52,debit,en
+2026-07-25,Swiggy,Food,-537.03,debit,en
+2026-07-25,Fuel Station,Transport,-384.57,debit,en
 2026-07-25,Swiggy,Food,-636.7,debit,en
+2026-07-25,Fuel Station,Transport,-334.52,debit,en
 2026-07-26,Movie Night,Entertainment,-382.04,debit,en
 2026-07-26,Movie Night,Entertainment,-462.27,debit,en
-2026-07-27,Swiggy,Food,-650.74,debit,en
-2026-07-27,Swiggy,Food,-374.19,debit,en
 2026-07-27,Swiggy,Food,-900.53,debit,en
+2026-07-27,Swiggy,Food,-374.19,debit,en
+2026-07-27,Swiggy,Food,-650.74,debit,en
 2026-07-28,Uber,Transport,-415.47,debit,en
 2026-07-28,Uber,Transport,-263.5,debit,en
 2026-07-28,Uber,Transport,-392.84,debit,en
 2026-07-29,Swiggy,Food,-933.86,debit,en
-2026-07-29,Swiggy,Food,-541.27,debit,en
 2026-07-29,Swiggy,Food,-427.93,debit,en
-2026-07-30,Uber,Transport,-388.42,debit,en
-2026-07-30,Uber,Transport,-277.74,debit,en
+2026-07-29,Swiggy,Food,-541.27,debit,en
 2026-07-30,Uber,Transport,-442.08,debit,en
+2026-07-30,Uber,Transport,-277.74,debit,en
+2026-07-30,Uber,Transport,-388.42,debit,en
+2026-07-31,Swiggy,Food,-554.02,debit,en
+2026-07-31,Swiggy,Food,-563.34,debit,en
 2026-07-31,Amazon,Shopping,-652.16,debit,en
 2026-07-31,Apollo Pharmacy,Healthcare,-598.27,debit,en
 2026-07-31,Swiggy,Food,-689.33,debit,en
-2026-07-31,Swiggy,Food,-554.02,debit,en
-2026-07-31,Swiggy,Food,-563.34,debit,en
-2026-08-01,Fuel Station,Transport,-270.58,debit,en
-2026-08-01,Swiggy,Food,-534.88,debit,en
-2026-08-01,Salary Credit,Income,68000.0,credit,en
-2026-08-01,Refund Credit,Income,265.76,credit,en
-2026-08-01,Fuel Station,Transport,-375.43,debit,en
 2026-08-01,Salary Credit,Income,76000.0,credit,en
-2026-08-01,Fuel Station,Transport,-263.67,debit,en
-2026-08-01,Swiggy,Food,-457.4,debit,en
-2026-08-01,Salary Credit,Income,90000.0,credit,en
 2026-08-01,Swiggy,Food,-821.18,debit,en
+2026-08-01,Fuel Station,Transport,-375.43,debit,en
+2026-08-01,Refund Credit,Income,265.76,credit,en
+2026-08-01,Salary Credit,Income,90000.0,credit,en
+2026-08-01,Swiggy,Food,-457.4,debit,en
+2026-08-01,Fuel Station,Transport,-263.67,debit,en
+2026-08-01,Salary Credit,Income,68000.0,credit,en
+2026-08-01,Swiggy,Food,-534.88,debit,en
+2026-08-01,Fuel Station,Transport,-270.58,debit,en
 2026-08-02,Movie Night,Entertainment,-487.13,debit,en
-2026-08-02,Apollo Pharmacy,Healthcare,-661.58,debit,en
 2026-08-02,Movie Night,Entertainment,-498.87,debit,en
-2026-08-03,Swiggy,Food,-568.34,debit,en
+2026-08-02,Apollo Pharmacy,Healthcare,-661.58,debit,en
+2026-08-03,Home Rent,Housing,-16000.0,debit,en
+2026-08-03,Swiggy,Food,-1157.34,debit,en
 2026-08-03,Home Rent,Housing,-26000.0,debit,en
+2026-08-03,Swiggy,Food,-568.34,debit,en
 2026-08-03,Home Rent,Housing,-15000.0,debit,en
 2026-08-03,Swiggy,Food,-526.23,debit,en
-2026-08-03,Swiggy,Food,-1157.34,debit,en
-2026-08-03,Home Rent,Housing,-16000.0,debit,en
-2026-08-04,Uber,Transport,-288.37,debit,en
-2026-08-04,Uber,Transport,-219.09,debit,en
 2026-08-04,Uber,Transport,-322.32,debit,en
-2026-08-05,Swiggy,Food,-595.42,debit,en
+2026-08-04,Uber,Transport,-219.09,debit,en
+2026-08-04,Uber,Transport,-288.37,debit,en
 2026-08-05,Swiggy,Food,-886.25,debit,en
 2026-08-05,Swiggy,Food,-491.39,debit,en
-2026-08-06,Electricity Bill,Bills,-2170.0,debit,en
+2026-08-05,Swiggy,Food,-595.42,debit,en
 2026-08-06,Electricity Bill,Bills,-2418.0,debit,en
 2026-08-06,Internet Bill,Bills,-1482.0,debit,en
 2026-08-06,Uber,Transport,-233.02,debit,en
-2026-08-06,Uber,Transport,-300.4,debit,en
 2026-08-06,Electricity Bill,Bills,-3224.0,debit,en
 2026-08-06,Internet Bill,Bills,-1976.0,debit,en
 2026-08-06,Uber,Transport,-316.6,debit,en
+2026-08-06,Electricity Bill,Bills,-2170.0,debit,en
 2026-08-06,Internet Bill,Bills,-1330.0,debit,en
-2026-08-07,Swiggy,Food,-730.4,debit,en
-2026-08-07,Flipkart,Shopping,-786.35,debit,en
-2026-08-07,Swiggy,Food,-502.18,debit,en
+2026-08-06,Uber,Transport,-300.4,debit,en
 2026-08-07,Swiggy,Food,-610.24,debit,en
 2026-08-07,Amazon,Shopping,-1194.6,debit,en
+2026-08-07,Swiggy,Food,-502.18,debit,en
+2026-08-07,Swiggy,Food,-730.4,debit,en
+2026-08-07,Flipkart,Shopping,-786.35,debit,en
+2026-08-08,Netflix Subscription,Entertainment,-630.0,debit,en
+2026-08-08,Spotify Premium,Entertainment,-360.0,debit,en
+2026-08-08,Prime Membership,Entertainment,-810.0,debit,en
+2026-08-08,Swiggy,Food,-738.52,debit,en
+2026-08-08,Fuel Station,Transport,-501.01,debit,en
 2026-08-08,Netflix Subscription,Entertainment,-385.0,debit,en
+2026-08-08,Spotify Premium,Entertainment,-220.0,debit,en
+2026-08-08,Prime Membership,Entertainment,-495.0,debit,en
+2026-08-08,Swiggy,Food,-455.84,debit,en
+2026-08-08,Fuel Station,Transport,-226.72,debit,en
 2026-08-08,Netflix Subscription,Entertainment,-1120.0,debit,en
 2026-08-08,Spotify Premium,Entertainment,-640.0,debit,en
 2026-08-08,Prime Membership,Entertainment,-1440.0,debit,en
 2026-08-08,Swiggy,Food,-590.51,debit,en
 2026-08-08,Fuel Station,Transport,-227.3,debit,en
-2026-08-08,Fuel Station,Transport,-226.72,debit,en
-2026-08-08,Netflix Subscription,Entertainment,-630.0,debit,en
-2026-08-08,Prime Membership,Entertainment,-810.0,debit,en
-2026-08-08,Swiggy,Food,-455.84,debit,en
-2026-08-08,Swiggy,Food,-738.52,debit,en
-2026-08-08,Fuel Station,Transport,-501.01,debit,en
-2026-08-08,Spotify Premium,Entertainment,-220.0,debit,en
-2026-08-08,Prime Membership,Entertainment,-495.0,debit,en
-2026-08-08,Spotify Premium,Entertainment,-360.0,debit,en
 2026-08-09,Flipkart,Shopping,-1071.3,debit,en
-2026-08-09,Movie Night,Entertainment,-509.56,debit,en
 2026-08-09,Movie Night,Entertainment,-373.82,debit,en
+2026-08-09,Movie Night,Entertainment,-509.56,debit,en
 2026-08-09,Movie Night,Entertainment,-484.94,debit,en
 2026-08-10,Swiggy,Food,-961.65,debit,en
-2026-08-10,Swiggy,Food,-395.04,debit,en
 2026-08-10,Swiggy,Food,-522.28,debit,en
-2026-08-11,Uber,Transport,-256.06,debit,en
+2026-08-10,Swiggy,Food,-395.04,debit,en
 2026-08-11,Uber,Transport,-455.86,debit,en
 2026-08-11,Uber,Transport,-273.98,debit,en
+2026-08-11,Uber,Transport,-256.06,debit,en
 2026-08-11,Amazon,Shopping,-567.22,debit,en
 2026-08-12,Swiggy,Food,-854.5,debit,en
 2026-08-12,Swiggy,Food,-410.09,debit,en
 2026-08-12,Swiggy,Food,-524.39,debit,en
+2026-08-13,Uber,Transport,-544.91,debit,en
+2026-08-13,Uber,Transport,-403.42,debit,en
 2026-08-13,Uber,Transport,-308.91,debit,en
 2026-08-13,Refund Credit,Income,531.97,credit,en
-2026-08-13,Uber,Transport,-403.42,debit,en
-2026-08-13,Uber,Transport,-544.91,debit,en
 2026-08-14,Swiggy,Food,-831.74,debit,en
 2026-08-14,Swiggy,Food,-488.47,debit,en
 2026-08-14,Swiggy,Food,-674.63,debit,en
-2026-08-15,Swiggy,Food,-574.12,debit,en
-2026-08-15,Swiggy,Food,-410.98,debit,en
-2026-08-15,Fuel Station,Transport,-327.41,debit,en
-2026-08-15,Fuel Station,Transport,-237.15,debit,en
-2026-08-15,Fuel Station,Transport,-372.17,debit,en
 2026-08-15,Swiggy,Food,-699.3,debit,en
-2026-08-16,Movie Night,Entertainment,-423.41,debit,en
+2026-08-15,Fuel Station,Transport,-372.17,debit,en
+2026-08-15,Swiggy,Food,-410.98,debit,en
+2026-08-15,Fuel Station,Transport,-237.15,debit,en
+2026-08-15,Swiggy,Food,-574.12,debit,en
+2026-08-15,Fuel Station,Transport,-327.41,debit,en
 2026-08-16,Movie Night,Entertainment,-410.14,debit,en
-2026-08-17,Swiggy,Food,-439.56,debit,en
-2026-08-17,Swiggy,Food,-417.84,debit,en
+2026-08-16,Movie Night,Entertainment,-423.41,debit,en
 2026-08-17,Swiggy,Food,-886.51,debit,en
+2026-08-17,Swiggy,Food,-417.84,debit,en
 2026-08-17,Flipkart,Shopping,-368.53,debit,en
+2026-08-17,Swiggy,Food,-439.56,debit,en
 2026-08-18,Uber,Transport,-538.93,debit,en
 2026-08-18,Uber,Transport,-255.87,debit,en
 2026-08-18,Uber,Transport,-396.51,debit,en
-2026-08-19,Swiggy,Food,-593.16,debit,en
-2026-08-19,Swiggy,Food,-499.38,debit,en
 2026-08-19,Swiggy,Food,-1057.79,debit,en
-2026-08-20,Uber,Transport,-337.15,debit,en
-2026-08-20,Uber,Transport,-304.04,debit,en
+2026-08-19,Swiggy,Food,-499.38,debit,en
+2026-08-19,Swiggy,Food,-593.16,debit,en
 2026-08-20,Uber,Transport,-379.7,debit,en
-2026-08-21,Swiggy,Food,-592.42,debit,en
+2026-08-20,Uber,Transport,-304.04,debit,en
+2026-08-20,Uber,Transport,-337.15,debit,en
 2026-08-21,Swiggy,Food,-862.03,debit,en
+2026-08-21,Swiggy,Food,-592.42,debit,en
 2026-08-21,Swiggy,Food,-692.58,debit,en
 2026-08-22,Swiggy,Food,-578.12,debit,en
-2026-08-22,Fuel Station,Transport,-148.9,debit,en
-2026-08-22,Swiggy,Food,-723.01,debit,en
-2026-08-22,Flipkart,Shopping,-1803.14,debit,en
 2026-08-22,Fuel Station,Transport,-454.02,debit,en
+2026-08-22,Flipkart,Shopping,-1803.14,debit,en
+2026-08-22,Swiggy,Food,-723.01,debit,en
+2026-08-22,Fuel Station,Transport,-148.9,debit,en
 2026-08-22,Swiggy,Food,-622.77,debit,en
 2026-08-22,Fuel Station,Transport,-286.78,debit,en
-2026-08-23,Apollo Pharmacy,Healthcare,-931.31,debit,en
 2026-08-23,Movie Night,Entertainment,-304.01,debit,en
+2026-08-23,Apollo Pharmacy,Healthcare,-931.31,debit,en
 2026-08-24,Swiggy,Food,-907.38,debit,en
-2026-08-24,Swiggy,Food,-584.73,debit,en
 2026-08-24,Swiggy,Food,-521.56,debit,en
 2026-08-24,Flipkart,Shopping,-666.08,debit,en
+2026-08-24,Swiggy,Food,-584.73,debit,en
 2026-08-25,Uber,Transport,-435.32,debit,en
 2026-08-25,Flipkart,Shopping,-1648.61,debit,en
-2026-08-25,Amazon,Shopping,-902.27,debit,en
-2026-08-25,Uber,Transport,-377.95,debit,en
 2026-08-25,Uber,Transport,-138.94,debit,en
-2026-08-26,Swiggy,Food,-536.78,debit,en
+2026-08-25,Uber,Transport,-377.95,debit,en
+2026-08-25,Amazon,Shopping,-902.27,debit,en
 2026-08-26,Swiggy,Food,-851.27,debit,en
 2026-08-26,Swiggy,Food,-469.48,debit,en
+2026-08-26,Swiggy,Food,-536.78,debit,en
+2026-08-27,Uber,Transport,-166.52,debit,en
+2026-08-27,Amazon,Shopping,-716.64,debit,en
 2026-08-27,Uber,Transport,-307.2,debit,en
 2026-08-27,Amazon,Shopping,-357.66,debit,en
-2026-08-27,Uber,Transport,-166.52,debit,en
-2026-08-27,Flipkart,Shopping,-502.04,debit,en
 2026-08-27,Uber,Transport,-438.09,debit,en
-2026-08-27,Amazon,Shopping,-716.64,debit,en
+2026-08-27,Flipkart,Shopping,-502.04,debit,en
 2026-08-28,Swiggy,Food,-464.42,debit,en
 2026-08-28,Swiggy,Food,-597.23,debit,en
-2026-08-29,Amazon,Shopping,-1042.65,debit,en
-2026-08-29,Fuel Station,Transport,-404.41,debit,en
-2026-08-29,Swiggy,Food,-865.49,debit,en
-2026-08-29,Fuel Station,Transport,-248.5,debit,en
 2026-08-29,Swiggy,Food,-433.38,debit,en
-2026-08-30,Apollo Pharmacy,Healthcare,-1137.44,debit,en
+2026-08-29,Fuel Station,Transport,-248.5,debit,en
+2026-08-29,Swiggy,Food,-865.49,debit,en
+2026-08-29,Fuel Station,Transport,-404.41,debit,en
+2026-08-29,Amazon,Shopping,-1042.65,debit,en
 2026-08-30,Movie Night,Entertainment,-393.62,debit,en
-2026-08-31,Swiggy,Food,-557.49,debit,en
+2026-08-30,Apollo Pharmacy,Healthcare,-1137.44,debit,en
 2026-08-31,Swiggy,Food,-442.49,debit,en
+2026-08-31,Swiggy,Food,-557.49,debit,en
 2026-09-01,Salary Credit,Income,90000.0,credit,en
-2026-09-01,Uber,Transport,-210.18,debit,en
-2026-09-01,Salary Credit,Income,68000.0,credit,en
 2026-09-01,Uber,Transport,-375.59,debit,en
+2026-09-01,Salary Credit,Income,68000.0,credit,en
+2026-09-01,Uber,Transport,-210.18,debit,en
 2026-09-02,Swiggy,Food,-471.53,debit,en
 2026-09-02,Swiggy,Food,-694.17,debit,en
-2026-09-03,Home Rent,Housing,-15000.0,debit,en
-2026-09-03,Uber,Transport,-366.68,debit,en
 2026-09-03,Home Rent,Housing,-26000.0,debit,en
 2026-09-03,Uber,Transport,-210.06,debit,en
-2026-09-04,Swiggy,Food,-789.29,debit,en
+2026-09-03,Home Rent,Housing,-15000.0,debit,en
+2026-09-03,Uber,Transport,-366.68,debit,en
 2026-09-04,Swiggy,Food,-500.24,debit,en
+2026-09-04,Swiggy,Food,-789.29,debit,en
 2026-09-05,Swiggy,Food,-503.96,debit,en
 2026-09-05,Fuel Station,Transport,-291.53,debit,en
 2026-09-05,Swiggy,Food,-662.28,debit,en
 2026-09-05,Fuel Station,Transport,-281.68,debit,en
-2026-09-06,Internet Bill,Bills,-1330.0,debit,en
-2026-09-06,Movie Night,Entertainment,-445.31,debit,en
-2026-09-06,Internet Bill,Bills,-1976.0,debit,en
 2026-09-06,Electricity Bill,Bills,-3224.0,debit,en
+2026-09-06,Internet Bill,Bills,-1976.0,debit,en
+2026-09-06,Movie Night,Entertainment,-445.31,debit,en
 2026-09-06,Electricity Bill,Bills,-2170.0,debit,en
+2026-09-06,Internet Bill,Bills,-1330.0,debit,en
 2026-09-06,Amazon,Shopping,-712.02,debit,en
 2026-09-06,Movie Night,Entertainment,-630.54,debit,en
-2026-09-07,Amazon,Shopping,-878.1,debit,en
-2026-09-07,Swiggy,Food,-715.13,debit,en
 2026-09-07,Swiggy,Food,-453.65,debit,en
-2026-09-08,Spotify Premium,Entertainment,-220.0,debit,en
-2026-09-08,Uber,Transport,-266.29,debit,en
-2026-09-08,Prime Membership,Entertainment,-1440.0,debit,en
-2026-09-08,Spotify Premium,Entertainment,-640.0,debit,en
-2026-09-08,Netflix Subscription,Entertainment,-1120.0,debit,en
+2026-09-07,Swiggy,Food,-715.13,debit,en
+2026-09-07,Amazon,Shopping,-878.1,debit,en
 2026-09-08,Netflix Subscription,Entertainment,-385.0,debit,en
-2026-09-08,Apollo Pharmacy,Healthcare,-554.46,debit,en
-2026-09-08,Uber,Transport,-321.27,debit,en
+2026-09-08,Spotify Premium,Entertainment,-220.0,debit,en
 2026-09-08,Prime Membership,Entertainment,-495.0,debit,en
-2026-09-09,Swiggy,Food,-544.24,debit,en
+2026-09-08,Uber,Transport,-321.27,debit,en
+2026-09-08,Apollo Pharmacy,Healthcare,-554.46,debit,en
+2026-09-08,Netflix Subscription,Entertainment,-1120.0,debit,en
+2026-09-08,Spotify Premium,Entertainment,-640.0,debit,en
+2026-09-08,Prime Membership,Entertainment,-1440.0,debit,en
+2026-09-08,Uber,Transport,-266.29,debit,en
 2026-09-09,Swiggy,Food,-475.27,debit,en
-2026-09-10,Uber,Transport,-342.02,debit,en
+2026-09-09,Swiggy,Food,-544.24,debit,en
 2026-09-10,Uber,Transport,-303.88,debit,en
+2026-09-10,Uber,Transport,-342.02,debit,en
+2026-09-11,Swiggy,Food,-508.68,debit,en
 2026-09-11,Swiggy,Food,-571.96,debit,en
 2026-09-11,Flipkart,Shopping,-1110.1,debit,en
-2026-09-11,Swiggy,Food,-508.68,debit,en
-2026-09-12,Amazon,Shopping,-440.63,debit,en
-2026-09-12,Fuel Station,Transport,-156.33,debit,en
-2026-09-12,Swiggy,Food,-786.42,debit,en
 2026-09-12,Swiggy,Food,-274.6,debit,en
 2026-09-12,Fuel Station,Transport,-208.99,debit,en
-2026-09-13,Movie Night,Entertainment,-385.77,debit,en
+2026-09-12,Swiggy,Food,-786.42,debit,en
+2026-09-12,Fuel Station,Transport,-156.33,debit,en
+2026-09-12,Amazon,Shopping,-440.63,debit,en
 2026-09-13,Movie Night,Entertainment,-424.29,debit,en
+2026-09-13,Movie Night,Entertainment,-385.77,debit,en
 2026-09-14,Swiggy,Food,-515.97,debit,en
-2026-09-14,Refund Credit,Income,771.68,credit,en
-2026-09-14,Swiggy,Food,-681.31,debit,en
 2026-09-14,Amazon,Shopping,-671.52,debit,en
-2026-09-15,Uber,Transport,-222.66,debit,en
+2026-09-14,Swiggy,Food,-681.31,debit,en
+2026-09-14,Refund Credit,Income,771.68,credit,en
 2026-09-15,Uber,Transport,-176.92,debit,en
+2026-09-15,Uber,Transport,-222.66,debit,en
 2026-09-15,Flipkart,Shopping,-815.41,debit,en
-2026-09-16,Amazon,Shopping,-1141.75,debit,en
 2026-09-16,Swiggy,Food,-586.73,debit,en
 2026-09-16,Swiggy,Food,-869.34,debit,en
-2026-09-17,Uber,Transport,-291.93,debit,en
+2026-09-16,Amazon,Shopping,-1141.75,debit,en
 2026-09-17,Uber,Transport,-289.81,debit,en
-2026-09-18,Swiggy,Food,-608.14,debit,en
+2026-09-17,Uber,Transport,-291.93,debit,en
 2026-09-18,Swiggy,Food,-563.89,debit,en
 2026-09-18,Amazon,Shopping,-635.98,debit,en
+2026-09-18,Swiggy,Food,-608.14,debit,en
+2026-09-19,Swiggy,Food,-580.65,debit,en
+2026-09-19,Fuel Station,Transport,-320.3,debit,en
 2026-09-19,Swiggy,Food,-679.04,debit,en
 2026-09-19,Fuel Station,Transport,-250.16,debit,en
-2026-09-19,Fuel Station,Transport,-320.3,debit,en
-2026-09-19,Swiggy,Food,-580.65,debit,en
-2026-09-20,Movie Night,Entertainment,-431.38,debit,en
 2026-09-20,Flipkart,Shopping,-455.63,debit,en
 2026-09-20,Movie Night,Entertainment,-397.84,debit,en
-2026-09-21,Refund Credit,Income,672.71,credit,en
-2026-09-21,Swiggy,Food,-626.29,debit,en
+2026-09-20,Movie Night,Entertainment,-431.38,debit,en
 2026-09-21,Swiggy,Food,-647.22,debit,en
-2026-09-22,Uber,Transport,-274.53,debit,en
-2026-09-22,Flipkart,Shopping,-413.08,debit,en
+2026-09-21,Swiggy,Food,-626.29,debit,en
+2026-09-21,Refund Credit,Income,672.71,credit,en
 2026-09-22,Uber,Transport,-313.72,debit,en
 2026-09-22,Flipkart,Shopping,-813.49,debit,en
+2026-09-22,Uber,Transport,-274.53,debit,en
+2026-09-22,Flipkart,Shopping,-413.08,debit,en
 2026-09-23,Swiggy,Food,-455.09,debit,en
 2026-09-23,Swiggy,Food,-482.7,debit,en
 2026-09-24,Uber,Transport,-287.27,debit,en
@@ -935,97 +935,97 @@ date,merchant,category,amount,type,language
 2026-09-25,Swiggy,Food,-484.05,debit,en
 2026-09-25,Apollo Pharmacy,Healthcare,-389.29,debit,en
 2026-09-26,Swiggy,Food,-494.64,debit,en
+2026-09-26,Fuel Station,Transport,-324.98,debit,en
 2026-09-26,Swiggy,Food,-541.98,debit,en
 2026-09-26,Fuel Station,Transport,-237.65,debit,en
-2026-09-26,Fuel Station,Transport,-324.98,debit,en
 2026-09-27,Flipkart,Shopping,-455.38,debit,en
 2026-09-27,Apollo Pharmacy,Healthcare,-1212.37,debit,en
 2026-09-28,Swiggy,Food,-607.83,debit,en
 2026-09-28,Refund Credit,Income,796.11,credit,en
 2026-09-28,Swiggy,Food,-655.24,debit,en
 2026-09-28,Amazon,Shopping,-731.83,debit,en
-2026-09-29,Uber,Transport,-292.95,debit,en
 2026-09-29,Uber,Transport,-196.96,debit,en
+2026-09-29,Uber,Transport,-292.95,debit,en
 2026-09-30,Swiggy,Food,-544.75,debit,en
-2026-09-30,Amazon,Shopping,-1141.21,debit,en
 2026-09-30,Swiggy,Food,-528.48,debit,en
+2026-09-30,Amazon,Shopping,-1141.21,debit,en
 2026-10-01,Salary Credit,Income,90000.0,credit,en
 2026-10-01,Uber,Transport,-272.84,debit,en
-2026-10-01,Uber,Transport,-257.97,debit,en
 2026-10-01,Salary Credit,Income,68000.0,credit,en
+2026-10-01,Uber,Transport,-257.97,debit,en
 2026-10-02,Swiggy,Food,-507.99,debit,en
 2026-10-02,Swiggy,Food,-555.84,debit,en
 2026-10-02,Amazon,Shopping,-1189.92,debit,en
-2026-10-03,Swiggy,Food,-547.62,debit,en
-2026-10-03,Fuel Station,Transport,-441.59,debit,en
-2026-10-03,Home Rent,Housing,-15000.0,debit,en
 2026-10-03,Home Rent,Housing,-26000.0,debit,en
 2026-10-03,Swiggy,Food,-393.77,debit,en
 2026-10-03,Fuel Station,Transport,-237.1,debit,en
-2026-10-04,Amazon,Shopping,-1318.84,debit,en
+2026-10-03,Home Rent,Housing,-15000.0,debit,en
+2026-10-03,Swiggy,Food,-547.62,debit,en
+2026-10-03,Fuel Station,Transport,-441.59,debit,en
 2026-10-04,Movie Night,Entertainment,-344.02,debit,en
+2026-10-04,Amazon,Shopping,-1318.84,debit,en
 2026-10-04,Movie Night,Entertainment,-559.46,debit,en
 2026-10-05,Swiggy,Food,-459.4,debit,en
 2026-10-05,Swiggy,Food,-462.52,debit,en
-2026-10-06,Uber,Transport,-360.05,debit,en
-2026-10-06,Internet Bill,Bills,-1330.0,debit,en
-2026-10-06,Electricity Bill,Bills,-2170.0,debit,en
-2026-10-06,Flipkart,Shopping,-415.44,debit,en
-2026-10-06,Internet Bill,Bills,-1976.0,debit,en
 2026-10-06,Electricity Bill,Bills,-3224.0,debit,en
+2026-10-06,Internet Bill,Bills,-1976.0,debit,en
 2026-10-06,Uber,Transport,-101.45,debit,en
-2026-10-07,Swiggy,Food,-519.42,debit,en
+2026-10-06,Flipkart,Shopping,-415.44,debit,en
+2026-10-06,Electricity Bill,Bills,-2170.0,debit,en
+2026-10-06,Internet Bill,Bills,-1330.0,debit,en
+2026-10-06,Uber,Transport,-360.05,debit,en
 2026-10-07,Swiggy,Food,-548.29,debit,en
+2026-10-07,Swiggy,Food,-519.42,debit,en
+2026-10-08,Netflix Subscription,Entertainment,-385.0,debit,en
+2026-10-08,Spotify Premium,Entertainment,-220.0,debit,en
+2026-10-08,Prime Membership,Entertainment,-495.0,debit,en
+2026-10-08,Uber,Transport,-220.08,debit,en
 2026-10-08,Netflix Subscription,Entertainment,-1120.0,debit,en
+2026-10-08,Spotify Premium,Entertainment,-640.0,debit,en
 2026-10-08,Prime Membership,Entertainment,-1440.0,debit,en
 2026-10-08,Uber,Transport,-243.36,debit,en
-2026-10-08,Uber,Transport,-220.08,debit,en
-2026-10-08,Prime Membership,Entertainment,-495.0,debit,en
-2026-10-08,Spotify Premium,Entertainment,-220.0,debit,en
-2026-10-08,Netflix Subscription,Entertainment,-385.0,debit,en
-2026-10-08,Spotify Premium,Entertainment,-640.0,debit,en
-2026-10-09,Swiggy,Food,-556.66,debit,en
 2026-10-09,Swiggy,Food,-476.11,debit,en
+2026-10-09,Swiggy,Food,-556.66,debit,en
+2026-10-10,Swiggy,Food,-506.68,debit,en
+2026-10-10,Fuel Station,Transport,-202.31,debit,en
+2026-10-10,Apollo Pharmacy,Healthcare,-904.18,debit,en
 2026-10-10,Swiggy,Food,-602.64,debit,en
 2026-10-10,Fuel Station,Transport,-277.99,debit,en
-2026-10-10,Apollo Pharmacy,Healthcare,-904.18,debit,en
-2026-10-10,Fuel Station,Transport,-202.31,debit,en
-2026-10-10,Swiggy,Food,-506.68,debit,en
-2026-10-12,Swiggy,Food,-681.53,debit,en
 2026-10-12,Swiggy,Food,-419.73,debit,en
-2026-10-13,Uber,Transport,-140.39,debit,en
+2026-10-12,Swiggy,Food,-681.53,debit,en
 2026-10-13,Uber,Transport,-152.91,debit,en
+2026-10-13,Uber,Transport,-140.39,debit,en
 2026-10-14,Swiggy,Food,-433.71,debit,en
 2026-10-14,Swiggy,Food,-619.91,debit,en
+2026-10-15,Uber,Transport,-166.31,debit,en
 2026-10-15,Uber,Transport,-322.83,debit,en
 2026-10-15,Amazon,Shopping,-858.43,debit,en
-2026-10-15,Uber,Transport,-166.31,debit,en
+2026-10-16,Swiggy,Food,-425.39,debit,en
 2026-10-16,Swiggy,Food,-819.39,debit,en
 2026-10-16,Flipkart,Shopping,-1155.85,debit,en
-2026-10-16,Swiggy,Food,-425.39,debit,en
-2026-10-17,Fuel Station,Transport,-323.85,debit,en
+2026-10-17,Swiggy,Food,-455.74,debit,en
 2026-10-17,Fuel Station,Transport,-360.74,debit,en
 2026-10-17,Amazon,Shopping,-569.43,debit,en
 2026-10-17,Swiggy,Food,-612.87,debit,en
-2026-10-17,Swiggy,Food,-455.74,debit,en
+2026-10-17,Fuel Station,Transport,-323.85,debit,en
 2026-10-18,Movie Night,Entertainment,-267.34,debit,en
 2026-10-19,Swiggy,Food,-488.85,debit,en
 2026-10-19,Swiggy,Food,-766.89,debit,en
-2026-10-20,Uber,Transport,-266.47,debit,en
 2026-10-20,Uber,Transport,-151.06,debit,en
+2026-10-20,Uber,Transport,-266.47,debit,en
 2026-10-21,Swiggy,Food,-468.79,debit,en
 2026-10-21,Swiggy,Food,-749.44,debit,en
-2026-10-22,Uber,Transport,-479.27,debit,en
 2026-10-22,Uber,Transport,-308.08,debit,en
-2026-10-23,Apollo Pharmacy,Healthcare,-1262.26,debit,en
-2026-10-23,Swiggy,Food,-851.75,debit,en
+2026-10-22,Uber,Transport,-479.27,debit,en
 2026-10-23,Swiggy,Food,-440.42,debit,en
-2026-10-24,Fuel Station,Transport,-295.17,debit,en
+2026-10-23,Swiggy,Food,-851.75,debit,en
+2026-10-23,Apollo Pharmacy,Healthcare,-1262.26,debit,en
 2026-10-24,Swiggy,Food,-445.17,debit,en
-2026-10-24,Fuel Station,Transport,-183.91,debit,en
+2026-10-24,Fuel Station,Transport,-295.17,debit,en
 2026-10-24,Swiggy,Food,-812.34,debit,en
-2026-10-25,Movie Night,Entertainment,-538.76,debit,en
+2026-10-24,Fuel Station,Transport,-183.91,debit,en
 2026-10-25,Movie Night,Entertainment,-228.91,debit,en
+2026-10-25,Movie Night,Entertainment,-538.76,debit,en
 2026-10-26,Swiggy,Food,-366.54,debit,en
 2026-10-26,Swiggy,Food,-554.52,debit,en
 2026-10-27,Uber,Transport,-252.68,debit,en
@@ -1048,10 +1048,10 @@ date,merchant,category,amount,type,language
 2026-11-06,Flipkart,Shopping,-756.05,debit,en
 2026-11-07,Swiggy,Food,-618.41,debit,en
 2026-11-07,Fuel Station,Transport,-278.25,debit,en
-2026-11-08,Movie Night,Entertainment,-553.09,debit,en
-2026-11-08,Prime Membership,Entertainment,-1440.0,debit,en
 2026-11-08,Netflix Subscription,Entertainment,-1120.0,debit,en
 2026-11-08,Spotify Premium,Entertainment,-640.0,debit,en
+2026-11-08,Prime Membership,Entertainment,-1440.0,debit,en
+2026-11-08,Movie Night,Entertainment,-553.09,debit,en
 2026-11-09,Swiggy,Food,-683.24,debit,en
 2026-11-09,Refund Credit,Income,339.44,credit,en
 2026-11-10,Uber,Transport,-205.59,debit,en
@@ -1061,8 +1061,8 @@ date,merchant,category,amount,type,language
 2026-11-13,Swiggy,Food,-701.24,debit,en
 2026-11-14,Swiggy,Food,-743.48,debit,en
 2026-11-14,Fuel Station,Transport,-250.76,debit,en
-2026-11-15,Movie Night,Entertainment,-455.36,debit,en
 2026-11-15,Amazon,Shopping,-1082.4,debit,en
+2026-11-15,Movie Night,Entertainment,-455.36,debit,en
 2026-11-16,Swiggy,Food,-460.3,debit,en
 2026-11-16,Apollo Pharmacy,Healthcare,-1253.87,debit,en
 2026-11-17,Uber,Transport,-358.46,debit,en
@@ -1087,9 +1087,9 @@ date,merchant,category,amount,type,language
 2026-11-28,Amazon,Shopping,-1166.6,debit,en
 2026-11-30,Swiggy,Food,-667.73,debit,en
 2026-11-30,Amazon,Shopping,-556.35,debit,en
+2026-12-01,Salary Credit,Income,68000.0,credit,en
 2026-12-01,Uber,Transport,-351.76,debit,en
 2026-12-01,Amazon,Shopping,-558.12,debit,en
-2026-12-01,Salary Credit,Income,68000.0,credit,en
 2026-12-02,Swiggy,Food,-446.42,debit,en
 2026-12-03,Home Rent,Housing,-15000.0,debit,en
 2026-12-03,Uber,Transport,-291.31,debit,en
@@ -1100,10 +1100,10 @@ date,merchant,category,amount,type,language
 2026-12-06,Electricity Bill,Bills,-2170.0,debit,en
 2026-12-06,Internet Bill,Bills,-1330.0,debit,en
 2026-12-07,Swiggy,Food,-489.28,debit,en
-2026-12-08,Uber,Transport,-390.62,debit,en
-2026-12-08,Prime Membership,Entertainment,-1440.0,debit,en
-2026-12-08,Spotify Premium,Entertainment,-640.0,debit,en
 2026-12-08,Netflix Subscription,Entertainment,-1120.0,debit,en
+2026-12-08,Spotify Premium,Entertainment,-640.0,debit,en
+2026-12-08,Prime Membership,Entertainment,-1440.0,debit,en
+2026-12-08,Uber,Transport,-390.62,debit,en
 2026-12-09,Swiggy,Food,-609.22,debit,en
 2026-12-09,Refund Credit,Income,543.44,credit,en
 2026-12-10,Uber,Transport,-231.41,debit,en

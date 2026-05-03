@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Laptop, PlusCircle, ShieldAlert, Plane } from "lucide-react";
-import { apiClient, type GoalItem, type GoalSuggestion } from "@/lib/api-client";
+import { apiClient, type GoalSuggestion } from "@/lib/api-client";
 import { useFinance } from "@/context/FinanceContext";
 
 function goalIcon(index: number) {
@@ -21,36 +21,13 @@ function formatCurrency(value: number) {
   return `Rs${Math.round(value).toLocaleString()}`;
 }
 
-function classifyTransaction(tx: { type?: string; amount?: number }) {
-  const normalizedType = String(tx.type || "").toLowerCase();
-  const amount = Number(tx.amount || 0);
-  if (normalizedType === "income" || normalizedType === "credit") return "income";
-  if (normalizedType === "expense" || normalizedType === "debit") return "expense";
-  return amount >= 0 ? "income" : "expense";
-}
-
 export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion }) {
-  const { transactions } = useFinance();
-  const [goals, setGoals] = useState<GoalItem[]>([]);
+  const { transactions, goals, appendGoal } = useFinance();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [daysLeft, setDaysLeft] = useState("30");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await apiClient.getGoals();
-        setGoals(res.data.slice(0, 3));
-      } catch (error) {
-        console.error(error);
-        setGoals([]);
-      }
-    }
-
-    load();
-  }, []);
 
   async function handleCreateGoal() {
     setError("");
@@ -71,7 +48,7 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
         daysLeft: Math.round(daysValue),
         color: "bg-[#8B5CF6]",
       });
-      setGoals((current) => [created.data, ...current].slice(0, 3));
+      appendGoal(created.data);
       setName("");
       setTarget("");
       setDaysLeft("30");
@@ -82,44 +59,33 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
     }
   }
 
-  const monthlyNetSavings = useMemo(() => {
-    const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
-
+  const currentSavings = useMemo(() => {
     let income = 0;
     let expense = 0;
     for (const tx of transactions) {
-      const parsed = new Date(tx.rawDate || tx.date);
-      if (Number.isNaN(parsed.getTime())) continue;
-      if (parsed.getMonth() !== month || parsed.getFullYear() !== year) continue;
-      const kind = classifyTransaction(tx);
-      if (kind === "income") income += Math.abs(Number(tx.amount || 0));
-      if (kind === "expense") expense += Math.abs(Number(tx.amount || 0));
+      if (tx.type === "income") income += Number(tx.amount || 0);
+      if (tx.type === "expense") expense += Math.abs(Number(tx.amount || 0));
     }
-    return Math.max(0, income - expense);
+    return income - expense;
   }, [transactions]);
 
-  const liveGoals = useMemo(() => {
-    if (goals.length === 0) return goals;
-    const totalTarget = goals.reduce((sum, goal) => sum + Math.max(0, Number(goal.target || 0)), 0);
-    if (totalTarget <= 0) return goals;
-
-    return goals.map((goal) => {
+  const updatedGoals = useMemo(() => {
+    return goals.slice(0, 3).map((goal) => {
       const target = Math.max(0, Number(goal.target || 0));
-      const share = target / totalTarget;
-      const inferredContribution = monthlyNetSavings * share;
-      const achieved = Math.min(target, Math.max(Number(goal.achieved || 0), Number(goal.achieved || 0) + inferredContribution));
+      const savedAmount = Math.max(0, Math.min(currentSavings, target));
+      const progress = target > 0 ? Math.max(0, Math.min((currentSavings / target) * 100, 100)) : 0;
       return {
         ...goal,
-        achieved,
+        achieved: savedAmount,
+        savedAmount,
+        progress: progress.toFixed(0),
       };
     });
-  }, [goals, monthlyNetSavings]);
+  }, [goals, currentSavings]);
 
   const liveSuggestedContribution = useMemo(() => {
-    return Math.max(Math.round(monthlyNetSavings * 0.3), Math.round(suggestion.recommendedContribution || 0));
-  }, [monthlyNetSavings, suggestion.recommendedContribution]);
+    return Math.max(Math.round(Math.max(currentSavings, 0) * 0.3), Math.round(suggestion.recommendedContribution || 0));
+  }, [currentSavings, suggestion.recommendedContribution]);
 
   return (
     <section className="glass-card rounded-[2rem] p-8">
@@ -129,11 +95,11 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
       </div>
 
       <div className="space-y-10">
-        {liveGoals.length === 0 ? <p className="text-sm text-[#a3aac4]">No goals yet.</p> : null}
+        {updatedGoals.length === 0 ? <p className="text-sm text-[#a3aac4]">No goals yet.</p> : null}
 
-        {liveGoals.map((goal, index) => {
-          const percent = Math.min(100, Math.round((goal.achieved / goal.target) * 100));
-          const remaining = Math.max(0, goal.target - goal.achieved);
+        {updatedGoals.map((goal, index) => {
+          const percent = Number(goal.progress);
+          const remaining = Math.max(0, goal.target - goal.savedAmount);
           const Icon = goalIcon(index);
           const tone = goalTone(index);
 
@@ -147,7 +113,7 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
                   <div>
                     <p className="text-sm font-bold leading-tight text-[#dee5ff]">{goal.name}</p>
                     <p className="text-[10px] font-medium text-[#a3aac4]">
-                      {formatCurrency(goal.achieved)} saved of {formatCurrency(goal.target)}
+                      {formatCurrency(goal.savedAmount)} saved of {formatCurrency(goal.target)}
                     </p>
                   </div>
                 </div>

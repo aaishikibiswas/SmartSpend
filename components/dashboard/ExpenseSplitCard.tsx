@@ -1,6 +1,7 @@
+import { memo } from "react";
 import type { ExpenseSplitData } from "@/lib/api-client";
 
-export default function ExpenseSplitCard({ data }: { data: ExpenseSplitData }) {
+const ExpenseSplitCard = memo(function ExpenseSplitCard({ data }: { data: ExpenseSplitData }) {
   return (
     <section className="glass-card panel-shell rounded-[28px] p-5">
       <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Expense Split</p>
@@ -27,5 +28,6 @@ export default function ExpenseSplitCard({ data }: { data: ExpenseSplitData }) {
       </div>
     </section>
   );
-}
+});
 
+export default ExpenseSplitCard;

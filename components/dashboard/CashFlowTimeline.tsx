@@ -1,6 +1,7 @@
+import { memo } from "react";
 import type { CashflowData } from "@/lib/api-client";
 
-export default function CashFlowTimeline({ data }: { data: CashflowData }) {
+const CashFlowTimeline = memo(function CashFlowTimeline({ data }: { data: CashflowData }) {
   return (
     <section className="glass-card panel-shell rounded-[28px] p-5">
       <div className="flex items-center justify-between gap-4">
@@ -27,5 +28,6 @@ export default function CashFlowTimeline({ data }: { data: CashflowData }) {
       </div>
     </section>
   );
-}
+});
 
+export default CashFlowTimeline;

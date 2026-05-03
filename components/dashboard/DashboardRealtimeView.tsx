@@ -3,10 +3,20 @@
 import { useMemo } from "react";
 import { CalendarClock, Flame, Landmark, PiggyBank, TrendingDown, TrendingUp, WalletMinimal } from "lucide-react";
 import BudgetingPanel from "@/components/dashboard/BudgetingPanel";
-import ForecastChart from "@/components/dashboard/ForecastChart";
 import SmartAdvice from "@/components/dashboard/SmartAdvice";
-import CategoryChart from "@/components/dashboard/CategoryChart";
 import BillReminders from "@/components/dashboard/BillReminders";
+import dynamic from "next/dynamic";
+
+const CategoryChart = dynamic(() => import("./CategoryChart"), {
+  ssr: false,
+  loading: () => <div>Loading chart...</div>
+});
+
+const ForecastChart = dynamic(() => import("./ForecastChart"), {
+  ssr: false,
+  loading: () => <div>Loading chart...</div>
+});
+
 import TransactionHistory from "@/components/dashboard/TransactionHistory";
 import RecurringFinancePanel from "@/components/dashboard/RecurringFinancePanel";
 import HealthScoreCard from "@/components/dashboard/HealthScoreCard";
@@ -31,6 +41,26 @@ function trendFromPair(current: number, baseline: number) {
   return Number((((current - baseline) / Math.abs(baseline)) * 100).toFixed(1));
 }
 
+function StatsCards({ liveMetrics }: { liveMetrics: DashboardMetrics }) {
+  return (
+    <>
+      <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Total Balance" value={formatCurrency(liveMetrics.totalBalance)} trend={liveMetrics.trends.balanceTrend} icon={Landmark} color="blue" />
+        <MetricCard title="Monthly Income" value={formatCurrency(liveMetrics.totalIncome)} trend={liveMetrics.trends.incomeTrend} icon={TrendingUp} color="purple" />
+        <MetricCard title="Monthly Expense" value={formatCurrency(liveMetrics.totalExpense)} trend={liveMetrics.trends.expenseTrend} icon={TrendingDown} color="red" />
+        <MetricCard title="Net Savings" value={formatCurrency(liveMetrics.netSavings)} trend={liveMetrics.trends.savingsTrend} icon={PiggyBank} color="green" />
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard title="Burn Rate" value={formatCurrency(liveMetrics.burnRate)} suffix="/ day" trend={liveMetrics.trends.expenseTrend} icon={Flame} color="red" compact />
+        <MetricCard title="Savings Growth" value={`+${liveMetrics.savingsGrowth}%`} suffix="MoM" trend={liveMetrics.trends.savingsTrend} icon={TrendingUp} color="purple" compact />
+        <MetricCard title="Lifestyle Inflation" value={`+${liveMetrics.lifestyleInflation}%`} suffix="vs LY" trend={liveMetrics.trends.expenseTrend * -1} icon={WalletMinimal} color="red" compact />
+        <MetricCard title="Runway" value={`${liveMetrics.runwayMonths}`} suffix="Months" trend={liveMetrics.trends.balanceTrend} icon={CalendarClock} color="blue" compact />
+      </section>
+    </>
+  );
+}
+
 export default function DashboardRealtimeView({ initialData }: { initialData: DashboardData }) {
   const { transactions } = useFinance();
   const txSource = useMemo(() => {
@@ -53,8 +83,12 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
   }, [txSource]);
 
   const derived = useMemo(() => {
-    const income = monthlyTx.filter((tx) => tx.type === "income").reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-    const expense = monthlyTx.filter((tx) => tx.type === "expense").reduce((sum, tx) => sum + Math.abs(Number(tx.amount || 0)), 0);
+    let income = 0;
+    let expense = 0;
+    for (const tx of monthlyTx) {
+      if (tx.type === "income") income += Number(tx.amount || 0);
+      if (tx.type === "expense") expense += Math.abs(Number(tx.amount || 0));
+    }
     const netSavings = income - expense;
     const totalBalance = netSavings;
     const today = Math.max(new Date().getDate(), 1);
@@ -154,28 +188,24 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     [txSource],
   );
 
+  const budgetPanelKey = useMemo(
+    () =>
+      `${initialData.budgeting.global.monthly_budget}-${initialData.budgeting.global.weekly_budget}-${initialData.budgeting.categories
+        .map((item) => `${item.name}:${item.allocated_amount}:${item.frequency}`)
+        .join("|")}`,
+    [initialData.budgeting.categories, initialData.budgeting.global.monthly_budget, initialData.budgeting.global.weekly_budget],
+  );
+
   return (
     <>
       <div className="mx-auto w-full max-w-7xl space-y-8 px-8 py-8">
-        <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard title="Total Balance" value={formatCurrency(liveMetrics.totalBalance)} trend={liveMetrics.trends.balanceTrend} icon={Landmark} color="blue" />
-          <MetricCard title="Monthly Income" value={formatCurrency(liveMetrics.totalIncome)} trend={liveMetrics.trends.incomeTrend} icon={TrendingUp} color="purple" />
-          <MetricCard title="Monthly Expense" value={formatCurrency(liveMetrics.totalExpense)} trend={liveMetrics.trends.expenseTrend} icon={TrendingDown} color="red" />
-          <MetricCard title="Net Savings" value={formatCurrency(liveMetrics.netSavings)} trend={liveMetrics.trends.savingsTrend} icon={PiggyBank} color="green" />
-        </section>
-
-        <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard title="Burn Rate" value={formatCurrency(liveMetrics.burnRate)} suffix="/ day" trend={liveMetrics.trends.expenseTrend} icon={Flame} color="red" compact />
-          <MetricCard title="Savings Growth" value={`+${liveMetrics.savingsGrowth}%`} suffix="MoM" trend={liveMetrics.trends.savingsTrend} icon={TrendingUp} color="purple" compact />
-          <MetricCard title="Lifestyle Inflation" value={`+${liveMetrics.lifestyleInflation}%`} suffix="vs LY" trend={liveMetrics.trends.expenseTrend * -1} icon={WalletMinimal} color="red" compact />
-          <MetricCard title="Runway" value={`${liveMetrics.runwayMonths}`} suffix="Months" trend={liveMetrics.trends.balanceTrend} icon={CalendarClock} color="blue" compact />
-        </section>
+        <StatsCards liveMetrics={liveMetrics} />
 
         <section className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="space-y-8 min-w-0">
             <section id="budget-panel" className="scroll-mt-28">
               <BudgetingPanel
-                key={`${initialData.budgeting.global.monthly_budget}-${initialData.budgeting.global.weekly_budget}-${initialData.budgeting.categories.map((item) => `${item.name}:${item.allocated_amount}:${item.frequency}`).join("|")}`}
+                key={budgetPanelKey}
                 categories={categoryBreakdown}
                 budgetSnapshot={initialData.budgeting}
               />

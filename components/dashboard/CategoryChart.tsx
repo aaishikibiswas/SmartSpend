@@ -12,6 +12,13 @@ const defaultData = [
   { name: "Shopping", amount: 0 },
 ];
 
+const CHART_MARGIN = { top: 0, right: 0, left: 0, bottom: 0 };
+const XAXIS_TICK = { fill: "#8793b8", fontSize: 12 };
+const TOOLTIP_CURSOR = { fill: "rgba(255,255,255,0.05)" };
+const TOOLTIP_CONTENT_STYLE = { backgroundColor: "#1A2035", border: "1px solid #2A324A", borderRadius: "8px" };
+const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
+const tooltipFormatter = (value: any) => [`Rs. ${Number(value).toLocaleString()}`, "Spent"];
+
 export default function CategoryChart({ dataOverride }: { dataOverride?: CategoryBreakdownItem[] }) {
   const { transactions } = useFinance();
   const data = useMemo(() => {
@@ -45,20 +52,20 @@ export default function CategoryChart({ dataOverride }: { dataOverride?: Categor
 
       <div className="w-full min-w-0">
         <ResponsiveContainer width="100%" height={185} minWidth={0}>
-          <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={8}>
+          <BarChart data={data} margin={CHART_MARGIN} barGap={8}>
             <defs>
               <linearGradient id="categoryFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#8B5CF6" />
                 <stop offset="100%" stopColor="#4F7CFF" />
               </linearGradient>
             </defs>
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#8793b8", fontSize: 12 }} dy={10} />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={XAXIS_TICK} dy={10} />
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.05)" }}
-              contentStyle={{ backgroundColor: "#1A2035", border: "1px solid #2A324A", borderRadius: "8px" }}
-              formatter={(value) => [`Rs. ${Number(value).toLocaleString()}`, "Spent"]}
+              cursor={TOOLTIP_CURSOR}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
+              formatter={tooltipFormatter}
             />
-            <Bar dataKey="amount" fill="url(#categoryFill)" radius={[8, 8, 0, 0]} maxBarSize={42} />
+            <Bar dataKey="amount" fill="url(#categoryFill)" radius={BAR_RADIUS} maxBarSize={42} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -1,66 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Target, Plus } from "lucide-react";
-import { apiClient, type GoalItem } from "@/lib/api-client";
 import { useFinance } from "@/context/FinanceContext";
 
-function classifyTransaction(tx: { type?: string; amount?: number }) {
-  const normalizedType = String(tx.type || "").toLowerCase();
-  const amount = Number(tx.amount || 0);
-  if (normalizedType === "income" || normalizedType === "credit") return "income";
-  if (normalizedType === "expense" || normalizedType === "debit") return "expense";
-  return amount >= 0 ? "income" : "expense";
-}
-
 export default function GoalsPage() {
-  const { transactions } = useFinance();
-  const [goals, setGoals] = useState<GoalItem[]>([]);
+  const { transactions, goals } = useFinance();
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await apiClient.getGoals();
-        setGoals(res.data);
-      } catch (error) {
-        console.error(error);
-        setGoals([]);
-      }
-    }
-
-    load();
-  }, []);
-
-  const monthlyNetSavings = useMemo(() => {
-    const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
+  const currentSavings = useMemo(() => {
     let income = 0;
     let expense = 0;
     for (const tx of transactions) {
-      const parsed = new Date(tx.rawDate || tx.date);
-      if (Number.isNaN(parsed.getTime())) continue;
-      if (parsed.getMonth() !== month || parsed.getFullYear() !== year) continue;
-      const kind = classifyTransaction(tx);
-      if (kind === "income") income += Math.abs(Number(tx.amount || 0));
-      if (kind === "expense") expense += Math.abs(Number(tx.amount || 0));
+      if (tx.type === "income") income += Number(tx.amount || 0);
+      if (tx.type === "expense") expense += Math.abs(Number(tx.amount || 0));
     }
-    return Math.max(0, income - expense);
+    return income - expense;
   }, [transactions]);
 
-  const liveGoals = useMemo(() => {
-    if (goals.length === 0) return goals;
-    const totalTarget = goals.reduce((sum, goal) => sum + Math.max(0, Number(goal.target || 0)), 0);
-    if (totalTarget <= 0) return goals;
+  const updatedGoals = useMemo(() => {
     return goals.map((goal) => {
       const target = Math.max(0, Number(goal.target || 0));
-      const share = target / totalTarget;
-      const inferredContribution = monthlyNetSavings * share;
-      const achieved = Math.min(target, Math.max(Number(goal.achieved || 0), Number(goal.achieved || 0) + inferredContribution));
-      return { ...goal, achieved };
+      const savedAmount = Math.max(0, Math.min(currentSavings, target));
+      const progress = target > 0 ? Math.max(0, Math.min((currentSavings / target) * 100, 100)) : 0;
+      return {
+        ...goal,
+        achieved: savedAmount,
+        savedAmount,
+        progress: progress.toFixed(0),
+      };
     });
-  }, [goals, monthlyNetSavings]);
+  }, [goals, currentSavings]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,8 +42,8 @@ export default function GoalsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {liveGoals.map((goal) => {
-          const percent = Math.min(100, Math.round((goal.achieved / goal.target) * 100));
+        {updatedGoals.map((goal) => {
+          const percent = Number(goal.progress);
           return (
             <div key={goal.id} className="glass-card p-6 flex flex-col gap-4 group hover:bg-[#1A2035]/80 transition-colors cursor-pointer">
               <div className="flex justify-between items-start">
@@ -93,7 +63,7 @@ export default function GoalsPage() {
 
               <div className="mt-2">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-400 font-medium">Rs. {goal.achieved.toLocaleString()}</span>
+                  <span className="text-gray-400 font-medium">Rs. {goal.savedAmount.toLocaleString()}</span>
                   <span className="text-white font-bold">Rs. {goal.target.toLocaleString()}</span>
                 </div>
                 <div className="w-full bg-[#0B0E14] rounded-full h-2.5 border border-white/5 overflow-hidden">

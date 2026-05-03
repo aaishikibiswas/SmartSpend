@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { apiClient, type EmiItem, type EmiSummary, type SubscriptionCreatePayload, type SubscriptionItem } from "@/lib/api-client";
 
@@ -54,6 +54,11 @@ export default function RecurringFinancePanel({
   const [subscriptionForm, setSubscriptionForm] = useState<SubscriptionForm>(INITIAL_SUBSCRIPTION_FORM);
   const [error, setError] = useState("");
   const [busyKey, setBusyKey] = useState("");
+  const monthlyFixedLoad = useMemo(
+    () => round2(emiSummary.monthly_load + subscriptions.reduce((sum, item) => sum + item.monthly_cost, 0)),
+    [emiSummary.monthly_load, subscriptions],
+  );
+  const remainingMonthOptions = useMemo(() => Array.from({ length: 60 }, (_, i) => i + 1), []);
 
   useEffect(() => {
     const onUpdate = (event: Event) => {
@@ -171,7 +176,7 @@ export default function RecurringFinancePanel({
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/5 px-3 py-2 text-right">
           <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D8AB5]">Monthly Fixed Load</p>
-          <p className="mt-1 text-sm font-bold text-[#edf2ff]">Rs. {round2(emiSummary.monthly_load + subscriptions.reduce((sum, item) => sum + item.monthly_cost, 0)).toLocaleString()}</p>
+          <p className="mt-1 text-sm font-bold text-[#edf2ff]">Rs. {monthlyFixedLoad.toLocaleString()}</p>
         </div>
       </div>
 
@@ -233,7 +238,7 @@ export default function RecurringFinancePanel({
             </select>
             <select value={form.remaining_months} onChange={(event) => setForm((current) => ({ ...current, remaining_months: event.target.value }))} className="h-10 rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-[#edf2ff] outline-none">
               <option value="">Remaining months</option>
-              {Array.from({ length: 60 }, (_, i) => i + 1).map((month) => (
+              {remainingMonthOptions.map((month) => (
                 <option key={month} value={month}>
                   {month}
                 </option>

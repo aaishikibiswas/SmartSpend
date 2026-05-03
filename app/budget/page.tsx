@@ -13,8 +13,12 @@ export default function BudgetPage() {
   const { transactions } = useFinance();
 
   const budgetView = useMemo(() => {
-    const totalIncome = transactions.filter((tx) => tx.type === "income").reduce((sum, tx) => sum + tx.amount, 0);
-    const totalExpense = transactions.filter((tx) => tx.type === "expense").reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const tx of transactions) {
+      if (tx.type === "income") totalIncome += tx.amount;
+      if (tx.type === "expense") totalExpense += Math.abs(tx.amount);
+    }
     const savingsRatio = totalIncome > 0 ? Number((((totalIncome - totalExpense) / totalIncome) * 100).toFixed(2)) : 0;
     const warnings: string[] = [];
     if (savingsRatio < 20) warnings.push("Savings ratio is below recommended 20%.");

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { CategoryBreakdownItem, DashboardMetrics, TransactionItem } from "@/lib/api-client";
+import { apiClient, type CategoryBreakdownItem, type DashboardMetrics, type GoalItem, type TransactionItem } from "@/lib/api-client";
 import { generateFakeTransaction } from "@/lib/mock-bank-sync";
 
 type DashboardSnapshot = {
@@ -13,10 +13,12 @@ type DashboardSnapshot = {
 
 type FinanceContextValue = {
   transactions: TransactionItem[];
+  goals: GoalItem[];
   syncOn: boolean;
   setSyncOn: React.Dispatch<React.SetStateAction<boolean>>;
   registerDashboardSnapshot: (snapshot: DashboardSnapshot) => void;
   appendUploadedTransaction: (tx: TransactionItem) => void;
+  appendGoal: (goal: GoalItem) => void;
 };
 
 const FinanceContext = createContext<FinanceContextValue | null>(null);
@@ -70,6 +72,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [syncOn, setSyncOn] = useState(false);
   const [uploadedTransactions, setUploadedTransactions] = useState<TransactionItem[]>([]);
   const [mockTransactions, setMockTransactions] = useState<TransactionItem[]>([]);
+  const [goals, setGoals] = useState<GoalItem[]>([]);
   const [dashboardSnapshot, setDashboardSnapshot] = useState<DashboardSnapshot | null>(null);
   const latestTimeRef = useRef<Date | null>(null);
 
@@ -101,6 +104,26 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       }
     }
     void loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadGoals() {
+      try {
+        const res = await apiClient.getGoals();
+        if (!cancelled) {
+          setGoals(res.data);
+        }
+      } catch {
+        if (!cancelled) {
+          setGoals([]);
+        }
+      }
+    }
+    void loadGoals();
     return () => {
       cancelled = true;
     };
@@ -167,15 +190,21 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     setUploadedTransactions((prev) => sortByLatest([tx, ...prev]));
   }, []);
 
+  const appendGoal = useCallback((goal: GoalItem) => {
+    setGoals((current) => [goal, ...current]);
+  }, []);
+
   const value = useMemo<FinanceContextValue>(
     () => ({
       transactions,
+      goals,
       syncOn,
       setSyncOn,
       registerDashboardSnapshot,
       appendUploadedTransaction,
+      appendGoal,
     }),
-    [transactions, syncOn, registerDashboardSnapshot, appendUploadedTransaction],
+    [transactions, goals, syncOn, registerDashboardSnapshot, appendUploadedTransaction, appendGoal],
   );
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

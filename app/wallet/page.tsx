@@ -12,8 +12,12 @@ export default function WalletPage() {
   const { transactions } = useFinance();
 
   const metrics = useMemo(() => {
-    const totalIncome = transactions.filter((tx) => tx.type === "income").reduce((sum, tx) => sum + tx.amount, 0);
-    const totalExpense = transactions.filter((tx) => tx.type === "expense").reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const tx of transactions) {
+      if (tx.type === "income") totalIncome += tx.amount;
+      if (tx.type === "expense") totalExpense += Math.abs(tx.amount);
+    }
     const netSavings = totalIncome - totalExpense;
     const totalBalance = netSavings;
     const savingsRatio = totalIncome > 0 ? Number(((netSavings / totalIncome) * 100).toFixed(2)) : 0;

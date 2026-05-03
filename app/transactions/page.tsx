@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Filter, Plus } from "lucide-react";
 import { apiClient, type TransactionCreatePayload } from "@/lib/api-client";
@@ -24,11 +24,14 @@ export default function TransactionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  const filtered = transactions.filter((t) => {
-    const matchesSearch = t.merchant.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "All" || (filterType === "Income" && t.type === "income") || (filterType === "Expense" && t.type === "expense");
-    return matchesSearch && matchesType;
-  });
+  const filtered = useMemo(() => {
+    const normalizedSearch = searchTerm.toLowerCase();
+    return transactions.filter((t) => {
+      const matchesSearch = t.merchant.toLowerCase().includes(normalizedSearch);
+      const matchesType = filterType === "All" || (filterType === "Income" && t.type === "income") || (filterType === "Expense" && t.type === "expense");
+      return matchesSearch && matchesType;
+    });
+  }, [filterType, searchTerm, transactions]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

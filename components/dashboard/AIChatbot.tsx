@@ -104,6 +104,19 @@ export default function AIChatbot({
   }, [messages, isAsking]);
 
   const visibleMessages = useMemo(() => (messages.length > 0 ? messages : [initialGreeting(firstName)]), [messages, firstName]);
+  const aiMessageCount = useMemo(() => Math.min(visibleMessages.filter((message) => message.role === "ai").length, 9), [visibleMessages]);
+  const recentTransactionContext = useMemo(
+    () =>
+      (recentTransactions ?? []).slice(0, 8).map((tx) => ({
+        merchant: tx.merchant,
+        category: tx.category,
+        amount: tx.amount,
+        type: tx.type,
+        date: tx.date,
+        source: tx.source || "uploaded",
+      })),
+    [recentTransactions],
+  );
 
   const sendMessage = async (questionOverride?: string) => {
     const question = (questionOverride ?? inputValue).trim();
@@ -130,14 +143,7 @@ export default function AIChatbot({
             alerts: budgeting?.feedback ?? [],
             goals: goalSuggestion ? [goalSuggestion] : [],
             cashflow: cashflow ?? { upcoming_payments: [], monthly_outflow_projection: 0 },
-            recentTransactions: (recentTransactions ?? []).slice(0, 8).map((tx) => ({
-              merchant: tx.merchant,
-              category: tx.category,
-              amount: tx.amount,
-              type: tx.type,
-              date: tx.date,
-              source: tx.source || "uploaded",
-            })),
+            recentTransactions: recentTransactionContext,
           },
         }),
       });
@@ -279,7 +285,7 @@ export default function AIChatbot({
         >
           <Sparkles className="h-8 w-8" />
           <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#060e20] bg-[#ff6e84] text-[10px] font-bold text-white">
-            {Math.min(visibleMessages.filter((message) => message.role === "ai").length, 9)}
+            {aiMessageCount}
           </span>
         </button>
       </div>
