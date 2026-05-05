@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from backend.services.analytics import get_dashboard_analytics
 from backend.services.behavior_engine import build_behavior_profile
 from backend.services.cashflow_engine import build_cashflow_timeline
 from backend.services.emi_engine import summarize_emis
@@ -42,25 +41,47 @@ def simulate_finances(transactions, input_data: dict) -> dict:
             {"name": "Variable", "amount": round(variable_adjustment, 2)},
         ],
     }
-    analytics = get_dashboard_analytics()
-    updated_metrics = {
-        **analytics,
-        "totalIncome": new_income,
-        "totalExpense": new_expense,
-        "netSavings": monthly_savings,
-        "fixedExpensePercent": simulated_split["fixed_percent"],
-        "variableExpensePercent": simulated_split["variable_percent"],
-    }
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
-    networth = calculate_networth({"totalBalance": projected_savings + 13000, "netSavings": projected_savings}, emi_summary)
-    baseline_prediction = predict_next_expense(build_daily_expense_series(transactions))
-    simulated_behavior_profile = baseline_behavior["behavior_profile"]
+    simulated_behavior_profile = baseline_behavior.get("behavior_profile", "balanced")
     if simulated_split["fixed_percent"] > 70:
         simulated_behavior_profile = "high fixed burden"
     elif simulated_split["variable_percent"] > 70:
         simulated_behavior_profile = "high variable spending"
     else:
         simulated_behavior_profile = "balanced"
+
+    updated_metrics = {
+        "totalIncome": new_income,
+        "totalExpense": new_expense,
+        "netSavings": monthly_savings,
+        "totalBalance": round(monthly_savings + 13000, 2),
+        "savingsRatio": round((monthly_savings / new_income * 100) if new_income > 0 else 0, 2),
+        "volatility": 0,
+        "healthScore": max(0, min(100, round(55 + ((monthly_savings / max(new_income, 1)) * 45)))),
+        "budgetUsagePercent": round((new_expense / max(new_income, 1)) * 100, 2) if new_income > 0 else 0,
+        "remainingBudget": monthly_savings,
+        "dailyAllowance": round(monthly_savings / 30, 2),
+        "burnRate": round(new_expense / 30, 2),
+        "savingsGrowth": 0,
+        "lifestyleInflation": 0,
+        "runwayMonths": round(max(0, projected_savings) / max(new_expense, 1), 1),
+        "financialPersonality": simulated_behavior_profile,
+        "subscriptionLoad": round(sum(float(item["monthly_cost"]) for item in subscriptions), 2),
+        "monthlyEmiLoad": round(float(emi_summary["monthly_load"]), 2),
+        "fixedExpensePercent": simulated_split["fixed_percent"],
+        "variableExpensePercent": simulated_split["variable_percent"],
+    }
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db, transactions)
+    networth = calculate_networth({"totalBalance": projected_savings + 13000, "netSavings": projected_savings}, emi_summary)
+    updated_metrics.update(
+        {
+            "netWorth": round(float(networth["net_worth"]), 2),
+            "assets": round(float(networth["assets"]), 2),
+            "liabilities": round(float(networth["liabilities"]), 2),
+            "projectedOutflow": round(float(cashflow["monthly_outflow_projection"]), 2),
+            "trends": {"balanceTrend": 0, "incomeTrend": 0, "expenseTrend": 0, "savingsTrend": 0},
+        }
+    )
+    baseline_prediction = predict_next_expense(build_daily_expense_series(transactions))
     if monthly_savings < 0 or projected_savings < 0:
         risk_level = "High"
     elif baseline_prediction.get("risk_level") == "High" or monthly_savings < (new_income * 0.1):
@@ -92,6 +113,6 @@ def simulate_finances(transactions, input_data: dict) -> dict:
         "updated_metrics": updated_metrics,
         "networth": networth,
         "cashflow": cashflow,
-        "priorities": build_priorities(updated_metrics, {"global": {"remaining_amount": monthly_savings, "usage_percent": analytics.get("budgetUsagePercent", 0)}}, subscriptions, emi_summary, cashflow),
+        "priorities": build_priorities(updated_metrics, {"global": {"remaining_amount": monthly_savings, "usage_percent": updated_metrics["budgetUsagePercent"]}}, subscriptions, emi_summary, cashflow),
         "months": months,
     }

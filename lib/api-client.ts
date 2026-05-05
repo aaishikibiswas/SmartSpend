@@ -1,9 +1,8 @@
 // Default to same-origin so browser calls always go through Next.js `/api/*` routes.
 // This avoids direct backend fetch failures in local dev when backend host/port changes.
-const API_BASE = "";
-// To force direct backend calls later, switch to:
-// const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
+// ---------- Types ----------
 export type AlertItem = {
   id: number;
   type: string;
@@ -23,8 +22,8 @@ export type GoalItem = {
 export type GoalCreatePayload = {
   name: string;
   target: number;
-  achieved: number;
-  daysLeft: number;
+  achieved?: number;
+  daysLeft?: number;
   color?: string;
 };
 
@@ -92,10 +91,7 @@ export type DashboardMetrics = {
   creditScore: {
     score: number;
     category: string;
-    range: {
-      min: number;
-      max: number;
-    };
+    range: { min: number; max: number };
     indicators: {
       spending_stability: string;
       savings_ratio: string;
@@ -362,6 +358,7 @@ export type SimulationResult = {
   months: number;
 };
 
+// ---------- Request Wrapper ----------
 type ApiEnvelope<T> = {
   status: number;
   data: T;
@@ -369,7 +366,7 @@ type ApiEnvelope<T> = {
 };
 
 type RequestOptions = RequestInit & {
-  timeoutMs?: number;
+  timeoutMs?: number; // optional timeout in ms
 };
 
 async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvelope<T>> {
@@ -388,7 +385,6 @@ async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvel
     });
 
     let payload: unknown = null;
-
     try {
       payload = await response.json();
     } catch {
@@ -399,8 +395,8 @@ async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvel
 
     if (!response.ok) {
       const message =
-        typeof payload === "object" && payload && "message" in payload && typeof payload.message === "string"
-          ? payload.message
+        typeof payload === "object" && payload && "message" in payload && typeof (payload as any).message === "string"
+          ? (payload as any).message
           : `Request failed with status ${response.status}.`;
       throw new Error(message);
     }
@@ -408,31 +404,23 @@ async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvel
     if (payload && typeof payload === "object" && "status" in payload && "data" in payload) {
       return payload as ApiEnvelope<T>;
     }
-
-    return {
-      status: response.status,
-      data: payload as T,
-    };
+    return { status: response.status, data: payload as T };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error(`Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
     }
-
-    if (error instanceof Error) {
-      throw error;
-    }
-
+    if (error instanceof Error) throw error;
     throw new Error(`Network request to ${API_BASE || "same-origin"}${path} failed.`);
   } finally {
     window.clearTimeout(timeoutId);
   }
 }
 
+// ---------- API Client ----------
 export const apiClient = {
   getDashboardData() {
     return request<DashboardData>("/api/dashboard");
   },
-
   getPrediction(params: { timelineDays: number }) {
     return request<PredictionData>("/api/predict", {
       method: "POST",
@@ -441,26 +429,21 @@ export const apiClient = {
       timeoutMs: 20000,
     });
   },
-
   uploadStatement(file: File) {
     const formData = new FormData();
     formData.append("file", file);
-
     return request<UploadResult>("/api/upload", {
       method: "POST",
       body: formData,
       timeoutMs: 120000,
     });
   },
-
   getAlerts() {
     return request<AlertItem[]>("/api/alerts");
   },
-
   getGoals() {
     return request<GoalItem[]>("/api/goals");
   },
-
   addGoal(payload: GoalCreatePayload) {
     return request<GoalItem>("/api/goals", {
       method: "POST",
@@ -468,11 +451,9 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   getBills() {
     return request<BillItem[]>("/api/bills");
   },
-
   addBill(payload: BillCreatePayload) {
     return request<BillItem>("/api/bills", {
       method: "POST",
@@ -480,17 +461,14 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   deleteBill(identifier: string | number) {
     return request<{ removed: string | number }>(`/api/bills/${encodeURIComponent(String(identifier))}`, {
       method: "DELETE",
     });
   },
-
   getGlobalBudget() {
     return request<GlobalBudgetSummary>("/api/budget/global");
   },
-
   askAssistant(question: string, history: AssistantChatMessage[] = []) {
     return request<AssistantResponse>("/api/assistant/query", {
       method: "POST",
@@ -499,7 +477,6 @@ export const apiClient = {
       timeoutMs: 30000,
     });
   },
-
   updateGlobalBudget(payload: BudgetConfigPayload) {
     return request<BudgetSnapshot & { alerts: AlertItem[] }>("/api/budget/global", {
       method: "PUT",
@@ -507,11 +484,9 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   getCategoryBudgets() {
     return request<BudgetCategoryItem[]>("/api/budget/category");
   },
-
   upsertCategoryBudget(payload: CategoryBudgetPayload) {
     return request<{ category: BudgetCategoryItem; categories: BudgetCategoryItem[]; feedback: string[]; alerts: AlertItem[] }>("/api/budget/category", {
       method: "POST",
@@ -519,13 +494,11 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   deleteCategoryBudget(name: string) {
     return request<{ categories: BudgetCategoryItem[]; feedback: string[]; alerts: AlertItem[] }>(`/api/budget/category/${encodeURIComponent(name)}`, {
       method: "DELETE",
     });
   },
-
   evaluateDecision(payload: DecisionPayload) {
     return request<DecisionResult>("/api/decision", {
       method: "POST",
@@ -533,7 +506,6 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   addTransaction(payload: TransactionCreatePayload) {
     return request<TransactionItem>("/api/transactions", {
       method: "POST",
@@ -541,7 +513,6 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   login(payload: LoginPayload) {
     return request<{ user: AuthUser }>("/api/auth/login", {
       method: "POST",
@@ -549,7 +520,6 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   register(payload: RegisterPayload) {
     return request<{ user: AuthUser }>("/api/auth/register", {
       method: "POST",
@@ -557,11 +527,6 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
-  getCurrentUser() {
-    return request<AuthUser>("/api/auth/me");
-  },
-
   updateProfile(payload: ProfileUpdatePayload) {
     return request<AuthUser>("/api/auth/me", {
       method: "PUT",
@@ -569,11 +534,9 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   getSubscriptions() {
     return request<SubscriptionItem[]>("/api/subscriptions");
   },
-
   addSubscription(payload: SubscriptionCreatePayload) {
     return request<SubscriptionItem>("/api/subscriptions", {
       method: "POST",
@@ -581,17 +544,14 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   deleteSubscription(name: string) {
     return request<{ removed: string }>(`/api/subscriptions/${encodeURIComponent(name)}`, {
       method: "DELETE",
     });
   },
-
   getEmis() {
     return request<EmiSummary>("/api/emi");
   },
-
   addEmi(payload: EmiCreatePayload) {
     return request<EmiItem>("/api/emi", {
       method: "POST",
@@ -599,29 +559,23 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   deleteEmi(identifier: string | number) {
     return request<{ removed: string | number }>(`/api/emi/${encodeURIComponent(String(identifier))}`, {
       method: "DELETE",
     });
   },
-
   getExpenseSplit() {
     return request<ExpenseSplitData>("/api/expense-split");
   },
-
   getNetworth() {
     return request<NetworthData>("/api/networth");
   },
-
   getCashflow() {
     return request<CashflowData>("/api/cashflow");
   },
-
   getPriorities() {
     return request<PriorityItem[]>("/api/priorities");
   },
-
   runSimulation(payload: SimulationPayload) {
     return request<SimulationResult>("/api/simulate", {
       method: "POST",
@@ -629,10 +583,11 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
   },
-
   logout() {
-    return request<{ success: boolean }>("/api/auth/logout", {
-      method: "POST",
-    });
+    return request<{ success: boolean }>("/api/auth/logout", { method: "POST" });
+  },
+
+  getCurrentUser() {
+    return request<AuthUser>("/api/auth/me");
   },
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, LoaderCircle, SlidersHorizontal, Sparkles, TrendingUp } from "lucide-react";
 import { apiClient, type DashboardMetrics, type SimulationResult } from "@/lib/api-client";
 
@@ -23,23 +23,7 @@ export default function SidebarFinancialSimulator() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function loadMetrics() {
-      try {
-        const response = await apiClient.getDashboardData();
-        setMetrics(response.data.metrics);
-      } catch (loadError) {
-        console.error(loadError);
-      } finally {
-        setIsBootstrapping(false);
-      }
-    }
-
-    void loadMetrics();
-  }, []);
 
   const comparison = useMemo(() => {
     if (!metrics || !result) return null;
@@ -66,6 +50,7 @@ export default function SidebarFinancialSimulator() {
         months,
       });
       setResult(response.data);
+      setMetrics((current) => current ?? response.data.updated_metrics);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Simulation failed.");
     } finally {
@@ -147,7 +132,7 @@ export default function SidebarFinancialSimulator() {
 
             <button
               type="submit"
-              disabled={isLoading || isBootstrapping}
+              disabled={isLoading}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#7B6CF6] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8B7DFF] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <SlidersHorizontal className="h-4 w-4" />}
