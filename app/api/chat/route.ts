@@ -130,12 +130,12 @@ In this app:
       return { response, data };
     };
 
-    let { response, data } = await tryModel("mistralai/mistral-7b-instruct");
+    let { response, data } = await tryModel("meta-llama/llama-3-8b-instruct");
     if (!response.ok) {
       const primaryMessage = (data as { error?: { message?: string } })?.error?.message || "";
       const shouldFallback = response.status >= 500 || /no endpoints found|model.*not.*found|unavailable/i.test(primaryMessage);
       if (shouldFallback) {
-        const fallback = await tryModel("meta-llama/llama-3-8b-instruct");
+        const fallback = await tryModel("mistralai/mistral-7b-instruct");
         response = fallback.response;
         data = fallback.data;
       }

@@ -4,6 +4,11 @@ import logging
 import os
 import threading
 import time
+from dotenv import load_dotenv
+
+# Load environment variables from .env.local
+load_dotenv(".env.local")
+load_dotenv() # Fallback to .env
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware

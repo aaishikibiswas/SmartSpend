@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -51,18 +52,24 @@ def build_goal_suggestion(metrics: dict, budget_snapshot: dict) -> dict:
 async def get_dashboard():
     transactions = Storage.get_transactions()
     metrics = await get_dashboard_analytics()
-    budget_snapshot = build_budget_snapshot(transactions)
-    category_chart = build_category_comparison(transactions)
-    subscriptions = get_all_subscriptions(transactions)
-    emi_summary = summarize_emis()
-    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
-    networth = calculate_networth(metrics, emi_summary)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db, transactions)
-    prediction = predict_next_expense(build_daily_expense_series(transactions), include_prophet=False)
-    anomaly = latest_anomaly_summary(transactions)
-    behavior = build_behavior_profile(transactions)
+    
+    # Offload heavy sync tasks to threads
+    budget_snapshot = await asyncio.to_thread(build_budget_snapshot, transactions)
+    category_chart = await asyncio.to_thread(build_category_comparison, transactions)
+    subscriptions = await asyncio.to_thread(get_all_subscriptions, transactions)
+    emi_summary = await asyncio.to_thread(summarize_emis)
+    expense_split = await asyncio.to_thread(classify_expense_split, transactions, subscriptions, emi_summary, bills_db)
+    networth = await asyncio.to_thread(calculate_networth, metrics, emi_summary)
+    cashflow = await asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills_db, transactions)
+    
+    daily_series = await asyncio.to_thread(build_daily_expense_series, transactions)
+    prediction = await asyncio.to_thread(predict_next_expense, daily_series, include_prophet=False)
+    
+    anomaly = await asyncio.to_thread(latest_anomaly_summary, transactions)
+    behavior = await asyncio.to_thread(build_behavior_profile, transactions)
+    
     advisory = await generate_financial_advice(metrics, budget_snapshot, prediction, expense_split, behavior)
-    priorities = build_priorities(metrics, budget_snapshot, subscriptions, emi_summary, cashflow)
+    priorities = await asyncio.to_thread(build_priorities, metrics, budget_snapshot, subscriptions, emi_summary, cashflow)
     sorted_transactions = transactions.sort_values("date", ascending=False)
     recent_transactions = sorted_transactions.head(5).to_dict(orient="records")
     all_transactions = sorted_transactions.to_dict(orient="records")

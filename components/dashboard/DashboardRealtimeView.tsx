@@ -78,13 +78,15 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
           }),
         });
 
-        if (!response.ok) throw new Error("Advice fetch failed");
+        if (!response.ok) {
+          console.warn("Smart Advice: Real-time refresh skipped due to server error");
+          return;
+        }
         
         const payload = await response.json();
-        console.log("Smart Advice: Real-time insights received", payload.data);
-        
-        if (payload.data && payload.data.advice) {
-          setAdvisory(payload.data.advice);
+        if (payload.data) {
+          console.log("Smart Advice: Real-time insights updated", payload.data);
+          setAdvisory(payload.data.advice || []);
         }
       } catch (err) {
         console.error("Smart Advice: Failed to refresh advice", err);
@@ -94,8 +96,8 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     // Initial fetch
     fetchSmartAdvice();
 
-    // Background refresh every 5 minutes
-    const refreshInterval = setInterval(fetchSmartAdvice, 300000);
+    // Background refresh every 1 minute
+    const refreshInterval = setInterval(fetchSmartAdvice, 60000);
     return () => clearInterval(refreshInterval);
   }, [initialData]);
 
