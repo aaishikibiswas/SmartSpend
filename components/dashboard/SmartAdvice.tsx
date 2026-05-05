@@ -1,52 +1,149 @@
-import Link from "next/link";
-import { ArrowRight, Landmark, Lightbulb, Shield, TrendingUp } from "lucide-react";
+"use client";
 
-export default function SmartAdvice({ adviceItems }: { adviceItems: any[] }) {
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { 
+  ArrowRight, 
+  Landmark, 
+  Lightbulb, 
+  Shield, 
+  TrendingUp, 
+  Wallet, 
+  Zap, 
+  Target, 
+  Activity,
+  Sparkles
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface AdviceItem {
+  icon: string;
+  label: string;
+  title: string;
+  body: string;
+  href: string;
+  action: string;
+}
+
+export default function SmartAdvice({ adviceItems = [] }: { adviceItems: AdviceItem[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Rotation logic: change every 10 seconds
+  useEffect(() => {
+    if (adviceItems.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % adviceItems.length);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [adviceItems.length]);
+
   const getIcon = (name: string) => {
-    switch (name) {
-      case "shield":
-        return Shield;
-      case "trending-up":
-        return TrendingUp;
-      case "landmark":
-        return Landmark;
-      default:
-        return Lightbulb;
+    switch (name.toLowerCase()) {
+      case "shield": return Shield;
+      case "trending-up": return TrendingUp;
+      case "landmark": return Landmark;
+      case "wallet": return Wallet;
+      case "zap": return Zap;
+      case "target": return Target;
+      case "activity": return Activity;
+      default: return Lightbulb;
     }
   };
 
-  return (
-    <section className="glass-card space-y-6 rounded-[2rem] border border-white/10 bg-[#091328]/60 p-8 backdrop-blur-xl">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-[#6366f1]/20 p-2 text-[#6366f1]">
-            <Lightbulb className="h-5 w-5" />
-          </div>
-          <h3 className="text-lg font-bold text-[#dee5ff]">Smart Advice</h3>
+  if (!adviceItems || adviceItems.length === 0) {
+    return (
+      <div className="glass-card flex h-48 items-center justify-center rounded-[2rem] border border-white/10 bg-[#091328]/60 p-8 backdrop-blur-xl">
+        <div className="flex flex-col items-center gap-2 text-[#a3aac4]">
+          <Activity className="h-8 w-8 animate-pulse" />
+          <p className="text-sm">Analyzing your financial data...</p>
         </div>
-        <span className="rounded-full bg-[#6366f1]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#6366f1]">AI Generated</span>
+      </div>
+    );
+  }
+
+  const currentAdvice = adviceItems[currentIndex];
+  const Icon = getIcon(currentAdvice.icon);
+
+  return (
+    <section className="relative overflow-hidden glass-card rounded-[2rem] border border-white/10 bg-[#091328]/60 p-8 backdrop-blur-xl transition-all duration-500">
+      {/* Decorative background glow */}
+      <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#6366f1]/10 blur-[100px]" />
+      <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[#ec4899]/5 blur-[100px]" />
+
+      <div className="relative z-10 flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white shadow-lg shadow-[#6366f1]/20">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold tracking-tight text-white">Smart Insights</h3>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#6366f1]">Real-time Advisory</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+            {adviceItems.map((_, idx) => (
+                <div 
+                    key={idx} 
+                    className={`h-1 rounded-full transition-all duration-500 ${idx === currentIndex ? "w-8 bg-[#6366f1]" : "w-2 bg-[#40485d]"}`}
+                />
+            ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {adviceItems.map((card, idx) => {
-          const Icon = getIcon(card.icon);
-          return (
-            <div key={idx} className="group flex flex-col justify-between rounded-2xl border border-[#40485d]/10 bg-[#091328]/40 p-5 transition-all hover:border-[#6366f1]/30">
-              <div>
-                <div className="mb-4 flex items-center justify-between">
-                  <Icon className="h-4 w-4 text-[#6366f1]" />
-                  <span className="text-[10px] font-bold uppercase text-[#a3aac4]">{card.label}</span>
-                </div>
-                <p className="mb-2 text-sm font-semibold text-[#dee5ff]">{card.title}</p>
-                <p className="text-[11px] text-[#a3aac4]">{card.body}</p>
-              </div>
-              <Link href={card.href} className="mt-6 flex items-center gap-1 text-[10px] font-bold text-[#6366f1] transition-all group-hover:gap-2">
-                {card.action}
-                <ArrowRight className="h-3 w-3" />
-              </Link>
+      <div className="relative min-h-[160px]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 items-start"
+          >
+            <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-white/5 bg-white/5 p-4 text-[#6366f1] backdrop-blur-sm shadow-inner">
+              <Icon className="h-10 w-10" />
             </div>
-          );
-        })}
+
+            <div className="space-y-4">
+              <div>
+                <span className="mb-2 inline-block rounded-full bg-[#6366f1]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#6366f1]">
+                  {currentAdvice.label}
+                </span>
+                <h4 className="text-2xl font-bold text-[#dee5ff] leading-tight">
+                  {currentAdvice.title}
+                </h4>
+              </div>
+              
+              <p className="text-base text-[#a3aac4] leading-relaxed max-w-2xl">
+                {currentAdvice.body}
+              </p>
+
+              <div className="pt-4">
+                <Link 
+                  href={currentAdvice.href} 
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-white/5 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                >
+                  <span className="relative z-10">{currentAdvice.action}</span>
+                  <ArrowRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Progress bar for 10s timer */}
+      <div className="absolute bottom-0 left-0 h-1 bg-[#6366f1]/20 w-full overflow-hidden">
+        <motion.div 
+            key={currentIndex}
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 10, ease: "linear" }}
+            className="h-full bg-[#6366f1]"
+        />
       </div>
     </section>
   );

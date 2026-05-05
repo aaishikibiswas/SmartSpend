@@ -20,14 +20,28 @@ def get_manual_emis() -> list[dict]:
 def get_all_emis(transactions_df=None) -> list[dict]:
     manual = [{**item, "source": item.get("source", "manual")} for item in get_manual_emis()]
     detected = detect_emi_transactions(transactions_df if transactions_df is not None else Storage.get_transactions())
+    
     combined: list[dict] = []
     seen: set[str] = set()
-    for item in [*manual, *detected]:
+    
+    # Process manual first
+    for item in manual:
         key = str(item.get("name", "")).strip().lower()
-        if not key or key in seen:
-            continue
-        seen.add(key)
-        combined.append(item)
+        if key and key not in seen:
+            seen.add(key)
+            combined.append(item)
+            
+    # Process detected, but ensure unique IDs and names
+    next_id = max([int(i.get("id", 0)) for i in combined], default=0) + 1
+    for item in detected:
+        key = str(item.get("name", "")).strip().lower()
+        if key and key not in seen:
+            seen.add(key)
+            # Assign a fresh ID to auto-detected ones if there's a conflict
+            item["id"] = next_id
+            next_id += 1
+            combined.append(item)
+            
     return combined
 
 

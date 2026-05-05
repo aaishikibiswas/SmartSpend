@@ -5,7 +5,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const controller = new AbortController();
-    timeout = setTimeout(() => controller.abort(), 20000);
+    // INCREASED TIMEOUT: From 20s to 60s for heavy ML models
+    timeout = setTimeout(() => controller.abort(), 60000);
 
     const response = await fetch(`${BACKEND_BASE}/predict/`, {
       method: "POST",
@@ -37,4 +38,3 @@ export async function POST(request: Request) {
     }
   }
 }
-

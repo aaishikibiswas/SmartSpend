@@ -227,6 +227,20 @@ export type DashboardData = {
   bills: BillItem[];
   recentTransactions: TransactionItem[];
   allTransactions: TransactionItem[];
+  advisory: {
+    recommended_savings: number;
+    advice: {
+      icon: string;
+      label: string;
+      title: string;
+      body: string;
+      href: string;
+      action: string;
+    }[];
+    behavior_profile: string;
+  };
+  prediction: PredictionData;
+  behavior: any;
 };
 
 export type PredictionData = {

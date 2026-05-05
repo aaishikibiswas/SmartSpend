@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { CalendarClock, Flame, Landmark, PiggyBank, TrendingDown, TrendingUp, WalletMinimal } from "lucide-react";
 import BudgetingPanel from "@/components/dashboard/BudgetingPanel";
 import SmartAdvice from "@/components/dashboard/SmartAdvice";
@@ -59,12 +59,68 @@ function StatsCards({ liveMetrics }: { liveMetrics: DashboardMetrics }) {
 }
 
 export default function DashboardRealtimeView({ initialData }: { initialData: DashboardData }) {
+  const [advisory, setAdvisory] = useState(initialData.advisory.advice);
   const { transactions } = useFinance();
+
+  useEffect(() => {
+    async function fetchSmartAdvice() {
+      try {
+        console.log("Smart Advice: Fetching real-time insights...");
+        const response = await fetch("/api/smart-advice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            metrics: initialData.metrics,
+            budgeting: initialData.budgeting,
+            prediction: initialData.prediction,
+            expenseSplit: initialData.expenseSplit,
+            behavior: initialData.behavior
+          }),
+        });
+
+        if (!response.ok) throw new Error("Advice fetch failed");
+        
+        const payload = await response.json();
+        console.log("Smart Advice: Real-time insights received", payload.data);
+        
+        if (payload.data && payload.data.advice) {
+          setAdvisory(payload.data.advice);
+        }
+      } catch (err) {
+        console.error("Smart Advice: Failed to refresh advice", err);
+      }
+    }
+
+    // Initial fetch
+    fetchSmartAdvice();
+
+    // Background refresh every 5 minutes
+    const refreshInterval = setInterval(fetchSmartAdvice, 300000);
+    return () => clearInterval(refreshInterval);
+  }, [initialData]);
+
   const txSource = useMemo(() => {
     if (transactions.length > 0) return transactions;
     if (Array.isArray(initialData.allTransactions) && initialData.allTransactions.length > 0) return initialData.allTransactions;
     return initialData.recentTransactions || [];
   }, [transactions, initialData.allTransactions, initialData.recentTransactions]);
+
+  useEffect(() => {
+    console.log("DashboardRealtimeView: Initializing websocket listener");
+    
+    function handleWsUpdate(event: Event) {
+      const detail = (event as CustomEvent).detail;
+      console.log("DashboardRealtimeView: Received websocket update", detail);
+      
+      if (detail?.type === "snapshot" && detail?.data?.advisory) {
+        console.log("DashboardRealtimeView: Updating advisory from snapshot", detail.data.advisory);
+        setAdvisory(detail.data.advisory.advice);
+      }
+    }
+
+    window.addEventListener("smartspend:ws-update", handleWsUpdate);
+    return () => window.removeEventListener("smartspend:ws-update", handleWsUpdate);
+  }, [setAdvisory]);
 
   const monthlyTx = useMemo(() => {
     const now = new Date();
@@ -196,7 +252,7 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
             </section>
 
             <section id="smart-advice" className="scroll-mt-28">
-              <SmartAdvice adviceItems={initialData.advisory.advice} />
+              <SmartAdvice adviceItems={advisory} />
             </section>
 
             <TransactionHistory dataOverride={sortedTransactions} />

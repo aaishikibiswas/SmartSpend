@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-
+import asyncio
 from backend.models.predict import build_daily_expense_series, generate_prophet_forecast, predict_next_expense
 from backend.models.train import get_forecast_evaluation, train_regression_model
 from backend.storage import Storage
@@ -13,12 +13,14 @@ class PredictionRequest(BaseModel):
 
 
 @router.post("/")
-def get_prediction(payload: PredictionRequest):
-    df = Storage.get_transactions()
+async def get_prediction(payload: PredictionRequest):
+    df = await asyncio.to_thread(Storage.get_transactions)
     days = max(1, min(payload.timelineDays, 60))
-    forecast_data = generate_prophet_forecast(df, days=days)
-    daily_expenses = build_daily_expense_series(df)
-    next_expense = predict_next_expense(daily_expenses)
+    
+    # Run heavy ML in threads
+    forecast_data = await asyncio.to_thread(generate_prophet_forecast, df, days=days)
+    daily_expenses = await asyncio.to_thread(build_daily_expense_series, df)
+    next_expense = await asyncio.to_thread(predict_next_expense, daily_expenses, include_prophet=False)
 
     return {
         "status": 200,
@@ -30,9 +32,9 @@ def get_prediction(payload: PredictionRequest):
 
 
 @router.post("/train")
-def train_prediction_models():
-    df = Storage.get_transactions()
-    trained = train_regression_model(df)
+async def train_prediction_models():
+    df = await asyncio.to_thread(Storage.get_transactions)
+    trained = await asyncio.to_thread(train_regression_model, df)
     return {
         "status": 200,
         "data": {

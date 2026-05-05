@@ -7,8 +7,8 @@ from backend.services.retrieval import retriever
 logger = logging.getLogger(__name__)
 
 OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
-PRIMARY_MODEL = "mistralai/mistral-7b-instruct"
-FALLBACK_MODEL = "meta-llama/llama-3-8b-instruct"
+PRIMARY_MODEL = "mistralai/mistral-7b-instruct:free"
+FALLBACK_MODEL = "openchat/openchat-3.5-0106:free"
 
 SYSTEM_PROMPT = """You are the SmartSpend AI financial assistant. Your goal is to help users understand their spending, balances, budgets, predicting risk, and alerting them to trends.
 Guidelines:
@@ -23,23 +23,32 @@ Guidelines:
 async def _call_openrouter(model: str, messages: list[dict]) -> str:
     api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
     if not api_key:
-        return "AI assistant temporarily unavailable"
+        logger.error("OPENROUTER_API_KEY is missing")
+        return ""
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
+        "X-Title": "FinSet SmartSpend Dashboard",
     }
     payload = {
         "model": model,
         "messages": messages,
     }
 
-    async with httpx.AsyncClient(timeout=25.0) as client:
-        response = await client.post(f"{OPENROUTER_API_BASE}/chat/completions", headers=headers, json=payload)
-        if not response.is_success:
-            raise RuntimeError(f"OpenRouter request failed with status {response.status_code}")
-        data = response.json()
-        return (data.get("choices", [{}])[0].get("message", {}).get("content") or "").strip()
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(f"{OPENROUTER_API_BASE}/chat/completions", headers=headers, json=payload)
+            if not response.is_success:
+                logger.error(f"OpenRouter API error: {response.status_code} - {response.text}")
+                return ""
+            
+            data = response.json()
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            return content.strip()
+        except Exception as e:
+            logger.error(f"HTTP request to OpenRouter failed: {e}")
+            return ""
 
 
 async def ask_finance_query(session_id: str, question: str) -> dict:

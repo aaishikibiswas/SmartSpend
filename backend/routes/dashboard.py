@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from backend.services.anomaly_engine import latest_anomaly_summary
 from backend.services.advisory_engine import generate_financial_advice
@@ -12,8 +13,7 @@ from backend.models.predict import build_daily_expense_series, predict_next_expe
 from backend.services.networth_engine import calculate_networth
 from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
-from backend.storage import Storage
-from backend.storage import bills_db
+from backend.storage import Storage, bills_db
 
 router = APIRouter()
 
@@ -61,7 +61,7 @@ async def get_dashboard():
     prediction = predict_next_expense(build_daily_expense_series(transactions), include_prophet=False)
     anomaly = latest_anomaly_summary(transactions)
     behavior = build_behavior_profile(transactions)
-    advisory = await generate_financial_advice(metrics, {"global": budget_snapshot["global"]}, prediction, expense_split, behavior)
+    advisory = await generate_financial_advice(metrics, budget_snapshot, prediction, expense_split, behavior)
     priorities = build_priorities(metrics, budget_snapshot, subscriptions, emi_summary, cashflow)
     sorted_transactions = transactions.sort_values("date", ascending=False)
     recent_transactions = sorted_transactions.head(5).to_dict(orient="records")
@@ -83,8 +83,35 @@ async def get_dashboard():
             "anomalySummary": anomaly,
             "behavior": behavior,
             "advisory": advisory,
+            "prediction": prediction,
             "bills": bills_db,
             "recentTransactions": recent_transactions,
             "allTransactions": all_transactions,
         },
+    }
+
+
+class AdviceRequest(BaseModel):
+    metrics: dict
+    budgeting: dict
+    prediction: dict
+    expenseSplit: dict
+    behavior: dict | None = None
+
+
+@router.post("/smart-advice")
+async def get_smart_advice(payload: AdviceRequest):
+    """
+    Direct endpoint for real-time Smart Advice generation.
+    """
+    advisory = await generate_financial_advice(
+        payload.metrics, 
+        payload.budgeting, 
+        payload.prediction, 
+        payload.expenseSplit, 
+        payload.behavior
+    )
+    return {
+        "status": 200,
+        "data": advisory,
     }

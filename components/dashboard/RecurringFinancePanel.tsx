@@ -250,7 +250,7 @@ export default function RecurringFinancePanel({
           </form>
           {error ? <p className="text-xs text-rose-300">{error}</p> : null}
           {emiSummary.items.slice(0, 4).map((item) => (
-            <div key={item.id} className="rounded-2xl border border-white/8 bg-white/5 p-4">
+            <div key={`${item.source}-${item.id}`} className="rounded-2xl border border-white/8 bg-white/5 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-[#edf2ff]">{item.name}</p>
