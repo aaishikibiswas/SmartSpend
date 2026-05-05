@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, ReferenceDot } from "recharts";
 import { apiClient } from "@/lib/api-client";
 import { useFinance } from "@/context/FinanceContext";
+import type { PredictionData } from "@/lib/api-client";
 
 type ForecastPoint = {
   day: string;
   value: number;
 };
+
+type PredictionSummary = PredictionData["next_expense_prediction"];
 
 const CHART_MARGIN = { top: 20, right: 0, left: 0, bottom: 0 };
 const XAXIS_TICK = { fill: "#8793b8", fontSize: 12 };

@@ -62,45 +62,6 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
   const [advisory, setAdvisory] = useState(initialData.advisory.advice);
   const { transactions } = useFinance();
 
-  useEffect(() => {
-    async function fetchSmartAdvice() {
-      try {
-        console.log("Smart Advice: Fetching real-time insights...");
-        const response = await fetch("/api/smart-advice", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            metrics: initialData.metrics,
-            budgeting: initialData.budgeting,
-            prediction: initialData.prediction,
-            expenseSplit: initialData.expenseSplit,
-            behavior: initialData.behavior
-          }),
-        });
-
-        if (!response.ok) {
-          console.warn("Smart Advice: Real-time refresh skipped due to server error");
-          return;
-        }
-        
-        const payload = await response.json();
-        if (payload.data) {
-          console.log("Smart Advice: Real-time insights updated", payload.data);
-          setAdvisory(payload.data.advice || []);
-        }
-      } catch (err) {
-        console.error("Smart Advice: Failed to refresh advice", err);
-      }
-    }
-
-    // Initial fetch
-    fetchSmartAdvice();
-
-    // Background refresh every 1 minute
-    const refreshInterval = setInterval(fetchSmartAdvice, 60000);
-    return () => clearInterval(refreshInterval);
-  }, [initialData]);
-
   const txSource = useMemo(() => {
     if (transactions.length > 0) return transactions;
     if (Array.isArray(initialData.allTransactions) && initialData.allTransactions.length > 0) return initialData.allTransactions;
@@ -221,6 +182,77 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     [initialData.metrics, derived],
   );
 
+  const liveBudgeting = useMemo(() => {
+    const monthlyBudget = Number(initialData.budgeting.global.monthly_budget || 0);
+    const remainingAmount = monthlyBudget > 0 ? monthlyBudget - derived.expense : initialData.budgeting.global.remaining_amount;
+    const usagePercent = monthlyBudget > 0 ? Number(((derived.expense / monthlyBudget) * 100).toFixed(2)) : initialData.budgeting.global.usage_percent;
+    const today = Math.max(new Date().getDate(), 1);
+    const daysLeft = Math.max(30 - today, 1);
+    const spentByCategory = new Map(categoryBreakdown.map((item) => [item.name.toLowerCase(), item.amount]));
+
+    return {
+      ...initialData.budgeting,
+      global: {
+        ...initialData.budgeting.global,
+        spent_amount: Number(derived.expense.toFixed(2)),
+        remaining_amount: Number(remainingAmount.toFixed(2)),
+        usage_percent: usagePercent,
+        daily_allowance: Number((Math.max(remainingAmount, 0) / daysLeft).toFixed(2)),
+      },
+      categories: initialData.budgeting.categories.map((category) => {
+        const spentAmount = Number((spentByCategory.get(category.name.toLowerCase()) || category.spent_amount || 0).toFixed(2));
+        const remainingCategory = Number((category.allocated_amount - spentAmount).toFixed(2));
+        const categoryUsage = category.allocated_amount > 0 ? Number(((spentAmount / category.allocated_amount) * 100).toFixed(2)) : 0;
+        return {
+          ...category,
+          spent_amount: spentAmount,
+          remaining_amount: remainingCategory,
+          usage_percent: categoryUsage,
+          status: categoryUsage >= 100 ? "over" : categoryUsage >= 80 ? "warning" : "ok",
+        };
+      }),
+    };
+  }, [categoryBreakdown, derived.expense, initialData.budgeting]);
+
+  useEffect(() => {
+    async function fetchSmartAdvice() {
+      try {
+        console.log("Smart Advice: Fetching live financial insights...");
+        const response = await fetch("/api/smart-advice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            metrics: liveMetrics,
+            budgeting: liveBudgeting,
+            prediction: initialData.prediction,
+            expenseSplit,
+            behavior: {
+              ...initialData.behavior,
+              day_of_month: new Date().getDate(),
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn("Smart Advice: Real-time refresh skipped due to server error");
+          return;
+        }
+
+        const payload = await response.json();
+        if (payload.data) {
+          console.log("Smart Advice: Live insights updated", payload.data);
+          setAdvisory(payload.data.advice || []);
+        }
+      } catch (err) {
+        console.error("Smart Advice: Failed to refresh advice", err);
+      }
+    }
+
+    fetchSmartAdvice();
+    const refreshInterval = setInterval(fetchSmartAdvice, 60000);
+    return () => clearInterval(refreshInterval);
+  }, [expenseSplit, initialData.behavior, initialData.prediction, liveBudgeting, liveMetrics]);
+
   const sortedTransactions: TransactionItem[] = useMemo(
     () => [...txSource].sort((a, b) => new Date(b.rawDate || b.date).getTime() - new Date(a.rawDate || a.date).getTime()),
     [txSource],
@@ -245,7 +277,7 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
               <BudgetingPanel
                 key={budgetPanelKey}
                 categories={categoryBreakdown}
-                budgetSnapshot={initialData.budgeting}
+                budgetSnapshot={liveBudgeting}
               />
             </section>
 
@@ -285,7 +317,7 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
         emi={initialData.emi}
         cashflow={initialData.cashflow}
         goalSuggestion={initialData.goalSuggestion}
-        budgeting={initialData.budgeting}
+        budgeting={liveBudgeting}
         recentTransactions={sortedTransactions}
         floating
       />
