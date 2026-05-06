@@ -26,7 +26,7 @@ import ExpenseSplitCard from "@/components/dashboard/ExpenseSplitCard";
 import AIChatbot from "@/components/dashboard/AIChatbot";
 import MetricCard from "@/components/MetricCard";
 import { useFinance } from "@/context/FinanceContext";
-import { formatDateTime } from "@/lib/mock-bank-sync";
+import { calculateLiveScores, calculateScoreInputs } from "@/lib/financial-scoring";
 import type { CashflowData, CategoryBreakdownItem, DashboardData, DashboardMetrics, ExpenseSplitData, PriorityItem, TransactionItem } from "@/lib/api-client";
 
 function formatCurrency(value: number) {
@@ -110,7 +110,9 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     const today = Math.max(new Date().getDate(), 1);
     const burnRate = expense / today;
     const savingsRatio = income > 0 ? (netSavings / income) * 100 : 0;
-    return { income, expense, netSavings, totalBalance, burnRate, savingsRatio };
+    const volatility = calculateScoreInputs(monthlyTx, 0).volatility;
+    const anomalyCount = calculateScoreInputs(monthlyTx, 0).anomalyCount;
+    return { income, expense, netSavings, totalBalance, burnRate, savingsRatio, volatility, anomalyCount };
   }, [monthlyTx]);
 
   const categoryBreakdown = useMemo<CategoryBreakdownItem[]>(() => {
@@ -163,6 +165,23 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
     return items.slice(0, 3);
   }, [derived.savingsRatio, derived.burnRate]);
 
+  const budgetUsagePercent = useMemo(() => {
+    const monthlyBudget = Number(initialData.budgeting.global.monthly_budget || 0);
+    return monthlyBudget > 0 ? Number(((derived.expense / monthlyBudget) * 100).toFixed(2)) : initialData.metrics.budgetUsagePercent;
+  }, [derived.expense, initialData.budgeting.global.monthly_budget, initialData.metrics.budgetUsagePercent]);
+
+  const liveScores = useMemo(() => {
+    const scoreInputs = {
+      ...calculateScoreInputs(monthlyTx, budgetUsagePercent),
+      income: Number(derived.income.toFixed(2)),
+      totalExpense: Number(derived.expense.toFixed(2)),
+      savingsRatio: Number(derived.savingsRatio.toFixed(2)),
+      volatility: derived.volatility,
+      anomalyCount: derived.anomalyCount,
+    };
+    return calculateLiveScores(scoreInputs);
+  }, [budgetUsagePercent, derived.anomalyCount, derived.expense, derived.income, derived.savingsRatio, derived.volatility, monthlyTx]);
+
   const liveMetrics: DashboardMetrics = useMemo(
     () => ({
       ...initialData.metrics,
@@ -172,6 +191,10 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
       totalBalance: Number(derived.totalBalance.toFixed(2)),
       burnRate: Number(derived.burnRate.toFixed(2)),
       savingsRatio: Number(derived.savingsRatio.toFixed(2)),
+      volatility: derived.volatility,
+      healthScore: liveScores.healthScore,
+      budgetUsagePercent,
+      creditScore: liveScores.creditScore,
       trends: {
         balanceTrend: trendFromPair(derived.totalBalance, initialData.metrics.totalBalance),
         incomeTrend: trendFromPair(derived.income, initialData.metrics.totalIncome),
@@ -179,13 +202,13 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
         savingsTrend: trendFromPair(derived.netSavings, initialData.metrics.netSavings),
       },
     }),
-    [initialData.metrics, derived],
+    [budgetUsagePercent, derived, initialData.metrics, liveScores],
   );
 
   const liveBudgeting = useMemo(() => {
     const monthlyBudget = Number(initialData.budgeting.global.monthly_budget || 0);
     const remainingAmount = monthlyBudget > 0 ? monthlyBudget - derived.expense : initialData.budgeting.global.remaining_amount;
-    const usagePercent = monthlyBudget > 0 ? Number(((derived.expense / monthlyBudget) * 100).toFixed(2)) : initialData.budgeting.global.usage_percent;
+    const usagePercent = budgetUsagePercent;
     const today = Math.max(new Date().getDate(), 1);
     const daysLeft = Math.max(30 - today, 1);
     const spentByCategory = new Map(categoryBreakdown.map((item) => [item.name.toLowerCase(), item.amount]));
@@ -212,7 +235,7 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
         };
       }),
     };
-  }, [categoryBreakdown, derived.expense, initialData.budgeting]);
+  }, [budgetUsagePercent, categoryBreakdown, derived.expense, initialData.budgeting]);
 
   useEffect(() => {
     async function fetchSmartAdvice() {

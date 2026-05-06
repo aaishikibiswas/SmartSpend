@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient, type CategoryBreakdownItem, type DashboardMetrics, type GoalItem, type TransactionItem } from "@/lib/api-client";
+import { calculateLiveScores, calculateScoreInputs, sortTransactionsByLatest } from "@/lib/financial-scoring";
 import { generateFakeTransaction } from "@/lib/mock-bank-sync";
 
 type DashboardSnapshot = {
@@ -35,7 +36,7 @@ function toTime(value: string | Date | undefined) {
 }
 
 function sortByLatest(items: TransactionItem[]) {
-  return [...items].sort((a, b) => toTime(b.rawDate || b.date) - toTime(a.rawDate || a.date));
+  return sortTransactionsByLatest(items);
 }
 
 function mergeCategoryBreakdown(transactions: TransactionItem[], fallback: CategoryBreakdownItem[]) {
@@ -51,12 +52,15 @@ function mergeCategoryBreakdown(transactions: TransactionItem[], fallback: Categ
   return merged.length > 0 ? merged.slice(0, 6) : fallback.slice(0, 6);
 }
 
-function updateMetrics(current: DashboardMetrics, tx: TransactionItem): DashboardMetrics {
-  const value = Math.abs(tx.amount);
-  const nextIncome = tx.amount >= 0 ? current.totalIncome + value : current.totalIncome;
-  const nextExpense = tx.amount < 0 ? current.totalExpense + value : current.totalExpense;
+function updateMetrics(current: DashboardMetrics, tx: TransactionItem, liveTransactions: TransactionItem[]): DashboardMetrics {
+  const value = Math.abs(Number(tx.amount) || 0);
+  const nextIncome = tx.type === "income" || tx.amount >= 0 ? current.totalIncome + value : current.totalIncome;
+  const nextExpense = tx.type === "expense" || tx.amount < 0 ? current.totalExpense + value : current.totalExpense;
   const nextBalance = tx.amount >= 0 ? current.totalBalance + value : current.totalBalance - value;
   const nextSavings = nextIncome - nextExpense;
+  const budgetUsagePercent = current.budgetUsagePercent || (current.totalExpense > 0 ? (nextExpense / current.totalExpense) * 100 : 0);
+  const scoringInputs = calculateScoreInputs(liveTransactions, budgetUsagePercent);
+  const scores = calculateLiveScores(scoringInputs);
 
   return {
     ...current,
@@ -65,6 +69,9 @@ function updateMetrics(current: DashboardMetrics, tx: TransactionItem): Dashboar
     totalBalance: Number(nextBalance.toFixed(2)),
     netSavings: Number(nextSavings.toFixed(2)),
     savingsRatio: nextIncome > 0 ? Number(((nextSavings / nextIncome) * 100).toFixed(2)) : current.savingsRatio,
+    volatility: scoringInputs.volatility,
+    healthScore: scores.healthScore,
+    creditScore: scores.creditScore,
   };
 }
 
@@ -140,12 +147,13 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const tx = generateFakeTransaction(base);
       latestTimeRef.current = new Date(tx.rawDate);
 
+      const liveTransactions = sortByLatest([tx, ...transactions]);
       setMockTransactions((prev) => sortByLatest([tx, ...prev]));
 
       if (dashboardSnapshot) {
         const recentTransactions = sortByLatest([tx, ...dashboardSnapshot.recentTransactions]).slice(0, 3);
-        const categoryBreakdown = mergeCategoryBreakdown(sortByLatest([tx, ...transactions]).slice(0, 24), dashboardSnapshot.categoryBreakdown);
-        const metrics = updateMetrics(dashboardSnapshot.metrics, tx);
+        const categoryBreakdown = mergeCategoryBreakdown(liveTransactions.slice(0, 24), dashboardSnapshot.categoryBreakdown);
+        const metrics = updateMetrics(dashboardSnapshot.metrics, tx, liveTransactions);
         setDashboardSnapshot({
           ...dashboardSnapshot,
           recentTransactions,
