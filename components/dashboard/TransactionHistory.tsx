@@ -94,6 +94,9 @@ export default function TransactionHistory({ dataOverride }: { dataOverride?: Tr
           <tbody className="divide-y divide-[#40485d]/10">
             {txs.map((tx, index) => {
               const { Icon, tone } = iconForCategory(tx.category);
+              const value = Math.abs(Number(tx.amount || 0));
+              const isExpense = tx.type === "expense" || Number(tx.amount) < 0;
+              const amountClass = isExpense ? "text-rose-300" : "text-emerald-300";
               return (
                 <tr key={tx.id ?? `${tx.merchant}-${index}`} className="group transition-all hover:bg-[#141f38]/30">
                   <td className="px-8 py-5">
@@ -111,7 +114,9 @@ export default function TransactionHistory({ dataOverride }: { dataOverride?: Tr
                     <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${pillTone(tx.category)}`}>{tx.category}</span>
                   </td>
                   <td className="px-8 py-5 text-sm text-[#a3aac4]">{formatDisplayDate(tx.date)}</td>
-                  <td className="px-8 py-5 text-right font-bold text-[#dee5ff]">- {formatCurrency(Math.abs(tx.amount))}</td>
+                  <td className={`px-8 py-5 text-right font-bold ${amountClass}`}>
+                    {formatCurrency(value)}
+                  </td>
                 </tr>
               );
             })}

@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 import pandas as pd
 import os
 import logging
+import time
 
 try:
     from pymongo import MongoClient as PyMongoClient
@@ -16,6 +17,32 @@ except Exception:
     mongomock = None
 
 logger = logging.getLogger("smartspend.storage")
+mongo_degraded_until = 0.0
+local_transactions_buffer: List[Dict[str, Any]] = []
+local_tx_next_id = 1_000_000
+
+
+def _is_mongo_degraded() -> bool:
+    return time.time() < mongo_degraded_until
+
+
+def _mark_mongo_degraded(seconds: float = 30.0) -> None:
+    global mongo_degraded_until
+    mongo_degraded_until = max(mongo_degraded_until, time.time() + seconds)
+
+
+def _empty_transactions_df() -> pd.DataFrame:
+    return pd.DataFrame(columns=["id", "date", "merchant", "category", "amount", "type", "language"])
+
+
+def _buffer_transactions(new_txs: List[Dict[str, Any]]) -> None:
+    global local_tx_next_id
+    for tx in new_txs:
+        row = dict(tx)
+        if "id" not in row:
+            row["id"] = local_tx_next_id
+            local_tx_next_id += 1
+        local_transactions_buffer.append(row)
 
 
 def _build_mongo_client():
@@ -27,7 +54,7 @@ def _build_mongo_client():
 
     if PyMongoClient is not None:
         try:
-            client = PyMongoClient(mongo_uri, serverSelectionTimeoutMS=1500)
+            client = PyMongoClient(mongo_uri)
             client.admin.command("ping")
             logger.info("Connected to MongoDB at %s", safe_uri)
             return client
@@ -117,28 +144,60 @@ class Storage:
 
     @staticmethod
     def get_transactions() -> pd.DataFrame:
-        txs = list(db.transactions.find({}, {"_id": 0}))
-        if not txs:
-            return pd.DataFrame(columns=["id", "date", "merchant", "category", "amount", "type", "language"])
-        return pd.DataFrame(txs)
+        if _is_mongo_degraded():
+            return pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
+        try:
+            txs = list(db.transactions.find({}, {"_id": 0}))
+            if local_transactions_buffer:
+                txs.extend(local_transactions_buffer)
+            if not txs:
+                return _empty_transactions_df()
+            return pd.DataFrame(txs)
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            _mark_mongo_degraded()
+            logger.error("Failed to load transactions from MongoDB, returning empty dataframe: %s: %s", type(exc).__name__, exc)
+            return pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
 
     @staticmethod
     def replace_transactions(new_txs: List[Dict[str, Any]]):
-        db.transactions.delete_many({})
-        if new_txs:
-            Storage.add_transactions(new_txs)
+        if _is_mongo_degraded():
+            local_transactions_buffer.clear()
+            if new_txs:
+                _buffer_transactions(new_txs)
+            return
+        try:
+            db.transactions.delete_many({})
+            local_transactions_buffer.clear()
+            if new_txs:
+                Storage.add_transactions(new_txs)
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to replace transactions in MongoDB, buffering locally: %s: %s", type(exc).__name__, exc)
+            local_transactions_buffer.clear()
+            if new_txs:
+                _buffer_transactions(new_txs)
 
     @staticmethod
     def add_transactions(new_txs: List[Dict[str, Any]]):
         if not new_txs: return
-        max_tx = db.transactions.find_one(sort=[("id", -1)])
-        start_id = max_tx["id"] + 1 if max_tx and "id" in max_tx else 1
-        docs = []
-        for i, tx in enumerate(new_txs):
-            row = dict(tx)
-            row["id"] = start_id + i
-            docs.append(row)
-        db.transactions.insert_many(docs)
+        if _is_mongo_degraded():
+            _buffer_transactions(new_txs)
+            return
+        try:
+            max_tx = db.transactions.find_one(sort=[("id", -1)])
+            start_id = max_tx["id"] + 1 if max_tx and "id" in max_tx else 1
+            docs = []
+            for i, tx in enumerate(new_txs):
+                row = dict(tx)
+                row["id"] = start_id + i
+                docs.append(row)
+            db.transactions.insert_many(docs)
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to add transactions to MongoDB, buffering locally: %s: %s", type(exc).__name__, exc)
+            _buffer_transactions(new_txs)
 
     @staticmethod
     def add_transaction(tx: Dict[str, Any]):
@@ -160,11 +219,26 @@ class Storage:
 
     @staticmethod
     def get_alerts() -> List[Dict[str, Any]]:
-        return [_clean_id(doc) for doc in db.alerts.find(sort=[("id", -1)])]
+        if _is_mongo_degraded():
+            return []
+        try:
+            return [_clean_id(doc) for doc in db.alerts.find(sort=[("id", -1)])]
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load alerts from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
+            return []
 
     @staticmethod
     def get_budget_config() -> Dict[str, Any]:
-        config = db.budget.find_one({"type": "global"}) or DEFAULT_BUDGET_CONFIG
+        if _is_mongo_degraded():
+            config = DEFAULT_BUDGET_CONFIG
+        else:
+            try:
+                config = db.budget.find_one({"type": "global"}) or DEFAULT_BUDGET_CONFIG
+            except Exception as exc:
+                _mark_mongo_degraded()
+                logger.error("Failed to load budget config from MongoDB, using defaults: %s: %s", type(exc).__name__, exc)
+                config = DEFAULT_BUDGET_CONFIG
         categories = {}
         for name, value in config.get("categories", {}).items():
             if isinstance(value, dict):
@@ -299,11 +373,25 @@ class Storage:
 
     @staticmethod
     def get_emis() -> List[Dict[str, Any]]:
-        return [_clean_id(doc) for doc in db.emis.find({}, {"_id": 0})]
+        if _is_mongo_degraded():
+            return []
+        try:
+            return [_clean_id(doc) for doc in db.emis.find({}, {"_id": 0})]
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load EMIs from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
+            return []
 
     @staticmethod
     def get_subscriptions() -> List[Dict[str, Any]]:
-        return [_clean_id(doc) for doc in db.subscriptions.find({}, {"_id": 0})]
+        if _is_mongo_degraded():
+            return []
+        try:
+            return [_clean_id(doc) for doc in db.subscriptions.find({}, {"_id": 0})]
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load subscriptions from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
+            return []
 
     @staticmethod
     def add_subscription(subscription: Dict[str, Any]) -> Dict[str, Any]:
@@ -349,7 +437,14 @@ class Storage:
 
     @staticmethod
     def get_suppressed_subscriptions() -> set[str]:
-        return {doc["name"] for doc in db.suppressed_subscriptions.find()}
+        if _is_mongo_degraded():
+            return set()
+        try:
+            return {doc["name"] for doc in db.suppressed_subscriptions.find()}
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load suppressed subscriptions, returning empty set: %s: %s", type(exc).__name__, exc)
+            return set()
 
     @staticmethod
     def suppress_subscription(name: str) -> None:
@@ -362,7 +457,14 @@ class Storage:
 
     @staticmethod
     def get_suppressed_emis() -> set[str]:
-        return {doc["name"] for doc in db.suppressed_emis.find()}
+        if _is_mongo_degraded():
+            return set()
+        try:
+            return {doc["name"] for doc in db.suppressed_emis.find()}
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load suppressed EMIs, returning empty set: %s: %s", type(exc).__name__, exc)
+            return set()
 
     @staticmethod
     def suppress_emi(name: str) -> None:
@@ -375,7 +477,14 @@ class Storage:
 
     @staticmethod
     def get_bills() -> List[Dict[str, Any]]:
-        return [_clean_id(doc) for doc in db.bills.find({}, {"_id": 0})]
+        if _is_mongo_degraded():
+            return []
+        try:
+            return [_clean_id(doc) for doc in db.bills.find({}, {"_id": 0})]
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load bills from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
+            return []
 
     @staticmethod
     def add_bill(bill: Dict[str, Any]) -> Dict[str, Any]:

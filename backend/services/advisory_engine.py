@@ -265,11 +265,13 @@ Routes: ["/budget", "/transactions", "/wallet", "/alerts", "/goals", "/"].
 """
 
         async def try_ai_generation(model: str) -> list | None:
+            if not model:
+                return None
             try:
                 logger.info("Smart Advice: Attempting AI insights with %s", model)
                 response = await asyncio.wait_for(
                     _call_openrouter(model, [{"role": "user", "content": prompt}]),
-                    timeout=20.0,
+                    timeout=6.0,
                 )
                 return _extract_json_array(response)
             except Exception as exc:

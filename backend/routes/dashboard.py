@@ -63,7 +63,7 @@ async def get_dashboard():
     cashflow = await asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills_db, transactions)
     
     daily_series = await asyncio.to_thread(build_daily_expense_series, transactions)
-    prediction = await asyncio.to_thread(predict_next_expense, daily_series, include_prophet=False)
+    prediction = await asyncio.to_thread(predict_next_expense, daily_series, False, True)
     
     anomaly = await asyncio.to_thread(latest_anomaly_summary, transactions)
     behavior = await asyncio.to_thread(build_behavior_profile, transactions)

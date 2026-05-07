@@ -11,9 +11,19 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
-PRIMARY_MODEL = "meta-llama/llama-3-8b-instruct"
-FALLBACK_MODEL = "mistralai/mistral-7b-instruct"
-SECONDARY_FALLBACK = "google/gemma-2-9b-it" # No :free per user request, but gemma 2 9b is good
+
+
+def _env_or_default(key: str, default: str) -> str:
+    value = os.getenv(key)
+    if value is None:
+        return default
+    value = value.strip()
+    return value or default
+
+
+PRIMARY_MODEL = _env_or_default("OPENROUTER_PRIMARY_MODEL", "meta-llama/llama-3.1-8b-instruct")
+FALLBACK_MODEL = os.getenv("OPENROUTER_FALLBACK_MODEL", "").strip()
+SECONDARY_FALLBACK = os.getenv("OPENROUTER_SECONDARY_MODEL", "").strip()
 
 SYSTEM_PROMPT = """You are the SmartSpend AI financial assistant. Your goal is to help users understand their spending, balances, budgets, predicting risk, and alerting them to trends.
 Guidelines:
@@ -70,20 +80,20 @@ async def ask_finance_query(session_id: str, question: str) -> dict:
 
     messages.append({"role": "user", "content": question})
 
-    answer = "AI assistant temporarily unavailable"
-    try:
-        answer = await _call_openrouter(PRIMARY_MODEL, messages)
-    except Exception:
-        logger.exception("Primary OpenRouter model failed")
+    answer = ""
+    candidates: list[str] = []
+    for model in [PRIMARY_MODEL, FALLBACK_MODEL, SECONDARY_FALLBACK]:
+        if model and model not in candidates:
+            candidates.append(model)
+
+    for model in candidates:
         try:
-            answer = await _call_openrouter(FALLBACK_MODEL, messages)
+            answer = await _call_openrouter(model, messages)
+            if answer:
+                break
+            logger.warning(f"OpenRouter model returned empty response: {model}")
         except Exception:
-            logger.exception("Fallback OpenRouter model failed")
-            try:
-                answer = await _call_openrouter(SECONDARY_FALLBACK, messages)
-            except Exception:
-                logger.exception("Secondary fallback failed")
-                answer = "AI assistant temporarily unavailable"
+            logger.exception(f"OpenRouter model failed: {model}")
 
     if not answer:
         answer = "AI assistant temporarily unavailable"

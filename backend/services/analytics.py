@@ -6,14 +6,12 @@ import pandas as pd
 
 from backend.services.budget_engine import get_global_budget_summary
 from backend.services.anomaly_engine import latest_anomaly_summary
-from backend.services.advisory_engine import generate_financial_advice
 from backend.services.behavior_engine import build_behavior_profile
 from backend.services.cashflow_engine import build_cashflow_timeline
 from backend.services.credit_score_engine import calculate_credit_score
 from backend.services.emi_engine import summarize_emis
 from backend.services.expense_classifier import classify_expense_split
 from backend.services.networth_engine import calculate_networth
-from backend.models.predict import build_daily_expense_series, predict_next_expense
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage
 from backend.storage import bills_db
@@ -27,9 +25,7 @@ async def get_dashboard_analytics() -> dict:
         networth = calculate_networth({"totalBalance": 0, "netSavings": 0}, emi_summary)
         expense_split = classify_expense_split(df, [], emi_summary, bills_db)
         cashflow = build_cashflow_timeline([], emi_summary, bills_db)
-        prediction = predict_next_expense(build_daily_expense_series(df))
         behavior = build_behavior_profile(df)
-        advisory = await generate_financial_advice({"totalIncome": 0, "netSavings": 0, "savingsRatio": 0}, {"global": {"usage_percent": 0}}, prediction, expense_split, behavior)
         anomaly = latest_anomaly_summary(df)
         credit_score = calculate_credit_score(
             {
@@ -70,7 +66,7 @@ async def get_dashboard_analytics() -> dict:
             "behaviorVolatility": round(float(behavior.get("spending_volatility", 0)), 2),
             "anomalyCount": anomaly.get("count", 0),
             "creditScore": credit_score,
-            "advisoryStrength": len(advisory.get("advice", [])) if advisory else 0,
+            "advisoryStrength": 0,
             "trends": {"balanceTrend": 0, "incomeTrend": 0, "expenseTrend": 0, "savingsTrend": 0},
         }
 
@@ -92,15 +88,7 @@ async def get_dashboard_analytics() -> dict:
     expense_split = classify_expense_split(df, subscriptions, emi_summary, bills_db)
     networth = calculate_networth({"totalBalance": net_savings + 13000, "netSavings": net_savings}, emi_summary)
     cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
-    prediction = predict_next_expense(build_daily_expense_series(df))
     behavior = build_behavior_profile(df)
-    advisory = await generate_financial_advice(
-        {"totalIncome": total_income, "netSavings": net_savings, "savingsRatio": savings_ratio},
-        {"global": budget_summary},
-        prediction,
-        expense_split,
-        behavior,
-    )
     anomaly = latest_anomaly_summary(df)
     credit_score = calculate_credit_score(
         {
@@ -160,7 +148,7 @@ async def get_dashboard_analytics() -> dict:
         "behaviorVolatility": round(float(behavior.get("spending_volatility", 0)), 2),
         "anomalyCount": anomaly.get("count", 0),
         "creditScore": credit_score,
-        "advisoryStrength": len(advisory.get("advice", [])) if advisory else 0,
+        "advisoryStrength": 0,
         "trends": {
             "balanceTrend": 4.2,
             "incomeTrend": 12.0,

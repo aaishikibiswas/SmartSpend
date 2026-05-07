@@ -20,8 +20,17 @@ from backend.storage import Storage
 from backend.utils.feature_engineering import build_sequence_windows, create_lag_features
 
 
+def _normalize_dates(values: pd.Series) -> pd.Series:
+    parsed = pd.to_datetime(values, errors="coerce", format="mixed")
+    return parsed.dt.normalize()
+
+
 def build_daily_expense_series(transactions_df: pd.DataFrame) -> pd.DataFrame:
     expenses = transactions_df[transactions_df["amount"] < 0].copy()
+    if expenses.empty:
+        return pd.DataFrame(columns=["date", "amount"])
+    expenses["date"] = _normalize_dates(expenses["date"])
+    expenses = expenses.dropna(subset=["date"])
     if expenses.empty:
         return pd.DataFrame(columns=["date", "amount"])
     expenses["amount"] = expenses["amount"].abs()
@@ -119,7 +128,10 @@ def _prophet_next_point(daily_expenses: pd.DataFrame) -> float:
     if len(daily_expenses) < 5:
         return 0.0
     prophet_df = daily_expenses.rename(columns={"date": "ds", "amount": "y"})
-    prophet_df["ds"] = pd.to_datetime(prophet_df["ds"])
+    prophet_df["ds"] = _normalize_dates(prophet_df["ds"])
+    prophet_df = prophet_df.dropna(subset=["ds"])
+    if len(prophet_df) < 5:
+        return 0.0
     model = Prophet(daily_seasonality=True, yearly_seasonality=False, weekly_seasonality=True)
     model.fit(prophet_df)
     future = model.make_future_dataframe(periods=1)
@@ -165,16 +177,19 @@ def _predict_lstm(lstm_bundle: dict, feature_frame: pd.DataFrame) -> float | Non
         return None
 
 
-def predict_next_expense(daily_expenses: pd.DataFrame, include_prophet: bool = True) -> dict:
-    models = get_trained_model()
-    metadata = get_model_metadata()
+def predict_next_expense(daily_expenses: pd.DataFrame, include_prophet: bool = True, quick_mode: bool = False) -> dict:
     budget_summary = get_global_budget_summary()
     transactions = Storage.get_transactions()
     behavior_profile = build_behavior_profile(transactions)
     recurring_load = float(summarize_emis(transactions)["monthly_load"]) + sum(float(item["monthly_cost"]) for item in get_all_subscriptions(transactions))
 
+    if quick_mode:
+        return _fallback_prediction(daily_expenses, budget_summary, recurring_load, behavior_profile)
+
+    models = get_trained_model()
     if daily_expenses.empty or not models or len(daily_expenses) < 8:
         return _fallback_prediction(daily_expenses, budget_summary, recurring_load, behavior_profile)
+    metadata = get_model_metadata()
 
     feature_frame = create_lag_features(daily_expenses.assign(amount=daily_expenses["amount"]), "amount")
     if feature_frame.empty:
@@ -253,7 +268,16 @@ def generate_prophet_forecast(transactions_df: pd.DataFrame, days: int = 15) -> 
         return {"peakAlert": {"day": f"Day {peak_idx + 1}", "amount": series[peak_idx] if series else 0.0}, "series": series}
 
     prophet_df = daily_expenses.rename(columns={"date": "ds", "amount": "y"})
-    prophet_df["ds"] = pd.to_datetime(prophet_df["ds"])
+    prophet_df["ds"] = _normalize_dates(prophet_df["ds"])
+    prophet_df = prophet_df.dropna(subset=["ds"])
+    if len(prophet_df) < 5:
+        base = daily_expenses["amount"].tolist()[-3:] if not daily_expenses.empty else [0.0]
+        while len(base) < 3:
+            base.insert(0, base[0] if base else 0.0)
+        weighted = (base[-1] * 0.5) + (base[-2] * 0.3) + (base[-3] * 0.2)
+        series = [round(float(max(weighted * (1 + (0.02 * i)), 0.0)), 2) for i in range(days)]
+        peak_idx = series.index(max(series)) if series else 0
+        return {"peakAlert": {"day": f"Day {peak_idx + 1}", "amount": series[peak_idx] if series else 0.0}, "series": series}
     model = Prophet(daily_seasonality=True, yearly_seasonality=False, weekly_seasonality=True)
     model.fit(prophet_df)
     future = model.make_future_dataframe(periods=days)

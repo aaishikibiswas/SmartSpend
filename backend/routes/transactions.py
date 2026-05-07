@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -25,7 +27,8 @@ async def add_transaction(payload: TransactionCreate):
         "language": "English",
     }
 
-    await process_live_transaction(transaction)
+    # Respond fast for manual add flow; run refresh/broadcast work in background.
+    asyncio.create_task(process_live_transaction(transaction))
 
     return {
         "status": 201,
