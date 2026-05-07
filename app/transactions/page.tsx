@@ -9,18 +9,19 @@ import { formatDateTime } from "@/lib/mock-bank-sync";
 
 const categoryOptions = ["Food", "Transport", "Shopping", "Entertainment", "Health", "Housing", "Income", "Other"];
 
-const initialForm: TransactionCreatePayload = {
-  date: new Date().toISOString().slice(0, 10),
+const initialForm: TransactionCreatePayload & { isExpense: boolean } = {
+  date: new Date().toISOString().slice(0, 16),
   merchant: "",
   category: "Other",
   amount: 0,
+  isExpense: true,
 };
 
 export default function TransactionsPage() {
   const { transactions, appendUploadedTransaction } = useFinance();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("All");
-  const [form, setForm] = useState<TransactionCreatePayload>(initialForm);
+  const [form, setForm] = useState<TransactionCreatePayload & { isExpense: boolean }>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -40,8 +41,10 @@ export default function TransactionsPage() {
 
     try {
       const created = await apiClient.addTransaction({
-        ...form,
-        amount: Number(form.amount),
+        date: form.date,
+        merchant: form.merchant,
+        category: form.category,
+        amount: form.isExpense ? -Math.abs(Number(form.amount)) : Math.abs(Number(form.amount)),
       });
       appendUploadedTransaction(created.data);
       setForm(initialForm);
@@ -139,7 +142,7 @@ export default function TransactionsPage() {
           <label className="text-sm text-gray-400">
             Date
             <input
-              type="date"
+              type="datetime-local"
               value={form.date}
               onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
               className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
@@ -174,14 +177,41 @@ export default function TransactionsPage() {
           </label>
 
           <label className="text-sm text-gray-400">
+            Transaction Type
+            <div className="flex gap-4 mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="transactionType"
+                  checked={form.isExpense}
+                  onChange={() => setForm((prev) => ({ ...prev, isExpense: true }))}
+                  className="accent-[#8B5CF6]"
+                />
+                <span className="text-white">Debited (Expense)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="transactionType"
+                  checked={!form.isExpense}
+                  onChange={() => setForm((prev) => ({ ...prev, isExpense: false }))}
+                  className="accent-emerald-400"
+                />
+                <span className="text-white">Credited (Income)</span>
+              </label>
+            </div>
+          </label>
+
+          <label className="text-sm text-gray-400">
             Amount
             <input
               type="number"
               step="0.01"
+              min="0"
               value={form.amount}
               onChange={(e) => setForm((prev) => ({ ...prev, amount: Number(e.target.value) }))}
               className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
-              placeholder="Use negative for expense, positive for income"
+              placeholder="Enter absolute amount"
               required
             />
           </label>

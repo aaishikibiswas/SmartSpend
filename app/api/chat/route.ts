@@ -93,29 +93,10 @@ USER DATA:
 ${JSON.stringify(contextData || {})}
 
 RESPONSE FORMAT RULES:
-- NEVER use markdown symbols
-- No bold, no stars, no markdown bullets, no asterisk list items
-- No long paragraphs
-- Keep concise and personal-finance focused
-- Use only one of these structures:
-
-Steps:
-1. ...
-2. ...
-
-or
-
-Insight:
-1. ...
-Suggestion:
-1. ...
-
-or
-
-Advice:
-1. ...
-In this app:
-1. ...`,
+- Format your responses beautifully using Markdown.
+- ALWAYS use clear headings (###), bulleted/numbered lists, and **bold text** for key metrics.
+- Keep concise and personal-finance focused.
+- Never respond in a single long paragraph. Ensure an organized, industry-level professional chatbot experience.`,
       },
       { role: "user", content: userMessage },
     ];
@@ -149,20 +130,8 @@ In this app:
 
     const rawReply = (data as { choices?: Array<{ message?: { content?: string } }> })?.choices?.[0]?.message?.content || "No response";
 
-    const lines = rawReply
-      .replace(/\*\*/g, "")
-      .replace(/\*/g, "")
-      .replace(/\u2022/g, "")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .slice(0, 12);
-
     return Response.json({
-      reply:
-        lines.length > 0
-          ? lines.join("\n")
-          : "Insight:\n1. I could not generate a data-based response right now.\nSuggestion:\n1. Try asking about spending, goals, or alerts.",
+      reply: rawReply || "Insight:\n1. I could not generate a data-based response right now.\nSuggestion:\n1. Try asking about spending, goals, or alerts.",
     });
   } catch (error) {
     console.error("Chat API failure:", error);

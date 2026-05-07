@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Send, Sparkles, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
   type AssistantChatMessage,
@@ -148,7 +150,7 @@ export default function AIChatbot({
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { reply?: string };
-      const reply = (data.reply || "No response").replace(/\*\*/g, "").replace(/\*/g, "");
+      const reply = data.reply || "No response";
       setMessages((current) => [
         ...current,
         {
@@ -203,7 +205,23 @@ export default function AIChatbot({
               {visibleMessages.map((message, index) =>
                 message.role === "ai" ? (
                   <div key={`${message.role}-${index}-${message.text.slice(0, 12)}`} className="rounded-3xl rounded-tl-none border border-[#40485d]/10 bg-[#141f38]/50 p-4">
-                    <p className="text-xs leading-relaxed text-[#dee5ff]">{message.text}</p>
+                    <div className="text-xs leading-relaxed text-[#dee5ff]">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-bold text-[#a3a6ff] mt-3 mb-1" {...props} />,
+                          h4: ({node, ...props}) => <h4 className="text-xs font-bold text-[#a3a6ff] mt-2 mb-1" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                          a: ({node, ...props}) => <a className="text-[#a3a6ff] hover:underline" {...props} />,
+                        }}
+                      >
+                        {message.text}
+                      </ReactMarkdown>
+                    </div>
                     {message.suggestions?.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {message.suggestions.slice(0, 4).map((suggestion) => (
