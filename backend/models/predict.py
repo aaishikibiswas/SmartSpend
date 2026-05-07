@@ -177,14 +177,27 @@ def _predict_lstm(lstm_bundle: dict, feature_frame: pd.DataFrame) -> float | Non
         return None
 
 
-def predict_next_expense(daily_expenses: pd.DataFrame, include_prophet: bool = True, quick_mode: bool = False) -> dict:
-    budget_summary = get_global_budget_summary()
-    transactions = Storage.get_transactions()
-    behavior_profile = build_behavior_profile(transactions)
-    recurring_load = float(summarize_emis(transactions)["monthly_load"]) + sum(float(item["monthly_cost"]) for item in get_all_subscriptions(transactions))
-
+def predict_next_expense(daily_expenses: pd.DataFrame, include_prophet: bool = True, quick_mode: bool = False, *,
+                         _budget_summary: dict | None = None, _recurring_load: float | None = None, _behavior_profile: dict | None = None) -> dict:
+    budget_summary = _budget_summary or get_global_budget_summary()
     if quick_mode:
+        if _behavior_profile is not None:
+            behavior_profile = _behavior_profile
+        else:
+            transactions = Storage.get_transactions()
+            behavior_profile = build_behavior_profile(transactions)
+        if _recurring_load is not None:
+            recurring_load = _recurring_load
+        else:
+            transactions = Storage.get_transactions()
+            recurring_load = float(summarize_emis(transactions)["monthly_load"]) + sum(float(item["monthly_cost"]) for item in get_all_subscriptions(transactions))
         return _fallback_prediction(daily_expenses, budget_summary, recurring_load, behavior_profile)
+    
+    transactions = Storage.get_transactions()
+    behavior_profile = _behavior_profile or build_behavior_profile(transactions)
+    recurring_load = _recurring_load if _recurring_load is not None else (
+        float(summarize_emis(transactions)["monthly_load"]) + sum(float(item["monthly_cost"]) for item in get_all_subscriptions(transactions))
+    )
 
     models = get_trained_model()
     if daily_expenses.empty or not models or len(daily_expenses) < 8:

@@ -3,27 +3,27 @@
 import { useMemo, useEffect, useState } from "react";
 import { CalendarClock, Flame, Landmark, PiggyBank, TrendingDown, TrendingUp, WalletMinimal } from "lucide-react";
 import BudgetingPanel from "@/components/dashboard/BudgetingPanel";
-import SmartAdvice from "@/components/dashboard/SmartAdvice";
-import BillReminders from "@/components/dashboard/BillReminders";
 import dynamic from "next/dynamic";
 
-const CategoryChart = dynamic(() => import("./CategoryChart"), {
-  ssr: false,
-  loading: () => <div>Loading chart...</div>
-});
 
-const ForecastChart = dynamic(() => import("./ForecastChart"), {
-  ssr: false,
-  loading: () => <div>Loading chart...</div>
-});
+function SkeletonCard({ h = "h-48" }: { h?: string }) {
+  return (
+    <div className={`${h} w-full animate-pulse rounded-[2rem] bg-white/5`} />
+  );
+}
 
-import TransactionHistory from "@/components/dashboard/TransactionHistory";
-import RecurringFinancePanel from "@/components/dashboard/RecurringFinancePanel";
-import HealthScoreCard from "@/components/dashboard/HealthScoreCard";
-import GoalTracker from "@/components/dashboard/GoalTracker";
-import CashFlowTimeline from "@/components/dashboard/CashFlowTimeline";
-import ExpenseSplitCard from "@/components/dashboard/ExpenseSplitCard";
-import AIChatbot from "@/components/dashboard/AIChatbot";
+const CategoryChart = dynamic(() => import("./CategoryChart"), { ssr: false, loading: () => <SkeletonCard h="h-64" /> });
+const ForecastChart = dynamic(() => import("./ForecastChart"), { ssr: false, loading: () => <SkeletonCard h="h-64" /> });
+
+const TransactionHistory = dynamic(() => import("@/components/dashboard/TransactionHistory"), { ssr: false, loading: () => <SkeletonCard h="h-80" /> });
+const RecurringFinancePanel = dynamic(() => import("@/components/dashboard/RecurringFinancePanel"), { ssr: false, loading: () => <SkeletonCard h="h-48" /> });
+const HealthScoreCard = dynamic(() => import("@/components/dashboard/HealthScoreCard"), { ssr: false, loading: () => <SkeletonCard h="h-40" /> });
+const GoalTracker = dynamic(() => import("@/components/dashboard/GoalTracker"), { ssr: false, loading: () => <SkeletonCard h="h-48" /> });
+const CashFlowTimeline = dynamic(() => import("@/components/dashboard/CashFlowTimeline"), { ssr: false, loading: () => <SkeletonCard h="h-48" /> });
+const ExpenseSplitCard = dynamic(() => import("@/components/dashboard/ExpenseSplitCard"), { ssr: false, loading: () => <SkeletonCard h="h-40" /> });
+const BillReminders = dynamic(() => import("@/components/dashboard/BillReminders"), { ssr: false, loading: () => <SkeletonCard h="h-40" /> });
+const SmartAdvice = dynamic(() => import("@/components/dashboard/SmartAdvice"), { ssr: false, loading: () => <SkeletonCard h="h-48" /> });
+const AIChatbot = dynamic(() => import("@/components/dashboard/AIChatbot"), { ssr: false });
 import MetricCard from "@/components/MetricCard";
 import { useFinance } from "@/context/FinanceContext";
 import { calculateLiveScores, calculateScoreInputs } from "@/lib/financial-scoring";
@@ -238,43 +238,38 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
   }, [budgetUsagePercent, categoryBreakdown, derived.expense, initialData.budgeting]);
 
   useEffect(() => {
+    // Defer smart advice so initial render completes first
+    const buildPayload = () => ({
+      metrics: liveMetrics,
+      budgeting: liveBudgeting,
+      prediction: initialData.prediction,
+      expenseSplit,
+      behavior: { ...initialData.behavior, day_of_month: new Date().getDate() },
+    });
+
     async function fetchSmartAdvice() {
       try {
-        console.log("Smart Advice: Fetching live financial insights...");
         const response = await fetch("/api/smart-advice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            metrics: liveMetrics,
-            budgeting: liveBudgeting,
-            prediction: initialData.prediction,
-            expenseSplit,
-            behavior: {
-              ...initialData.behavior,
-              day_of_month: new Date().getDate(),
-            },
-          }),
+          body: JSON.stringify(buildPayload()),
         });
-
-        if (!response.ok) {
-          console.warn("Smart Advice: Real-time refresh skipped due to server error");
-          return;
-        }
-
+        if (!response.ok) return;
         const payload = await response.json();
-        if (payload.data) {
-          console.log("Smart Advice: Live insights updated", payload.data);
-          setAdvisory(payload.data.advice || []);
-        }
-      } catch (err) {
-        console.error("Smart Advice: Failed to refresh advice", err);
+        if (payload.data) setAdvisory(payload.data.advice || []);
+      } catch {
+        /* non-critical — silent fail */
       }
     }
 
-    fetchSmartAdvice();
-    const refreshInterval = setInterval(fetchSmartAdvice, 60000);
-    return () => clearInterval(refreshInterval);
-  }, [expenseSplit, initialData.behavior, initialData.prediction, liveBudgeting, liveMetrics]);
+    const timer = setTimeout(() => {
+      void fetchSmartAdvice();
+      const interval = setInterval(() => void fetchSmartAdvice(), 60000);
+      return () => clearInterval(interval);
+    }, 600);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sortedTransactions: TransactionItem[] = useMemo(
     () => [...txSource].sort((a, b) => new Date(b.rawDate || b.date).getTime() - new Date(a.rawDate || a.date).getTime()),

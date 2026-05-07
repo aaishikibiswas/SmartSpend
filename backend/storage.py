@@ -5,6 +5,8 @@ import pandas as pd
 import os
 import logging
 import time
+import functools
+import threading
 
 try:
     from pymongo import MongoClient as PyMongoClient
@@ -20,6 +22,36 @@ logger = logging.getLogger("smartspend.storage")
 mongo_degraded_until = 0.0
 local_transactions_buffer: List[Dict[str, Any]] = []
 local_tx_next_id = 1_000_000
+
+# ---------------------------------------------------------------------------
+# Request-scoped transaction cache (TTL = 5 seconds)
+# ---------------------------------------------------------------------------
+_tx_cache_lock = threading.Lock()
+_tx_cache_df: pd.DataFrame | None = None
+_tx_cache_ts: float = 0.0
+_TX_CACHE_TTL = 5.0  # seconds
+
+
+def _get_cached_transactions() -> pd.DataFrame | None:
+    with _tx_cache_lock:
+        if _tx_cache_df is not None and (time.time() - _tx_cache_ts) < _TX_CACHE_TTL:
+            return _tx_cache_df
+    return None
+
+
+def _set_cached_transactions(df: pd.DataFrame) -> None:
+    global _tx_cache_df, _tx_cache_ts
+    with _tx_cache_lock:
+        _tx_cache_df = df
+        _tx_cache_ts = time.time()
+
+
+def invalidate_transaction_cache() -> None:
+    """Call this after any write to transactions so next read is fresh."""
+    global _tx_cache_df, _tx_cache_ts
+    with _tx_cache_lock:
+        _tx_cache_df = None
+        _tx_cache_ts = 0.0
 
 
 def _is_mongo_degraded() -> bool:
@@ -144,21 +176,28 @@ class Storage:
 
     @staticmethod
     def get_transactions() -> pd.DataFrame:
+        cached = _get_cached_transactions()
+        if cached is not None:
+            return cached
         if _is_mongo_degraded():
-            return pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
+            df = pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
+            _set_cached_transactions(df)
+            return df
         try:
             txs = list(db.transactions.find({}, {"_id": 0}))
             if local_transactions_buffer:
                 txs.extend(local_transactions_buffer)
-            if not txs:
-                return _empty_transactions_df()
-            return pd.DataFrame(txs)
+            df = pd.DataFrame(txs) if txs else _empty_transactions_df()
+            _set_cached_transactions(df)
+            return df
         except Exception as exc:
             import traceback
             traceback.print_exc()
             _mark_mongo_degraded()
             logger.error("Failed to load transactions from MongoDB, returning empty dataframe: %s: %s", type(exc).__name__, exc)
-            return pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
+            df = pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
+            _set_cached_transactions(df)
+            return df
 
     @staticmethod
     def replace_transactions(new_txs: List[Dict[str, Any]]):
@@ -182,6 +221,7 @@ class Storage:
     @staticmethod
     def add_transactions(new_txs: List[Dict[str, Any]]):
         if not new_txs: return
+        invalidate_transaction_cache()
         if _is_mongo_degraded():
             _buffer_transactions(new_txs)
             return

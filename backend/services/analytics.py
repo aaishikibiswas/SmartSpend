@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 
 import pandas as pd
@@ -21,13 +22,21 @@ async def get_dashboard_analytics() -> dict:
     df = Storage.get_transactions()
 
     if df.empty:
-        emi_summary = summarize_emis()
-        networth = calculate_networth({"totalBalance": 0, "netSavings": 0}, emi_summary)
-        expense_split = classify_expense_split(df, [], emi_summary, bills_db)
-        cashflow = build_cashflow_timeline([], emi_summary, bills_db)
-        behavior = build_behavior_profile(df)
-        anomaly = latest_anomaly_summary(df)
-        credit_score = calculate_credit_score(
+        (
+            emi_summary,
+            expense_split,
+            cashflow,
+            behavior,
+            anomaly
+        ) = await asyncio.gather(
+            asyncio.to_thread(summarize_emis),
+            asyncio.to_thread(classify_expense_split, df, [], {}, bills_db),
+            asyncio.to_thread(build_cashflow_timeline, [], {}, bills_db),
+            asyncio.to_thread(build_behavior_profile, df),
+            asyncio.to_thread(latest_anomaly_summary, df),
+        )
+        networth = await asyncio.to_thread(calculate_networth, {"totalBalance": 0, "netSavings": 0}, emi_summary)
+        credit_score = await asyncio.to_thread(calculate_credit_score,
             {
                 "income": 0,
                 "total_expense": 0,
@@ -72,8 +81,10 @@ async def get_dashboard_analytics() -> dict:
 
     income_df = df[df["amount"] > 0]
     expense_df = df[df["amount"] < 0].copy()
-    subscriptions = get_all_subscriptions(df)
-    emi_summary = summarize_emis()
+    subscriptions, emi_summary = await asyncio.gather(
+        asyncio.to_thread(get_all_subscriptions, df),
+        asyncio.to_thread(summarize_emis)
+    )
 
     total_income = float(income_df["amount"].sum())
     total_expense = abs(float(expense_df["amount"].sum()))
@@ -84,13 +95,23 @@ async def get_dashboard_analytics() -> dict:
     daily_expenses = expense_df.groupby("date")["amount"].sum().abs() if not expense_df.empty else pd.Series(dtype=float)
     volatility = round(float(daily_expenses.std() if len(daily_expenses) > 1 else 0), 2)
 
-    budget_summary = get_global_budget_summary(df)
-    expense_split = classify_expense_split(df, subscriptions, emi_summary, bills_db)
-    networth = calculate_networth({"totalBalance": net_savings + 13000, "netSavings": net_savings}, emi_summary)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
-    behavior = build_behavior_profile(df)
-    anomaly = latest_anomaly_summary(df)
-    credit_score = calculate_credit_score(
+    (
+        budget_summary,
+        expense_split,
+        cashflow,
+        behavior,
+        anomaly
+    ) = await asyncio.gather(
+        asyncio.to_thread(get_global_budget_summary, df),
+        asyncio.to_thread(classify_expense_split, df, subscriptions, emi_summary, bills_db),
+        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills_db),
+        asyncio.to_thread(build_behavior_profile, df),
+        asyncio.to_thread(latest_anomaly_summary, df)
+    )
+    
+    networth = await asyncio.to_thread(calculate_networth, {"totalBalance": net_savings + 13000, "netSavings": net_savings}, emi_summary)
+    
+    credit_score = await asyncio.to_thread(calculate_credit_score,
         {
             "income": total_income,
             "total_expense": total_expense,
