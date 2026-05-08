@@ -20,7 +20,8 @@ export async function POST(request: Request) {
       status: response.status,
       headers: { "Content-Type": "application/json" },
     });
-  } catch {
+  } catch (error) {
+    console.error("Fetch to backend failed:", error);
     return Response.json(
       {
         status: 503,
