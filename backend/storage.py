@@ -249,6 +249,52 @@ class Storage:
         _refresh_legacy_views()
 
     @staticmethod
+    def sync_alerts(new_alerts: List[Dict[str, Any]]):
+        if _is_mongo_degraded():
+            return
+        try:
+            existing = list(db.alerts.find({}, {"_id": 0}))
+            existing_map = {f"{a['title']}::{a['message']}": a for a in existing}
+            
+            db.alerts.delete_many({})
+            if not new_alerts:
+                _refresh_legacy_views()
+                return
+
+            max_id = max((a.get("id", 0) for a in existing), default=0)
+            
+            new_count = sum(1 for a in new_alerts if f"{a['title']}::{a['message']}" not in existing_map)
+            current_new_id = max_id + new_count
+            
+            docs_to_insert = []
+            new_alerts_returned = []
+            
+            for alert in new_alerts:
+                key = f"{alert['title']}::{alert['message']}"
+                doc = dict(alert)
+                if key in existing_map:
+                    doc["id"] = existing_map[key]["id"]
+                else:
+                    doc["id"] = current_new_id
+                    current_new_id -= 1
+                    new_alerts_returned.append(doc)
+                docs_to_insert.append(doc)
+                
+            if docs_to_insert:
+                db.alerts.insert_many(docs_to_insert)
+            _refresh_legacy_views()
+            
+            for a in new_alerts_returned:
+                if "_id" in a:
+                    del a["_id"]
+            
+            return new_alerts_returned
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to sync alerts in MongoDB: %s: %s", type(exc).__name__, exc)
+            return []
+
+    @staticmethod
     def add_alert(alert: Dict[str, Any]):
         max_alert = db.alerts.find_one(sort=[("id", -1)])
         next_id = max_alert["id"] + 1 if max_alert and "id" in max_alert else 1

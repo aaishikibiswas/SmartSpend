@@ -30,6 +30,7 @@ export default function Header({ financialPersonality }: { financialPersonality?
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [isAlertAnimating, setIsAlertAnimating] = useState(false);
   const isDashboard = pathname === "/";
 
   useEffect(() => {
@@ -42,6 +43,31 @@ export default function Header({ financialPersonality }: { financialPersonality?
       }
     }
     loadAlerts();
+
+    const handleWsUpdate = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      
+      if (detail?.type === 'alert_trigger') {
+        setIsAlertAnimating(true);
+        setTimeout(() => setIsAlertAnimating(false), 2500);
+      }
+
+      if (detail?.data?.alerts && Array.isArray(detail.data.alerts)) {
+        setAlerts(detail.data.alerts);
+      } else if (detail?.type === 'alert_trigger' && detail?.data?.alerts) {
+        setAlerts(detail.data.alerts);
+      }
+    };
+    
+    window.addEventListener("smartspend:ws-update", handleWsUpdate);
+    window.addEventListener("smartspend:ws-alert_trigger", handleWsUpdate);
+    window.addEventListener("smartspend:ws-snapshot", handleWsUpdate);
+    
+    return () => {
+      window.removeEventListener("smartspend:ws-update", handleWsUpdate);
+      window.removeEventListener("smartspend:ws-alert_trigger", handleWsUpdate);
+      window.removeEventListener("smartspend:ws-snapshot", handleWsUpdate);
+    };
   }, []);
 
   useEffect(() => {
@@ -147,9 +173,13 @@ export default function Header({ financialPersonality }: { financialPersonality?
           <div className="relative">
             <button 
               onClick={() => setIsAlertsOpen(!isAlertsOpen)}
-              className="relative rounded-full p-2 transition-all hover:bg-[#192540] focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50"
+              className={`relative rounded-full p-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
+                isAlertAnimating 
+                  ? "scale-110 bg-[#ff6e84]/20 shadow-[0_0_20px_rgba(255,110,132,0.8)]" 
+                  : "hover:bg-[#192540] scale-100"
+              }`}
             >
-              <Bell className="h-5 w-5 text-[#a3aac4]" />
+              <Bell className={`h-5 w-5 transition-colors duration-300 ${isAlertAnimating ? "text-[#ff6e84]" : "text-[#a3aac4]"}`} />
               {alerts.length > 0 && (
                 <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white">
                   {alerts.length}

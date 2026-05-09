@@ -28,9 +28,9 @@ class CategoryBudgetPayload(BaseModel):
 
 
 def _refresh_budget_dependent_systems():
-    Storage.reset_alerts()
     transactions = Storage.get_transactions()
-    generate_alerts(transactions)
+    alerts = generate_alerts(transactions)
+    Storage.sync_alerts(alerts)
     return transactions
 
 

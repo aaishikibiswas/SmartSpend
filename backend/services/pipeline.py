@@ -48,16 +48,17 @@ def _build_goal_suggestion(metrics: dict, budget_snapshot: dict) -> dict:
     }
 
 
-def _refresh_financial_state(transactions_df: pd.DataFrame) -> None:
+def _refresh_financial_state(transactions_df: pd.DataFrame) -> list[dict]:
     sync_budget_with_transactions(transactions_df)
-    Storage.reset_alerts()
-    generate_alerts(transactions_df)
+    alerts = generate_alerts(transactions_df)
+    new_alerts = Storage.sync_alerts(alerts)
 
     # Keep the request path fast and train in the background after core state updates.
     threading.Thread(target=train_regression_model, args=(transactions_df.copy(),), daemon=True).start()
+    return new_alerts or []
 
 
-async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: list[dict] | None = None) -> None:
+async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: list[dict] | None = None, new_alerts: list[dict] | None = None) -> None:
     if transactions:
         for transaction in transactions:
             await websocket_manager.broadcast(
@@ -70,14 +71,20 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
                 }
             )
 
-    if snapshot["data"]["alerts"]:
+    if new_alerts and len(new_alerts) > 0:
+        # Sort new alerts by ID descending, though they should already be in order of insertion.
+        # But wait, snapshot["data"]["alerts"] is sorted and has all alerts.
+        # We can just broadcast the full alerts array but set latest to the first new_alert.
+        # Actually, new_alerts might not be sorted by ID descending here, let's just use the first new_alert
+        # or the first alert from snapshot that is also in new_alerts.
+        latest_new_alert = new_alerts[0] # the first inserted one is the most recent (highest ID)
         await websocket_manager.broadcast(
             {
                 "type": "alert_trigger",
                 "data": {
                     "source": source,
                     "alerts": snapshot["data"]["alerts"],
-                    "latest": snapshot["data"]["alerts"][0],
+                    "latest": latest_new_alert,
                 },
             }
         )
@@ -97,16 +104,16 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
 
 async def _complete_uploaded_refresh(transactions: list[dict]) -> None:
     current_df = Storage.get_transactions()
-    _refresh_financial_state(current_df)
+    new_alerts = _refresh_financial_state(current_df)
     snapshot = await _build_snapshot(latest_transaction=transactions[-1] if transactions else None, event_type="update", source="upload")
-    await _broadcast_post_refresh(snapshot, "upload", transactions)
+    await _broadcast_post_refresh(snapshot, "upload", transactions, new_alerts)
 
 
 async def _complete_live_refresh(transaction: dict) -> None:
     current_df = Storage.get_transactions()
-    _refresh_financial_state(current_df)
+    new_alerts = _refresh_financial_state(current_df)
     snapshot = await _build_snapshot(latest_transaction=transaction, event_type="update", source="stream")
-    await _broadcast_post_refresh(snapshot, "stream")
+    await _broadcast_post_refresh(snapshot, "stream", new_alerts=new_alerts)
 
 
 async def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> dict:

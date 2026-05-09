@@ -36,10 +36,15 @@ function stylesFor(tone: Notification["tone"]) {
 export default function LiveNotificationCenter() {
   const [items, setItems] = useState<Notification[]>([]);
   const bufferRef = useRef<TransactionItem[]>([]);
+  const seenAlertsRef = useRef<Set<string>>(new Set());
   const flushTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const push = (item: Omit<Notification, "id">) => {
+    const push = (item: Omit<Notification, "id"> & { originalId?: number }) => {
+      if (item.originalId) {
+        if (seenAlertsRef.current.has(item.originalId.toString())) return;
+        seenAlertsRef.current.add(item.originalId.toString());
+      }
       const id = Date.now() + Math.floor(Math.random() * 1000);
       setItems((current) => [{ id, ...item }, ...current].slice(0, 6));
     };
@@ -86,6 +91,7 @@ export default function LiveNotificationCenter() {
         title: latest.title,
         message: latest.message,
         tone: "warning",
+        originalId: latest.id,
       });
     };
 

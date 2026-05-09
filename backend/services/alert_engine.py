@@ -10,8 +10,9 @@ from backend.storage import bills_db
 
 
 def generate_alerts(df):
+    alerts = []
     if df.empty:
-        return
+        return alerts
 
     expenses = df[df["amount"] < 0].copy()
     expenses["amount"] = expenses["amount"].abs()
@@ -21,13 +22,13 @@ def generate_alerts(df):
         std_expense = expenses["amount"].std() if len(expenses) > 1 else 0
         high_t_threshold = mean_expense + (2 * std_expense)
 
-        high_txs = expenses[expenses["amount"] > high_t_threshold]
+        high_txs = expenses[expenses["amount"] > high_t_threshold].sort_values("date", ascending=False).head(5)
         for _, tx in high_txs.iterrows():
-            Storage.add_alert(
+            alerts.append(
                 {
                     "type": "high_transaction",
                     "title": "High Transaction Alert",
-                    "message": f"{tx['merchant']} purchase of Rs. {round(float(tx['amount']), 2)} is unusually high based on your history.",
+                    "message": f"{tx['merchant']} purchase of Rs. {round(float(tx['amount']), 2)} on {tx['date']} is unusually high based on your history.",
                 }
             )
 
@@ -36,7 +37,7 @@ def generate_alerts(df):
             dupe_rows = expenses[dupes]
             merchant = dupe_rows.iloc[0]["merchant"]
             amt = round(float(dupe_rows.iloc[0]["amount"]), 2)
-            Storage.add_alert(
+            alerts.append(
                 {
                     "type": "duplicate",
                     "title": "Duplicate Detection",
@@ -49,7 +50,7 @@ def generate_alerts(df):
     category_budgets = budget_snapshot["categories"]
 
     if global_budget["usage_percent"] >= 100:
-        Storage.add_alert(
+        alerts.append(
             {
                 "type": "global_breach",
                 "title": "Monthly Budget Exceeded",
@@ -57,7 +58,7 @@ def generate_alerts(df):
             }
         )
     elif global_budget["usage_percent"] >= 80:
-        Storage.add_alert(
+        alerts.append(
             {
                 "type": "global_warning",
                 "title": "Global Budget Warning",
@@ -67,7 +68,7 @@ def generate_alerts(df):
 
     for category in category_budgets:
         if category["usage_percent"] >= 100:
-            Storage.add_alert(
+            alerts.append(
                 {
                     "type": "breach",
                     "title": f"Budget Breached: {category['name']}",
@@ -75,7 +76,7 @@ def generate_alerts(df):
                 }
             )
         elif category["usage_percent"] >= 80:
-            Storage.add_alert(
+            alerts.append(
                 {
                     "type": "warning",
                     "title": f"Budget Warning: {category['name']}",
@@ -84,11 +85,11 @@ def generate_alerts(df):
             )
 
     for alert in build_emi_alerts():
-        Storage.add_alert(alert)
+        alerts.append(alert)
 
     expense_split = classify_expense_split(df, get_all_subscriptions(df), summarize_emis(df), bills_db)
     if expense_split["fixed_percent"] > 70:
-        Storage.add_alert(
+        alerts.append(
             {
                 "type": "fixed_ratio",
                 "title": "High Fixed Expense Ratio",
@@ -96,7 +97,7 @@ def generate_alerts(df):
             }
         )
     if expense_split["variable_percent"] > 60:
-        Storage.add_alert(
+        alerts.append(
             {
                 "type": "variable_spend",
                 "title": "Excess Variable Spending",
@@ -105,7 +106,7 @@ def generate_alerts(df):
         )
 
     for anomaly in score_transaction_anomalies(df)[:3]:
-        Storage.add_alert(
+        alerts.append(
             {
                 "type": "anomaly",
                 "title": f"Anomalous Transaction: {anomaly['merchant']}",
@@ -113,8 +114,10 @@ def generate_alerts(df):
             }
         )
 
+    return alerts
+
 
 def get_all_alerts():
-    from backend.storage import alerts_db
+    from backend.storage import Storage
 
-    return alerts_db
+    return Storage.get_alerts()
