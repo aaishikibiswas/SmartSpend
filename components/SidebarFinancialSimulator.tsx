@@ -59,7 +59,7 @@ export default function SidebarFinancialSimulator() {
   }
 
   return (
-    <div className="mt-4 rounded-2xl border border-[#6d758c]/20 bg-[rgba(18,28,49,0.75)] p-4 backdrop-blur-md">
+    <div className="mt-4 rounded-2xl border border-[#7D839E]/20 bg-[rgba(18,28,49,0.75)] p-4 backdrop-blur-md">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}

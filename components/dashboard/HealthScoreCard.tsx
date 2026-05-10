@@ -32,7 +32,7 @@ export default function HealthScoreCard({
     <section className="glass-card flex flex-col items-center rounded-[2rem] p-8 text-center">
       <div className="mb-6 flex w-full items-start justify-between gap-4 text-left">
         <div>
-          <h4 className="text-lg font-bold text-[#dee5ff]">Financial Health Score</h4>
+          <h4 className="text-lg font-bold text-[#F4F6FF]">Financial Health Score</h4>
           <p className="mt-1 text-xs font-semibold text-[#96a4c7]">Live from synced user transactions</p>
         </div>
         <span className={`shrink-0 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${slabTone(healthSlab.tone)}`}>
@@ -42,7 +42,7 @@ export default function HealthScoreCard({
 
       <div className="relative flex h-56 w-56 items-center justify-center">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 224 224">
-          <circle cx="112" cy="112" r="90" fill="transparent" stroke="currentColor" strokeWidth="14" className="text-[#141f38]" />
+          <circle cx="112" cy="112" r="90" fill="transparent" stroke="currentColor" strokeWidth="14" className="text-[#10182E]" />
           <circle
             cx="112"
             cy="112"
@@ -53,14 +53,14 @@ export default function HealthScoreCard({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
-            className="text-[#a3a6ff]"
+            className="text-[#A897FF]"
             style={{ filter: "drop-shadow(0 0 8px rgba(163,166,255,0.4))" }}
           />
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-5xl font-extrabold text-[#dee5ff]">{clampedScore}</span>
-          <span className="mt-1 text-xs font-bold uppercase tracking-widest text-[#a3aac4]">
+          <span className="text-5xl font-extrabold text-[#F4F6FF]">{clampedScore}</span>
+          <span className="mt-1 text-xs font-bold uppercase tracking-widest text-[#B7BDD9]">
             {healthSlab.range}
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function HealthScoreCard({
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#95a0c7]">Health Score Slab</p>
             <p className="mt-2 text-base font-extrabold text-[#ebefff]">{healthSlab.label}</p>
           </div>
-          <span className="rounded-full bg-[#0f1730]/80 px-3 py-1 text-xs font-bold text-[#a3a6ff]">{healthSlab.range}</span>
+          <span className="rounded-full bg-[#0f1730]/80 px-3 py-1 text-xs font-bold text-[#A897FF]">{healthSlab.range}</span>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-[#9aa6c6]">{healthSlab.summary}</p>
       </div>
@@ -97,12 +97,12 @@ export default function HealthScoreCard({
       ) : null}
 
       <div className="mt-8 grid w-full grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-[#40485d]/10 bg-[#141f38]/30 p-3">
-          <p className="text-[10px] font-bold uppercase text-[#a3aac4]">Sustainability</p>
-          <p className="text-sm font-bold text-[#a3a6ff]">{clampedScore >= 75 ? "High" : clampedScore >= 55 ? "Medium" : "Low"}</p>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/30 p-3">
+          <p className="text-[10px] font-bold uppercase text-[#B7BDD9]">Sustainability</p>
+          <p className="text-sm font-bold text-[#A897FF]">{clampedScore >= 75 ? "High" : clampedScore >= 55 ? "Medium" : "Low"}</p>
         </div>
-        <div className="rounded-2xl border border-[#40485d]/10 bg-[#141f38]/30 p-3">
-          <p className="text-[10px] font-bold uppercase text-[#a3aac4]">Safety Margin</p>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/30 p-3">
+          <p className="text-[10px] font-bold uppercase text-[#B7BDD9]">Safety Margin</p>
           <p className="text-sm font-bold text-[#a88cfb]">{safetyMonths} mos</p>
         </div>
       </div>

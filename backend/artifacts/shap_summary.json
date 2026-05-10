@@ -5,56 +5,56 @@
       "method": "shap",
       "feature_importance": [
         {
-          "feature": "trend_3",
-          "impact": 51088.209,
-          "absolute_impact": 51088.209
+          "feature": "rolling_std_7",
+          "impact": 101576.9686,
+          "absolute_impact": 101576.9686
         },
         {
-          "feature": "rolling_mean_3",
-          "impact": 1032.0938,
-          "absolute_impact": 1032.0938
+          "feature": "trend_3",
+          "impact": 79372.6452,
+          "absolute_impact": 79372.6452
         },
         {
           "feature": "rolling_mean_7",
-          "impact": 970.4163,
-          "absolute_impact": 970.4163
+          "impact": 59959.1904,
+          "absolute_impact": 59959.1904
         },
         {
-          "feature": "rolling_std_7",
-          "impact": 952.6073,
-          "absolute_impact": 952.6073
+          "feature": "rolling_mean_3",
+          "impact": 24999.2055,
+          "absolute_impact": 24999.2055
         },
         {
-          "feature": "lag3",
-          "impact": -567.6449,
-          "absolute_impact": 567.6449
+          "feature": "lag2",
+          "impact": 299.0685,
+          "absolute_impact": 299.0685
         }
       ],
       "contributions": [
         {
-          "feature": "trend_3",
-          "impact": 51088.209,
-          "absolute_impact": 51088.209
+          "feature": "rolling_std_7",
+          "impact": 101576.9686,
+          "absolute_impact": 101576.9686
         },
         {
-          "feature": "rolling_mean_3",
-          "impact": 1032.0938,
-          "absolute_impact": 1032.0938
+          "feature": "trend_3",
+          "impact": 79372.6452,
+          "absolute_impact": 79372.6452
         },
         {
           "feature": "rolling_mean_7",
-          "impact": 970.4163,
-          "absolute_impact": 970.4163
+          "impact": 59959.1904,
+          "absolute_impact": 59959.1904
         },
         {
-          "feature": "rolling_std_7",
-          "impact": 952.6073,
-          "absolute_impact": 952.6073
+          "feature": "rolling_mean_3",
+          "impact": 24999.2055,
+          "absolute_impact": 24999.2055
         },
         {
-          "feature": "lag3",
-          "impact": -567.6449,
-          "absolute_impact": 567.6449
+          "feature": "lag2",
+          "impact": 299.0685,
+          "absolute_impact": 299.0685
         }
       ]
     },
@@ -63,55 +63,55 @@
       "feature_importance": [
         {
           "feature": "trend_3",
-          "impact": 44008.707,
-          "absolute_impact": 44008.707
+          "impact": 377229.8125,
+          "absolute_impact": 377229.8125
         },
         {
           "feature": "rolling_mean_3",
-          "impact": 3166.5588,
-          "absolute_impact": 3166.5588
+          "impact": 12425.9326,
+          "absolute_impact": 12425.9326
         },
         {
-          "feature": "lag2",
-          "impact": 2579.2061,
-          "absolute_impact": 2579.2061
+          "feature": "lag1",
+          "impact": -11162.8506,
+          "absolute_impact": 11162.8506
         },
         {
-          "feature": "day_of_month",
-          "impact": -1340.8533,
-          "absolute_impact": 1340.8533
+          "feature": "rolling_std_7",
+          "impact": 4046.3484,
+          "absolute_impact": 4046.3484
         },
         {
           "feature": "lag3",
-          "impact": 349.7585,
-          "absolute_impact": 349.7585
+          "impact": 559.5843,
+          "absolute_impact": 559.5843
         }
       ],
       "contributions": [
         {
           "feature": "trend_3",
-          "impact": 44008.707,
-          "absolute_impact": 44008.707
+          "impact": 377229.8125,
+          "absolute_impact": 377229.8125
         },
         {
           "feature": "rolling_mean_3",
-          "impact": 3166.5588,
-          "absolute_impact": 3166.5588
+          "impact": 12425.9326,
+          "absolute_impact": 12425.9326
         },
         {
-          "feature": "lag2",
-          "impact": 2579.2061,
-          "absolute_impact": 2579.2061
+          "feature": "lag1",
+          "impact": -11162.8506,
+          "absolute_impact": 11162.8506
         },
         {
-          "feature": "day_of_month",
-          "impact": -1340.8533,
-          "absolute_impact": 1340.8533
+          "feature": "rolling_std_7",
+          "impact": 4046.3484,
+          "absolute_impact": 4046.3484
         },
         {
           "feature": "lag3",
-          "impact": 349.7585,
-          "absolute_impact": 349.7585
+          "impact": 559.5843,
+          "absolute_impact": 559.5843
         }
       ]
     },

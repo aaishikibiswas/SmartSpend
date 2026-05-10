@@ -109,12 +109,25 @@ def compute_behavior_features(df: pd.DataFrame) -> dict:
     top_share = float(category_totals.iloc[0] / total) if len(category_totals) else 0.0
     category_frequency = {str(key): int(value) for key, value in expenses["category"].value_counts().to_dict().items()}
 
-    if fixed_total / total > 0.7:
-        profile = "high fixed burden"
-    elif variable_total / total > 0.7:
-        profile = "high variable spending"
+    income_total = float(working.loc[working["amount"] > 0, "amount"].sum()) if "amount" in working.columns else 0.0
+    expense_total = total
+
+    if income_total == 0 and expense_total > 0:
+        profile = "Broke (Running on Fumes)"
+    elif expense_total > income_total * 1.5:
+        profile = "Financially Adventurous (Broke)"
+    elif expense_total > income_total * 1.05:
+        profile = "Living on the Edge"
+    elif fixed_total / total > 0.75:
+        profile = "Subscription Hostage"
+    elif variable_total / total > 0.75:
+        profile = "Impulse Spend Extraordinaire"
+    elif income_total > expense_total * 3:
+        profile = "Secretly a Billionaire"
+    elif income_total > expense_total * 1.5:
+        profile = "Certified Responsible Adult"
     else:
-        profile = "balanced"
+        profile = "Perfectly Balanced"
 
     return {
         "fixed_ratio": round((fixed_total / total) * 100, 4),

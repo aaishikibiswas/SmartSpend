@@ -158,16 +158,16 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
     <section className="rounded-[2.5rem] bg-[#111a31] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-[#dee5ff]">Financial Settings &amp; Budgeting</h2>
-          <p className="text-sm text-[#a3aac4]">Configure your global limits and category-wise constraints</p>
+          <h2 className="text-2xl font-bold text-[#F4F6FF]">Financial Settings &amp; Budgeting</h2>
+          <p className="text-sm text-[#B7BDD9]">Configure your global limits and category-wise constraints</p>
         </div>
 
-        <div className="flex rounded-full border border-[#40485d]/20 bg-[#192540] p-1">
+        <div className="flex rounded-full border border-[rgba(255,255,255,0.05)]/20 bg-[#10182E] p-1">
           <button
             type="button"
             onClick={() => setView("monthly")}
             className={`rounded-full px-6 py-2 text-xs font-bold transition-all ${
-              view === "monthly" ? "bg-[#a3a6ff] text-[#0f00a4]" : "text-[#a3aac4] hover:text-[#dee5ff]"
+              view === "monthly" ? "bg-[#A897FF] text-[#0f00a4]" : "text-[#B7BDD9] hover:text-[#F4F6FF]"
             }`}
           >
             Monthly
@@ -176,7 +176,7 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
             type="button"
             onClick={() => setView("weekly")}
             className={`rounded-full px-6 py-2 text-xs font-bold transition-all ${
-              view === "weekly" ? "bg-[#a3a6ff] text-[#0f00a4]" : "text-[#a3aac4] hover:text-[#dee5ff]"
+              view === "weekly" ? "bg-[#A897FF] text-[#0f00a4]" : "text-[#B7BDD9] hover:text-[#F4F6FF]"
             }`}
           >
             Weekly
@@ -187,20 +187,20 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-[280px_minmax(0,1fr)]">
         <div className="space-y-5">
           <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#a3aac4]">Global Monthly Budget</label>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#B7BDD9]">Global Monthly Budget</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#a3a6ff]">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#A897FF]">₹</span>
               <input
                 type="number"
                 value={globalMonthly}
                 onChange={(event) => setGlobalMonthly(Number(event.target.value) || 0)}
-                className="h-[56px] w-full rounded-2xl border border-[#40485d]/10 bg-[#192540] py-3 pl-8 pr-4 text-2xl font-bold text-[#dee5ff] outline-none"
+                className="h-[56px] w-full rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] py-3 pl-8 pr-4 text-2xl font-bold text-[#F4F6FF] outline-none"
               />
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-[11px] text-[#a3aac4]">
-            <input checked={autoDistribute} onChange={(event) => setAutoDistribute(event.target.checked)} type="checkbox" className="accent-[#a3a6ff]" />
+          <label className="flex items-center gap-2 text-[11px] text-[#B7BDD9]">
+            <input checked={autoDistribute} onChange={(event) => setAutoDistribute(event.target.checked)} type="checkbox" className="accent-[#A897FF]" />
             Auto-distribute across active categories
           </label>
 
@@ -208,38 +208,38 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
             type="button"
             onClick={() => void handleSaveGlobalBudget()}
             disabled={isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#a3a6ff] px-4 py-3 text-sm font-bold text-[#0f00a4] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#A897FF] px-4 py-3 text-sm font-bold text-[#0f00a4] disabled:opacity-60"
           >
             {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <WalletCards className="h-4 w-4" />}
             Save Budget Logic
           </button>
 
-          <div className="rounded-3xl border border-[#40485d]/10 bg-[#0f172b] p-4">
-            <div className="mb-3 flex items-center justify-between text-xs font-semibold text-[#dee5ff]">
+          <div className="rounded-3xl border border-[rgba(255,255,255,0.05)]/10 bg-[#0f172b] p-4">
+            <div className="mb-3 flex items-center justify-between text-xs font-semibold text-[#F4F6FF]">
               <span>Budget Progress</span>
               <span>{Math.round(globalUsage)}%</span>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-[#192540]">
+            <div className="h-3 overflow-hidden rounded-full bg-[#10182E]">
               <div className={`h-full rounded-full ${progressTone}`} style={{ width: `${Math.min(globalUsage, 100)}%` }} />
             </div>
-            <div className="mt-3 space-y-1 text-xs text-[#a3aac4]">
+            <div className="mt-3 space-y-1 text-xs text-[#B7BDD9]">
               <p>You have ₹{Math.round(budgetSnapshot.global.remaining_amount).toLocaleString()} left this month.</p>
               <p>Daily allowance: ₹{Math.round(budgetSnapshot.global.daily_allowance).toLocaleString()}</p>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[#40485d]/10 bg-[#0f172b] p-4">
-            <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#a3a6ff]">
+          <div className="rounded-3xl border border-[rgba(255,255,255,0.05)]/10 bg-[#0f172b] p-4">
+            <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#A897FF]">
               <Scale className="h-4 w-4" />
               Decision Engine
             </div>
-            <p className="mb-3 text-xs text-[#a3aac4]">Can I afford a new purchase?</p>
+            <p className="mb-3 text-xs text-[#B7BDD9]">Can I afford a new purchase?</p>
             <div className="space-y-3">
               <input
                 value={decisionItem}
                 onChange={(event) => setDecisionItem(event.target.value)}
                 placeholder="Item name..."
-                className="h-11 w-full rounded-2xl border border-[#40485d]/10 bg-[#192540] px-4 text-sm text-[#dee5ff] outline-none"
+                className="h-11 w-full rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none"
               />
               <div className="flex gap-2">
                 <input
@@ -247,7 +247,7 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
                   value={decisionPrice}
                   onChange={(event) => setDecisionPrice(event.target.value)}
                   placeholder="₹ Price"
-                  className="h-11 flex-1 rounded-2xl border border-[#40485d]/10 bg-[#192540] px-4 text-sm text-[#dee5ff] outline-none"
+                  className="h-11 flex-1 rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none"
                 />
                 <button
                   type="button"
@@ -268,36 +268,36 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
           </div>
         </div>
 
-        <div className="rounded-3xl border border-[#40485d]/10 bg-[#091328]/30 p-6">
-          <h4 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#dee5ff]">
-            <ShoppingBag className="h-4 w-4 text-[#a3a6ff]" />
+        <div className="rounded-3xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/30 p-6">
+          <h4 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#F4F6FF]">
+            <ShoppingBag className="h-4 w-4 text-[#A897FF]" />
             Category Budget Management
           </h4>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.1fr_0.9fr_0.8fr_auto]">
             <div>
-              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#a3aac4]">Category</label>
+              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#B7BDD9]">Category</label>
               <SelectField value={selectedCategory} onChange={setSelectedCategory} options={categoryOptions} />
             </div>
             <div>
-              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#a3aac4]">Frequency</label>
+              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#B7BDD9]">Frequency</label>
               <SelectField value={selectedFrequency} onChange={(value) => setSelectedFrequency(value as "Monthly" | "Weekly")} options={["Monthly", "Weekly"]} />
             </div>
             <div>
-              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#a3aac4]">Amount</label>
+              <label className="mb-1 ml-1 block text-[10px] font-bold text-[#B7BDD9]">Amount</label>
               <input
                 type="number"
                 value={amountInput}
                 onChange={(event) => setAmountInput(event.target.value)}
                 placeholder="₹ Amount"
-                className="h-[38px] w-full rounded-xl border border-[#40485d]/10 bg-[#192540] px-3 py-2 text-xs text-[#dee5ff] outline-none placeholder:text-[#a3aac4]"
+                className="h-[38px] w-full rounded-xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] px-3 py-2 text-xs text-[#F4F6FF] outline-none placeholder:text-[#B7BDD9]"
               />
             </div>
             <button
               type="button"
               onClick={() => void handleAddEntry()}
               disabled={isPending}
-              className="mt-5 rounded-xl bg-[#a3a6ff]/20 p-2 text-[#a3a6ff] transition-colors hover:bg-[#a3a6ff]/30 disabled:opacity-50"
+              className="mt-5 rounded-xl bg-[#A897FF]/20 p-2 text-[#A897FF] transition-colors hover:bg-[#A897FF]/30 disabled:opacity-50"
             >
               <Plus className="h-5 w-5" />
             </button>
@@ -307,28 +307,28 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
             {entries.map((entry) => {
               const Icon = getIcon(entry.name);
               return (
-                <div key={`${entry.name}-${entry.frequency}`} className="rounded-xl border border-[#40485d]/10 bg-[#141f38]/40 p-3">
+                <div key={`${entry.name}-${entry.frequency}`} className="rounded-xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/40 p-3">
                   <div className="flex items-center justify-between gap-4 text-xs">
                     <div className="flex items-center gap-3">
                       <Icon className="h-4 w-4 text-[#a88cfb]" />
-                      <span className="font-semibold text-[#dee5ff]">{entry.name}</span>
+                      <span className="font-semibold text-[#F4F6FF]">{entry.name}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-[10px] uppercase text-[#a3aac4]">{entry.frequency}</span>
-                      <span className="font-bold text-[#dee5ff]">₹{Math.round(entry.allocated_amount).toLocaleString()}</span>
-                      <button type="button" onClick={() => void handleRemoveEntry(entry.name)} disabled={isPending} className="text-[#a3aac4] disabled:opacity-50">
+                      <span className="text-[10px] uppercase text-[#B7BDD9]">{entry.frequency}</span>
+                      <span className="font-bold text-[#F4F6FF]">₹{Math.round(entry.allocated_amount).toLocaleString()}</span>
+                      <button type="button" onClick={() => void handleRemoveEntry(entry.name)} disabled={isPending} className="text-[#B7BDD9] disabled:opacity-50">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                   <div className="mt-3">
-                    <div className="flex justify-between text-[11px] text-[#a3aac4]">
+                    <div className="flex justify-between text-[11px] text-[#B7BDD9]">
                       <span>Spent ₹{Math.round(entry.spent_amount).toLocaleString()}</span>
                       <span>Remaining ₹{Math.round(entry.remaining_amount).toLocaleString()}</span>
                     </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#192540]">
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#10182E]">
                       <div
-                        className={`${entry.usage_percent >= 100 ? "bg-rose-400" : entry.usage_percent >= 80 ? "bg-amber-400" : "bg-[#8b5cf6]"} h-full rounded-full`}
+                        className={`${entry.usage_percent >= 100 ? "bg-rose-400" : entry.usage_percent >= 80 ? "bg-amber-400" : "bg-[#8BE2E8]"} h-full rounded-full`}
                         style={{ width: `${Math.min(entry.usage_percent, 100)}%` }}
                       />
                     </div>
@@ -336,7 +336,7 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
                       <span className={`${entry.status === "error" ? "text-rose-300" : entry.status === "warning" ? "text-amber-200" : "text-emerald-300"}`}>
                         {entry.status === "error" ? "Overspent" : entry.status === "warning" ? "Near limit" : "Healthy"}
                       </span>
-                      <span className="text-[#a3aac4]">{Math.round(entry.usage_percent)}% used</span>
+                      <span className="text-[#B7BDD9]">{Math.round(entry.usage_percent)}% used</span>
                     </div>
                   </div>
                 </div>
@@ -348,14 +348,14 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         {feedback.map((line) => (
-          <div key={line} className="flex items-start gap-3 rounded-2xl border border-[#40485d]/10 bg-[#0f172b] px-4 py-3 text-sm text-[#dee5ff]">
+          <div key={line} className="flex items-start gap-3 rounded-2xl border border-[rgba(255,255,255,0.05)]/10 bg-[#0f172b] px-4 py-3 text-sm text-[#F4F6FF]">
             {line.toLowerCase().includes("over") ? <AlertTriangle className="mt-0.5 h-4 w-4 text-rose-300" /> : <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-300" />}
             <span>{line}</span>
           </div>
         ))}
       </div>
 
-      {message ? <p className="mt-4 text-[11px] text-[#a3a6ff]">{message}</p> : null}
+      {message ? <p className="mt-4 text-[11px] text-[#A897FF]">{message}</p> : null}
     </section>
   );
 }
@@ -374,7 +374,7 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-[38px] w-full appearance-none rounded-xl border border-[#40485d]/10 bg-[#192540] px-3 py-2 pr-9 text-xs text-[#dee5ff] outline-none"
+        className="h-[38px] w-full appearance-none rounded-xl border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] px-3 py-2 pr-9 text-xs text-[#F4F6FF] outline-none"
       >
         {options.length === 0 ? (
           <option value="">No categories</option>
@@ -385,7 +385,7 @@ function SelectField({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a3aac4]" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B7BDD9]" />
     </div>
   );
 }

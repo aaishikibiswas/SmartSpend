@@ -6,11 +6,11 @@ const CashFlowTimeline = memo(function CashFlowTimeline({ data }: { data: Cashfl
     <section className="glass-card panel-shell rounded-[28px] p-5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Cash Flow Timeline</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D839E]">Cash Flow Timeline</p>
           <h3 className="mt-1.5 text-[16px] font-bold text-white">Upcoming payment pressure</h3>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/5 px-3 py-2 text-right">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D8AB5]">Projected Outflow</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D839E]">Projected Outflow</p>
           <p className="mt-1 text-sm font-bold text-[#edf2ff]">Rs. {Number(data.monthly_outflow_projection || 0).toLocaleString()}</p>
         </div>
       </div>

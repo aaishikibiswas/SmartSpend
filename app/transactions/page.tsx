@@ -61,7 +61,7 @@ export default function TransactionsPage() {
     <div className="flex flex-col gap-6 h-[calc(100vh-120px)]">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Transactions</h1>
-        <Link href="/upload" className="flex items-center gap-2 bg-[#1A2035] hover:bg-[#2A324A] text-white px-4 py-2 rounded-xl transition-colors border border-[#2A324A]">
+        <Link href="/upload" className="flex items-center gap-2 bg-[#10182E] hover:bg-[rgba(255,255,255,0.05)] text-white px-4 py-2 rounded-xl transition-colors border border-[rgba(255,255,255,0.05)]">
           Import Statement
         </Link>
       </div>
@@ -74,7 +74,7 @@ export default function TransactionsPage() {
               <input
                 type="text"
                 placeholder="Search transactions..."
-                className="w-full bg-[#1A2035] border border-[#2A324A] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#8B5CF6] transition-colors"
+                className="w-full bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#8BE2E8] transition-colors"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -86,13 +86,13 @@ export default function TransactionsPage() {
                   key={type}
                   onClick={() => setFilterType(type)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${
-                    filterType === type ? "bg-[#8B5CF6] text-white border-[#8B5CF6]" : "bg-[#1A2035] text-gray-400 border-[#2A324A] hover:text-white"
+                    filterType === type ? "bg-[#8BE2E8] text-white border-[#8BE2E8]" : "bg-[#10182E] text-gray-400 border-[rgba(255,255,255,0.05)] hover:text-white"
                   }`}
                 >
                   {type}
                 </button>
               ))}
-              <Link href="/budget" className="flex items-center gap-2 px-4 py-2 bg-[#1A2035] border border-[#2A324A] text-gray-400 hover:text-white rounded-xl text-sm transition-colors">
+              <Link href="/budget" className="flex items-center gap-2 px-4 py-2 bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-gray-400 hover:text-white rounded-xl text-sm transition-colors">
                 <Filter className="w-4 h-4" /> Budget
               </Link>
             </div>
@@ -100,7 +100,7 @@ export default function TransactionsPage() {
 
           <div className="w-full overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
             <table className="w-full text-left text-sm text-gray-400">
-              <thead className="text-xs uppercase bg-[#1A2035]/50 font-semibold border-b border-white/5">
+              <thead className="text-xs uppercase bg-[#10182E]/50 font-semibold border-b border-white/5">
                 <tr>
                   <th className="px-4 py-4 rounded-tl-lg">Date</th>
                   <th className="px-4 py-4">Merchant</th>
@@ -114,7 +114,7 @@ export default function TransactionsPage() {
                     <td className="px-4 py-4">{formatDateTime(tx.rawDate || tx.date)}</td>
                     <td className="px-4 py-4 font-bold text-white">{tx.merchant}</td>
                     <td className="px-4 py-4">
-                      <span className="bg-[#1A2035] text-xs px-2.5 py-1 rounded-md border border-[#2A324A]">{tx.category}</span>
+                      <span className="bg-[#10182E] text-xs px-2.5 py-1 rounded-md border border-[rgba(255,255,255,0.05)]">{tx.category}</span>
                     </td>
                     <td className={`px-4 py-4 text-right font-bold ${tx.type === "income" ? "text-emerald-400" : "text-white"}`}>
                       {tx.type === "income" ? "+" : "-"} Rs. {Math.abs(tx.amount).toLocaleString()}
@@ -124,7 +124,7 @@ export default function TransactionsPage() {
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
-                      No transactions found yet. <Link href="/upload" className="text-[#8B5CF6]">Upload a statement</Link>.
+                      No transactions found yet. <Link href="/upload" className="text-[#8BE2E8]">Upload a statement</Link>.
                     </td>
                   </tr>
                 ) : null}
@@ -135,7 +135,7 @@ export default function TransactionsPage() {
 
         <form onSubmit={handleSubmit} className="glass-card p-6 flex flex-col gap-4 h-fit">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-[#8B5CF6]" />
+            <Plus className="w-5 h-5 text-[#8BE2E8]" />
             <h2 className="text-xl font-bold text-white">Add New Transaction</h2>
           </div>
 
@@ -145,7 +145,7 @@ export default function TransactionsPage() {
               type="datetime-local"
               value={form.date}
               onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
-              className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
+              className="mt-2 w-full bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8BE2E8]"
             />
           </label>
 
@@ -155,7 +155,7 @@ export default function TransactionsPage() {
               type="text"
               value={form.merchant}
               onChange={(e) => setForm((prev) => ({ ...prev, merchant: e.target.value }))}
-              className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
+              className="mt-2 w-full bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8BE2E8]"
               placeholder="Enter merchant name"
               required
             />
@@ -166,7 +166,7 @@ export default function TransactionsPage() {
             <select
               value={form.category}
               onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-              className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
+              className="mt-2 w-full bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8BE2E8]"
             >
               {categoryOptions.map((category) => (
                 <option key={category} value={category}>
@@ -185,7 +185,7 @@ export default function TransactionsPage() {
                   name="transactionType"
                   checked={form.isExpense}
                   onChange={() => setForm((prev) => ({ ...prev, isExpense: true }))}
-                  className="accent-[#8B5CF6]"
+                  className="accent-[#8BE2E8]"
                 />
                 <span className="text-white">Debited (Expense)</span>
               </label>
@@ -210,7 +210,7 @@ export default function TransactionsPage() {
               min="0"
               value={form.amount}
               onChange={(e) => setForm((prev) => ({ ...prev, amount: Number(e.target.value) }))}
-              className="mt-2 w-full bg-[#1A2035] border border-[#2A324A] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8B5CF6]"
+              className="mt-2 w-full bg-[#10182E] border border-[rgba(255,255,255,0.05)] text-white rounded-xl px-4 py-2.5 outline-none focus:border-[#8BE2E8]"
               placeholder="Enter absolute amount"
               required
             />
@@ -221,7 +221,7 @@ export default function TransactionsPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-xl bg-[#8B5CF6] px-4 py-3 font-bold text-white transition-all hover:bg-[#A78BFA] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 rounded-xl bg-[#8BE2E8] px-4 py-3 font-bold text-white transition-all hover:bg-[#A897FF] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Saving..." : "Add Transaction"}
           </button>

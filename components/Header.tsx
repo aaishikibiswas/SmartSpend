@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
@@ -21,10 +22,10 @@ function formatRange(now: Date) {
   return `${format(start)} - ${format(end)}`;
 }
 
-export default function Header({ financialPersonality }: { financialPersonality?: string } = {}) {
+export default function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { transactions, syncOn, setSyncOn } = useFinance();
+  const { transactions, syncOn, setSyncOn, financialPersonality } = useFinance();
   const firstName = user?.full_name?.split(" ")[0] || "there";
   const [now, setNow] = useState<Date | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -129,32 +130,63 @@ export default function Header({ financialPersonality }: { financialPersonality?
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl">
+      <header 
+        className={`sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-300 ${
+          isDashboard 
+            ? "h-20 border-white/[0.03] bg-transparent px-10" 
+            : "h-16 border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl"
+        }`} 
+        style={{ position: "sticky", overflow: "visible" }}
+      >
         <div className="flex flex-1 items-center gap-6">
-          <h2 className="hidden text-lg font-bold text-[#dee5ff] md:block">SmartSpend Analytics</h2>
+          {/* ── Brand Logo Pill — icon only ── */}
+          <div
+            className="hidden md:flex"
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "4px",
+              borderRadius: "12px",
+              background: "rgba(5, 8, 22, 0.80)",
+              border: "1px solid rgba(139, 226, 232, 0.30)",
+              boxShadow: "0 0 14px rgba(111,231,255,0.22), 0 0 28px rgba(139,226,232,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
+              backdropFilter: "blur(12px)",
+              flexShrink: 0,
+            }}
+          >
+            <Image
+              src="/cyber-cat-logo.jpg"
+              alt="SmartSpend"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-[10px] object-cover"
+              style={{ display: "block" }}
+              priority
+            />
+          </div>
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a3aac4]" />
             <input
               type="text"
               placeholder="Search analytics, goals, or AI help..."
-              className="w-full rounded-full border-none bg-[#192540] py-2 pl-10 pr-4 text-sm text-[#dee5ff] placeholder:text-[#a3aac4]/50 outline-none focus:ring-1 focus:ring-[#6366f1]/50"
+              className="w-full rounded-full border border-white/10 bg-white/[0.05] py-2 pl-10 pr-4 text-sm text-[#dee5ff] placeholder:text-[#a3aac4]/50 backdrop-blur-md outline-none focus:ring-1 focus:ring-[#6366f1]/50"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="relative flex items-center gap-4" style={{ zIndex: 1 }}>
           <div className="hidden gap-2 md:flex">
-            <button onClick={exportCSV} className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
+            <button onClick={exportCSV} className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[10px] font-bold backdrop-blur-md transition-colors hover:bg-white/[0.12]">
               <Download className="h-3.5 w-3.5" />
               CSV
             </button>
-            <button onClick={exportPDF} className="flex items-center gap-1 rounded-full border border-[#40485d]/30 bg-[#141f38] px-3 py-1 text-[10px] font-bold transition-colors hover:bg-[#192540]">
+            <button onClick={exportPDF} className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[10px] font-bold backdrop-blur-md transition-colors hover:bg-white/[0.12]">
               <Download className="h-3.5 w-3.5" />
               PDF
             </button>
             <button
               onClick={() => setSyncOn((prev) => !prev)}
-              className={`rounded-full px-3 py-1 text-[10px] font-bold transition-colors ${syncOn ? "bg-[#16a34a]/20 text-[#22c55e]" : "bg-[#a3aac4]/20 text-[#a3aac4]"}`}
+              className={`rounded-full border border-white/[0.08] px-3 py-1 text-[10px] font-bold backdrop-blur-md transition-colors ${syncOn ? "bg-[#16a34a]/20 text-[#22c55e]" : "bg-white/[0.05] text-[#a3aac4]"}`}
             >
               {syncOn ? "🟢 Bank Sync ON" : "⚪ Bank Sync OFF"}
             </button>
@@ -173,10 +205,10 @@ export default function Header({ financialPersonality }: { financialPersonality?
           <div className="relative">
             <button 
               onClick={() => setIsAlertsOpen(!isAlertsOpen)}
-              className={`relative rounded-full p-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
+              className={`relative rounded-full p-2 backdrop-blur-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
                 isAlertAnimating 
                   ? "scale-110 bg-[#ff6e84]/20 shadow-[0_0_20px_rgba(255,110,132,0.8)]" 
-                  : "hover:bg-[#192540] scale-100"
+                  : "bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.12] scale-100"
               }`}
             >
               <Bell className={`h-5 w-5 transition-colors duration-300 ${isAlertAnimating ? "text-[#ff6e84]" : "text-[#a3aac4]"}`} />
@@ -233,7 +265,7 @@ export default function Header({ financialPersonality }: { financialPersonality?
                 alt="User profile"
                 width={32}
                 height={32}
-                className="h-8 w-8 rounded-full border border-[#a3a6ff]/20"
+                className="h-8 w-8 rounded-full border border-white/20"
               />
             </button>
             
@@ -275,12 +307,12 @@ export default function Header({ financialPersonality }: { financialPersonality?
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-4 border-b border-[#40485d]/10 bg-[#091328]/50 px-8 py-4">
-        <div className="flex items-center gap-2 rounded-xl border border-[#40485d]/20 bg-[#141f38] px-4 py-2">
+      <div className="flex flex-wrap items-center gap-4 border-b border-white/[0.03] bg-transparent px-8 py-4">
+        <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 backdrop-blur-md">
           <CalendarDays className="h-4 w-4 text-[#a3aac4]" />
           <span className="text-xs font-semibold text-[#dee5ff]">{liveRange}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-[#40485d]/20 bg-[#141f38] px-4 py-2">
+        <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 backdrop-blur-md">
           <BrainCircuit className="h-4 w-4 text-[#a3a6ff]" />
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#7D8AB5]">Financial Personality</p>

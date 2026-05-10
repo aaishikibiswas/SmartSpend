@@ -30,7 +30,7 @@ export default function AlertsPage() {
           <Link href="/upload" className="text-sm font-medium text-gray-400 hover:text-white px-4 py-2 transition-colors">
             Import Fresh Data
           </Link>
-          <Link href="/settings" className="flex items-center gap-2 bg-[#1A2035] border border-[#2A324A] hover:bg-[#2A324A] text-white px-4 py-2 rounded-xl transition-colors">
+          <Link href="/settings" className="flex items-center gap-2 bg-[#10182E] border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.05)] text-white px-4 py-2 rounded-xl transition-colors">
             <BellRing className="w-4 h-4" /> Manage Notifications
           </Link>
         </div>
@@ -41,9 +41,9 @@ export default function AlertsPage() {
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest pl-2">Recent Alerts</h2>
 
           {alerts.map((alert) => (
-            <div key={alert.id} className={`glass-card p-5 border-l-2 ${alert.type === "breach" ? "border-l-rose-500" : alert.type === "duplicate" ? "border-l-[#8B5CF6]" : "border-l-blue-500"} flex gap-4 hover:bg-white/5 transition-colors cursor-pointer`}>
-              <div className={`p-3 rounded-xl h-fit ${alert.type === "breach" ? "bg-rose-500/10" : alert.type === "duplicate" ? "bg-[#8B5CF6]/10" : "bg-blue-500/10"}`}>
-                {alert.type === "breach" ? <AlertTriangle className="w-6 h-6 text-rose-500" /> : alert.type === "duplicate" ? <Copy className="w-6 h-6 text-[#8B5CF6]" /> : <Receipt className="w-6 h-6 text-blue-500" />}
+            <div key={alert.id} className={`glass-card p-5 border-l-2 ${alert.type === "breach" ? "border-l-rose-500" : alert.type === "duplicate" ? "border-l-[#8BE2E8]" : "border-l-blue-500"} flex gap-4 hover:bg-white/5 transition-colors cursor-pointer`}>
+              <div className={`p-3 rounded-xl h-fit ${alert.type === "breach" ? "bg-rose-500/10" : alert.type === "duplicate" ? "bg-[#8BE2E8]/10" : "bg-blue-500/10"}`}>
+                {alert.type === "breach" ? <AlertTriangle className="w-6 h-6 text-rose-500" /> : alert.type === "duplicate" ? <Copy className="w-6 h-6 text-[#8BE2E8]" /> : <Receipt className="w-6 h-6 text-blue-500" />}
               </div>
               <div className="flex-1">
                 <h4 className="text-base font-bold text-white mb-1">{alert.title}</h4>
@@ -56,13 +56,13 @@ export default function AlertsPage() {
         </div>
 
         <div>
-          <div className="p-6 bg-gradient-to-b from-[#8B5CF6]/10 to-[#1A2035]/50 border border-[#8B5CF6]/20 rounded-2xl sticky top-8">
+          <div className="p-6 bg-gradient-to-b from-[#8BE2E8]/10 to-[#10182E]/50 border border-[#8BE2E8]/20 rounded-2xl sticky top-8">
             <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-5 h-5 text-[#8B5CF6]" />
+              <Lightbulb className="w-5 h-5 text-[#8BE2E8]" />
               <h3 className="font-bold text-white text-lg">Next Action</h3>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed mb-4">Upload another statement or review your budget settings to respond to the latest backend-generated alerts.</p>
-            <Link href="/budget" className="block w-full py-2 bg-[#8B5CF6] hover:bg-[#A78BFA] text-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(139,92,246,0.2)] transition-all text-center">
+            <Link href="/budget" className="block w-full py-2 bg-[#8BE2E8] hover:bg-[#A897FF] text-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(139,92,246,0.2)] transition-all text-center">
               Open Budget Center
             </Link>
           </div>

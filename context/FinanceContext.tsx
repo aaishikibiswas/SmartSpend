@@ -17,6 +17,7 @@ type FinanceContextValue = {
   goals: GoalItem[];
   syncOn: boolean;
   setSyncOn: React.Dispatch<React.SetStateAction<boolean>>;
+  financialPersonality: string;
   registerDashboardSnapshot: (snapshot: DashboardSnapshot) => void;
   appendUploadedTransaction: (tx: TransactionItem) => void;
   appendGoal: (goal: GoalItem) => void;
@@ -202,17 +203,20 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     setGoals((current) => [goal, ...current]);
   }, []);
 
+  const financialPersonality = dashboardSnapshot?.metrics?.financialPersonality || "Balanced";
+
   const value = useMemo<FinanceContextValue>(
     () => ({
       transactions,
       goals,
       syncOn,
       setSyncOn,
+      financialPersonality,
       registerDashboardSnapshot,
       appendUploadedTransaction,
       appendGoal,
     }),
-    [transactions, goals, syncOn, registerDashboardSnapshot, appendUploadedTransaction, appendGoal],
+    [transactions, goals, syncOn, financialPersonality, registerDashboardSnapshot, appendUploadedTransaction, appendGoal],
   );
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

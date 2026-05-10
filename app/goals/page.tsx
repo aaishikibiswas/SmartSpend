@@ -36,7 +36,7 @@ export default function GoalsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Financial Goals</h1>
-        <Link href="/settings" className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#A78BFA] text-white px-4 py-2 rounded-xl transition-colors shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+        <Link href="/settings" className="flex items-center gap-2 bg-[#8BE2E8] hover:bg-[#A897FF] text-white px-4 py-2 rounded-xl transition-colors shadow-[0_0_15px_rgba(139,92,246,0.3)]">
           <Plus className="w-4 h-4" /> Configure Goals
         </Link>
       </div>
@@ -45,7 +45,7 @@ export default function GoalsPage() {
         {updatedGoals.map((goal) => {
           const percent = Number(goal.progress);
           return (
-            <div key={goal.id} className="glass-card p-6 flex flex-col gap-4 group hover:bg-[#1A2035]/80 transition-colors cursor-pointer">
+            <div key={goal.id} className="glass-card p-6 flex flex-col gap-4 group hover:bg-[#10182E]/80 transition-colors cursor-pointer">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/10 group-hover:bg-white/10 transition-colors">
@@ -66,7 +66,7 @@ export default function GoalsPage() {
                   <span className="text-gray-400 font-medium">Rs. {goal.savedAmount.toLocaleString()}</span>
                   <span className="text-white font-bold">Rs. {goal.target.toLocaleString()}</span>
                 </div>
-                <div className="w-full bg-[#0B0E14] rounded-full h-2.5 border border-white/5 overflow-hidden">
+                <div className="w-full bg-[#050816] rounded-full h-2.5 border border-white/5 overflow-hidden">
                   <div className={`h-2.5 rounded-full ${goal.color} transition-all duration-1000 ease-out`} style={{ width: `${percent}%` }}></div>
                 </div>
               </div>

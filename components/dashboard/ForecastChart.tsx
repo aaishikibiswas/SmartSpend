@@ -19,7 +19,7 @@ const XAXIS_TICK = { fill: "#8793b8", fontSize: 12 };
 const renderTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#8B5CF6] text-white px-3 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(139,92,246,0.5)]">
+      <div className="bg-[#8BE2E8] text-white px-3 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(139,92,246,0.5)]">
         Forecast
         <div className="text-sm border-t border-white/20 mt-1 pt-1">Rs. {Number(payload[0].value || 0).toLocaleString()} / day</div>
       </div>
@@ -100,24 +100,24 @@ export default function ForecastChart() {
     <div className="glass-card panel-shell relative p-5">
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Prophet Engine Forecasting</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D839E]">Prophet Engine Forecasting</p>
           <h3 className="mt-1.5 text-[15px] font-bold text-white">15-day projected spending trend</h3>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 px-2.5 py-1 text-[10px] font-semibold text-[#8B5CF6] shadow-[0_0_10px_rgba(139,92,246,0.2)]">
-          <div className="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full animate-pulse" />
+        <div className="flex items-center gap-1.5 rounded-full border border-[#8BE2E8]/30 bg-[#8BE2E8]/10 px-2.5 py-1 text-[10px] font-semibold text-[#8BE2E8] shadow-[0_0_10px_rgba(139,92,246,0.2)]">
+          <div className="w-1.5 h-1.5 bg-[#8BE2E8] rounded-full animate-pulse" />
           PROPHET ENGINE ACTIVE
         </div>
       </div>
 
       <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="rounded-2xl border border-white/5 bg-[#11182b] p-3.5">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D8AB5]">Next Expense Prediction</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D839E]">Next Expense Prediction</p>
           <p className="mt-1.5 text-[1.45rem] font-bold text-white">
             {summary ? `Rs. ${summary.predicted_expense.toLocaleString()}` : "Loading..."}
           </p>
         </div>
         <div className="rounded-2xl border border-white/5 bg-[#11182b] p-3.5">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D8AB5]">Risk Level</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D839E]">Risk Level</p>
           <p className={`mt-1.5 text-[1.45rem] font-bold ${summary?.risk_level === "High" ? "text-rose-400" : "text-emerald-400"}`}>
             {summary?.risk_level || "Loading..."}
           </p>
@@ -126,7 +126,7 @@ export default function ForecastChart() {
           </p>
         </div>
         <div className="rounded-2xl border border-white/5 bg-[#11182b] p-3.5">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D8AB5]">Peak Forecast</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#7D839E]">Peak Forecast</p>
           <p className="mt-1.5 text-[1.45rem] font-bold text-white">{peak ? `Rs. ${peak.amount.toLocaleString()}` : "Loading..."}</p>
           <p className="mt-1 text-[11px] text-[#94A1C8]">{peak?.day || "Calculating..."}</p>
         </div>
@@ -137,14 +137,14 @@ export default function ForecastChart() {
           <AreaChart data={points} margin={CHART_MARGIN}>
             <defs>
               <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.5} />
+                <stop offset="5%" stopColor="#8BE2E8" stopOpacity={0.5} />
                 <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <XAxis dataKey="day" axisLine={false} tickLine={false} tick={XAXIS_TICK} dy={10} />
             <Tooltip content={renderTooltip} />
-            <Area type="monotone" dataKey="value" stroke="#8B5CF6" strokeWidth={4} fillOpacity={1} fill="url(#colorForecast)" animationDuration={1500} />
-            {peakPoint ? <ReferenceDot x={peakPoint.day} y={peakPoint.value} r={6} fill="#fff" stroke="#8B5CF6" strokeWidth={3} /> : null}
+            <Area type="monotone" dataKey="value" stroke="#8BE2E8" strokeWidth={4} fillOpacity={1} fill="url(#colorForecast)" animationDuration={1500} />
+            {peakPoint ? <ReferenceDot x={peakPoint.day} y={peakPoint.value} r={6} fill="#fff" stroke="#8BE2E8" strokeWidth={3} /> : null}
           </AreaChart>
         </ResponsiveContainer>
       </div>

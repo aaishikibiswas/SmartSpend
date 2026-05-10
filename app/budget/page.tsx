@@ -33,7 +33,7 @@ export default function BudgetPage() {
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Budget Center</h1>
           <p className="text-gray-400 mt-2">Track spending and review budget-related signals from imported and synced transactions.</p>
         </div>
-        <Link href="/settings" className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#A78BFA] text-white px-4 py-2 rounded-xl transition-colors">
+        <Link href="/settings" className="flex items-center gap-2 bg-[#8BE2E8] hover:bg-[#A897FF] text-white px-4 py-2 rounded-xl transition-colors">
           <Settings2 className="w-4 h-4" />
           Edit Budget Settings
         </Link>

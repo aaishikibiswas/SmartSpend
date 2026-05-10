@@ -11,8 +11,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-8 py-8">
-      <section className="rounded-[30px] border border-[#27314d] bg-[#0b1325]/90 p-8 shadow-[0_30px_90px_rgba(1,6,18,0.45)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#a3a6ff]">Profile</p>
+      <section className="rounded-[30px] border border-[rgba(255,255,255,0.05)] bg-[#0b1325]/90 p-8 shadow-[0_30px_90px_rgba(1,6,18,0.45)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#A897FF]">Profile</p>
         <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-center">
           <img
             src={`https://i.pravatar.cc/150?u=${user.avatar_seed}`}
@@ -20,76 +20,76 @@ export default async function ProfilePage() {
             className="h-20 w-20 rounded-full border border-[#7277ff]/20"
           />
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#dee5ff]">{user.full_name}</h1>
-            <p className="mt-2 text-sm text-[#a3aac4]">Your SmartSpend identity is connected across the sidebar, dashboard header, live alerts, and account session.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-[#F4F6FF]">{user.full_name}</h1>
+            <p className="mt-2 text-sm text-[#B7BDD9]">Your SmartSpend identity is connected across the sidebar, dashboard header, live alerts, and account session.</p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <UserCircle2 className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <UserCircle2 className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Account Name</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.full_name}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.full_name}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <Mail className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <Mail className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Email</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.email}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.email}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <ShieldCheck className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <ShieldCheck className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Plan</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.plan}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.plan}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <Globe2 className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <Globe2 className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Timezone</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.timezone}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.timezone}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <MapPin className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <MapPin className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">City</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.city}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.city}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <BriefcaseBusiness className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <BriefcaseBusiness className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Occupation</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.occupation}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.occupation}</p>
         </div>
 
-        <div className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-          <div className="flex items-center gap-3 text-[#dee5ff]">
-            <Sparkles className="h-5 w-5 text-[#a3a6ff]" />
+        <div className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+          <div className="flex items-center gap-3 text-[#F4F6FF]">
+            <Sparkles className="h-5 w-5 text-[#A897FF]" />
             <h2 className="text-lg font-bold">Currency</h2>
           </div>
-          <p className="mt-4 text-sm text-[#dee5ff]">{user.preferred_currency}</p>
+          <p className="mt-4 text-sm text-[#F4F6FF]">{user.preferred_currency}</p>
         </div>
       </section>
 
-      <section className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
-        <div className="flex items-center gap-3 text-[#dee5ff]">
-          <Sparkles className="h-5 w-5 text-[#a3a6ff]" />
+      <section className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
+        <div className="flex items-center gap-3 text-[#F4F6FF]">
+          <Sparkles className="h-5 w-5 text-[#A897FF]" />
           <h2 className="text-lg font-bold">What&apos;s Connected</h2>
         </div>
-        <ul className="mt-4 space-y-3 text-sm text-[#a3aac4]">
+        <ul className="mt-4 space-y-3 text-sm text-[#B7BDD9]">
           <li>Your sidebar profile card reflects the signed-in user.</li>
           <li>Your dashboard header greets you by your first name.</li>
           <li>Your session persists with secure HTTP-only cookies until logout.</li>

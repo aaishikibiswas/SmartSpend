@@ -19,7 +19,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="min-h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-screen bg-[#0B0E14] px-2 py-2 text-white [font-family:Inter,Segoe_UI,system-ui,sans-serif] lg:px-3 lg:py-3" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#050816] px-2 py-2 text-white [font-family:Inter,Segoe_UI,system-ui,sans-serif] lg:px-3 lg:py-3" suppressHydrationWarning>
         <AuthProvider initialUser={user}>
           <FinanceProvider>
             <AppShell>{children}</AppShell>

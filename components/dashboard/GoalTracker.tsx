@@ -11,10 +11,10 @@ function goalIcon(index: number) {
 
 function goalTone(index: number) {
   return [
-    { text: "text-[#a3a6ff]", bg: "bg-[#a3a6ff]/10", bar: "bg-[#a3a6ff]" },
+    { text: "text-[#A897FF]", bg: "bg-[#A897FF]/10", bar: "bg-[#A897FF]" },
     { text: "text-[#a88cfb]", bg: "bg-[#a88cfb]/10", bar: "bg-[#a88cfb]" },
     { text: "text-[#ffa5d9]", bg: "bg-[#ffa5d9]/10", bar: "bg-[#ffa5d9]" },
-  ][index] ?? { text: "text-[#a3a6ff]", bg: "bg-[#a3a6ff]/10", bar: "bg-[#a3a6ff]" };
+  ][index] ?? { text: "text-[#A897FF]", bg: "bg-[#A897FF]/10", bar: "bg-[#A897FF]" };
 }
 
 function formatCurrency(value: number) {
@@ -46,7 +46,7 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
         target: targetValue,
         achieved: 0,
         daysLeft: Math.round(daysValue),
-        color: "bg-[#8B5CF6]",
+        color: "bg-[#8BE2E8]",
       });
       appendGoal(created.data);
       setName("");
@@ -90,12 +90,12 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
   return (
     <section className="glass-card rounded-[2rem] p-8">
       <div className="mb-6 flex items-center justify-between">
-        <h4 className="font-bold text-[#dee5ff]">Financial Goals</h4>
-        <PlusCircle className="h-5 w-5 cursor-pointer text-[#a3aac4] transition-colors hover:text-[#a3a6ff]" />
+        <h4 className="font-bold text-[#F4F6FF]">Financial Goals</h4>
+        <PlusCircle className="h-5 w-5 cursor-pointer text-[#B7BDD9] transition-colors hover:text-[#A897FF]" />
       </div>
 
       <div className="space-y-10">
-        {updatedGoals.length === 0 ? <p className="text-sm text-[#a3aac4]">No goals yet.</p> : null}
+        {updatedGoals.length === 0 ? <p className="text-sm text-[#B7BDD9]">No goals yet.</p> : null}
 
         {updatedGoals.map((goal, index) => {
           const percent = Number(goal.progress);
@@ -111,8 +111,8 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold leading-tight text-[#dee5ff]">{goal.name}</p>
-                    <p className="text-[10px] font-medium text-[#a3aac4]">
+                    <p className="text-sm font-bold leading-tight text-[#F4F6FF]">{goal.name}</p>
+                    <p className="text-[10px] font-medium text-[#B7BDD9]">
                       {formatCurrency(goal.savedAmount)} saved of {formatCurrency(goal.target)}
                     </p>
                   </div>
@@ -126,19 +126,19 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
               </div>
 
               <div className="pt-1">
-                <div className="flex h-3 overflow-hidden rounded-full border border-[#40485d]/10 bg-[#141f38] shadow-inner">
+                <div className="flex h-3 overflow-hidden rounded-full border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] shadow-inner">
                   <div className={`${tone.bar} relative rounded-full`} style={{ width: `${percent}%` }}>
                     <div className="absolute bottom-0 right-0 top-0 w-2 bg-white/20 blur-[2px]" />
                   </div>
                 </div>
                 <div className="mt-2 flex justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#a3aac4]">Remaining</span>
-                    <span className="text-xs font-bold text-[#dee5ff]">{formatCurrency(remaining)}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#B7BDD9]">Remaining</span>
+                    <span className="text-xs font-bold text-[#F4F6FF]">{formatCurrency(remaining)}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#a3aac4]">Deadline</span>
-                    <span className="text-xs font-bold text-[#dee5ff]">{goal.daysLeft} days left</span>
+                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#B7BDD9]">Deadline</span>
+                    <span className="text-xs font-bold text-[#F4F6FF]">{goal.daysLeft} days left</span>
                   </div>
                 </div>
               </div>
@@ -148,18 +148,18 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
       </div>
 
       <div className="mt-8">
-        <div className="mb-4 rounded-2xl border border-[#40485d]/20 bg-[#10192d] px-4 py-3 text-xs text-[#a3aac4]">
-          <span className="font-semibold text-[#dee5ff]">Suggested contribution:</span> Rs{Math.round(liveSuggestedContribution).toLocaleString()}
+        <div className="mb-4 rounded-2xl border border-[rgba(255,255,255,0.05)]/20 bg-[#10182E] px-4 py-3 text-xs text-[#B7BDD9]">
+          <span className="font-semibold text-[#F4F6FF]">Suggested contribution:</span> Rs{Math.round(liveSuggestedContribution).toLocaleString()}
           <p className="mt-1">{suggestion.message}</p>
         </div>
-        <button onClick={() => setShowCreate((current) => !current)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#40485d]/30 bg-[#192540] py-3 text-xs font-bold text-[#dee5ff] transition-colors hover:bg-[#1f2b49]">
+        <button onClick={() => setShowCreate((current) => !current)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgba(255,255,255,0.05)]/30 bg-[#10182E] py-3 text-xs font-bold text-[#F4F6FF] transition-colors hover:bg-[#1f2b49]">
           <PlusCircle className="h-4 w-4" /> Create New Goal
         </button>
         {showCreate ? (
           <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
-            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Goal name" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
-            <input value={target} onChange={(event) => setTarget(event.target.value)} type="number" min="1" placeholder="Target amount" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
-            <input value={daysLeft} onChange={(event) => setDaysLeft(event.target.value)} type="number" min="1" placeholder="Days remaining" className="h-10 w-full rounded-xl border border-white/8 bg-[#141f38] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Goal name" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={target} onChange={(event) => setTarget(event.target.value)} type="number" min="1" placeholder="Target amount" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={daysLeft} onChange={(event) => setDaysLeft(event.target.value)} type="number" min="1" placeholder="Days remaining" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
             {error ? <p className="text-xs text-rose-300">{error}</p> : null}
             <button type="button" onClick={() => void handleCreateGoal()} className="w-full rounded-xl bg-[#7B6CF6] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#8B7DFF]">
               Add Goal

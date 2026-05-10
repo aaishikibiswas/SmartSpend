@@ -28,7 +28,7 @@ function formatContribution(value: number) {
 function contributionColor(value: number) {
   if (value > 0) return "text-[#9db2ff]";
   if (value < 0) return "text-[#ff8ca8]";
-  return "text-[#a3aac4]";
+  return "text-[#B7BDD9]";
 }
 
 export default function BehavioralCreditScoreCard({ creditScore }: { creditScore: CreditScoreData }) {
@@ -41,7 +41,7 @@ export default function BehavioralCreditScoreCard({ creditScore }: { creditScore
     <section className="glass-card rounded-[2rem] p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h4 className="text-lg font-bold text-[#dee5ff]">Behavioral Credit Score</h4>
+          <h4 className="text-lg font-bold text-[#F4F6FF]">Behavioral Credit Score</h4>
           <p className="mt-1 text-xs font-medium text-[#92a0c6]" title={disclaimer}>
             Behavioral estimate
           </p>
@@ -63,7 +63,7 @@ export default function BehavioralCreditScoreCard({ creditScore }: { creditScore
                 <stop offset="100%" stopColor="#9a7cff" />
               </linearGradient>
             </defs>
-            <circle cx="112" cy="112" r="90" fill="transparent" stroke="currentColor" strokeWidth="14" className="text-[#141f38]" />
+            <circle cx="112" cy="112" r="90" fill="transparent" stroke="currentColor" strokeWidth="14" className="text-[#10182E]" />
             <circle
               cx="112"
               cy="112"
@@ -88,15 +88,15 @@ export default function BehavioralCreditScoreCard({ creditScore }: { creditScore
         </div>
 
         <div className="mt-6 grid w-full grid-cols-3 gap-3">
-          <div className="rounded-2xl border border-white/5 bg-[#141f38]/35 p-3">
+          <div className="rounded-2xl border border-white/5 bg-[#10182E]/35 p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#95a0c4]">Spending Stability</p>
             <p className="mt-2 text-sm font-bold text-[#9db2ff]">{indicators.spending_stability}</p>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-[#141f38]/35 p-3">
+          <div className="rounded-2xl border border-white/5 bg-[#10182E]/35 p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#95a0c4]">Savings Ratio</p>
             <p className="mt-2 text-sm font-bold text-[#bca9ff]">{indicators.savings_ratio}</p>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-[#141f38]/35 p-3">
+          <div className="rounded-2xl border border-white/5 bg-[#10182E]/35 p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#95a0c4]">Risk Level</p>
             <p className="mt-2 text-sm font-bold text-[#ff98af]">{indicators.risk_level}</p>
           </div>
@@ -128,7 +128,7 @@ export default function BehavioralCreditScoreCard({ creditScore }: { creditScore
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#9db2ff]">Improve Score</p>
           <ul className="mt-3 space-y-2 text-sm text-[#d8def6]">
             {suggestions.slice(0, 3).map((suggestion) => (
-              <li key={suggestion} className="rounded-xl bg-[#141f38]/45 px-3 py-2">
+              <li key={suggestion} className="rounded-xl bg-[#10182E]/45 px-3 py-2">
                 {suggestion}
               </li>
             ))}

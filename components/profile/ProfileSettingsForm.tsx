@@ -43,11 +43,11 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[26px] border border-[#27314d] bg-[#10192d] p-6">
+    <form onSubmit={handleSubmit} className="rounded-[26px] border border-[rgba(255,255,255,0.05)] bg-[#10182E] p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-[#dee5ff]">Profile Settings</h2>
-          <p className="mt-1 text-sm text-[#a3aac4]">Edit your name and plan while keeping your session active across SmartSpend.</p>
+          <h2 className="text-lg font-bold text-[#F4F6FF]">Profile Settings</h2>
+          <p className="mt-1 text-sm text-[#B7BDD9]">Edit your name and plan while keeping your session active across SmartSpend.</p>
         </div>
         <button
           type="submit"
@@ -61,15 +61,15 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Full Name</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Full Name</span>
           <input
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Email</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Email</span>
           <input
             value={initialUser.email}
             readOnly
@@ -77,19 +77,19 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Plan</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Plan</span>
           <input
             value={plan}
             onChange={(event) => setPlan(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Preferred Currency</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Preferred Currency</span>
           <select
             value={preferredCurrency}
             onChange={(event) => setPreferredCurrency(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           >
             <option value="INR">INR - Indian Rupee</option>
             <option value="USD">USD - US Dollar</option>
@@ -98,27 +98,27 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
           </select>
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Timezone</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Timezone</span>
           <input
             value={timezone}
             onChange={(event) => setTimezone(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">City</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">City</span>
           <input
             value={city}
             onChange={(event) => setCity(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D8AB5]">Occupation</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7D839E]">Occupation</span>
           <input
             value={occupation}
             onChange={(event) => setOccupation(event.target.value)}
-            className="h-11 w-full rounded-2xl border border-white/10 bg-[#141f38] px-4 text-sm text-[#dee5ff] outline-none focus:border-[#8B7DFF]"
+            className="h-11 w-full rounded-2xl border border-white/10 bg-[#10182E] px-4 text-sm text-[#F4F6FF] outline-none focus:border-[#8B7DFF]"
           />
         </label>
       </div>
@@ -129,14 +129,14 @@ export default function ProfileSettingsForm({ initialUser }: { initialUser: Auth
         <button
           type="button"
           onClick={() => void refreshUser()}
-          className="rounded-xl border border-white/10 bg-[#141f38] px-4 py-2 text-sm font-semibold text-[#dee5ff] transition hover:bg-[#1a2746]"
+          className="rounded-xl border border-white/10 bg-[#10182E] px-4 py-2 text-sm font-semibold text-[#F4F6FF] transition hover:bg-[#1a2746]"
         >
           Refresh Profile
         </button>
         <button
           type="button"
           onClick={() => router.push("/login")}
-          className="rounded-xl border border-white/10 bg-[#141f38] px-4 py-2 text-sm font-semibold text-[#dee5ff] transition hover:bg-[#1a2746]"
+          className="rounded-xl border border-white/10 bg-[#10182E] px-4 py-2 text-sm font-semibold text-[#F4F6FF] transition hover:bg-[#1a2746]"
         >
           Sign In
         </button>

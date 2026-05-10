@@ -4,7 +4,7 @@ import type { ExpenseSplitData } from "@/lib/api-client";
 const ExpenseSplitCard = memo(function ExpenseSplitCard({ data }: { data: ExpenseSplitData }) {
   return (
     <section className="glass-card panel-shell rounded-[28px] p-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Expense Split</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D839E]">Expense Split</p>
       <h3 className="mt-1.5 text-[16px] font-bold text-white">Fixed vs Variable</h3>
 
       <div className="mt-5 space-y-4">

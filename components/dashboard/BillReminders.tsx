@@ -112,7 +112,7 @@ export default function BillReminders() {
     <div className="glass-card panel-shell flex min-h-[250px] flex-col items-stretch p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Action Queue</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D839E]">Action Queue</p>
           <h3 className="mt-1.5 text-[15px] font-bold text-white">Bill Reminders</h3>
         </div>
         <span className="rounded-md bg-rose-500/10 px-2 py-1 text-[10px] font-semibold text-rose-400">{actionLabel}</span>

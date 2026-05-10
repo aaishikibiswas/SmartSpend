@@ -15,7 +15,7 @@ const defaultData = [
 const CHART_MARGIN = { top: 0, right: 0, left: 0, bottom: 0 };
 const XAXIS_TICK = { fill: "#8793b8", fontSize: 12 };
 const TOOLTIP_CURSOR = { fill: "rgba(255,255,255,0.05)" };
-const TOOLTIP_CONTENT_STYLE = { backgroundColor: "#1A2035", border: "1px solid #2A324A", borderRadius: "8px" };
+const TOOLTIP_CONTENT_STYLE = { backgroundColor: "#10182E", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px" };
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
 const tooltipFormatter = (value: any) => [`Rs. ${Number(value).toLocaleString()}`, "Spent"];
 
@@ -42,7 +42,7 @@ export default function CategoryChart({ dataOverride }: { dataOverride?: Categor
     <div className="glass-card panel-shell flex flex-col justify-between p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D8AB5]">Spending Overview</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7D839E]">Spending Overview</p>
           <h3 className="mt-1.5 text-[15px] font-bold text-white">Category Comparison</h3>
         </div>
         <button className="text-gray-400 transition-colors hover:text-white">
@@ -55,7 +55,7 @@ export default function CategoryChart({ dataOverride }: { dataOverride?: Categor
           <BarChart data={data} margin={CHART_MARGIN} barGap={8}>
             <defs>
               <linearGradient id="categoryFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8B5CF6" />
+                <stop offset="0%" stopColor="#8BE2E8" />
                 <stop offset="100%" stopColor="#4F7CFF" />
               </linearGradient>
             </defs>

@@ -43,11 +43,11 @@ export default function AuthCard({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div className="rounded-[32px] border border-[#27314d] bg-[#0b1325]/95 p-8 shadow-[0_30px_90px_rgba(1,6,18,0.5)] backdrop-blur-xl">
+    <div className="rounded-[32px] border border-[rgba(255,255,255,0.05)] bg-[#0b1325]/95 p-8 shadow-[0_30px_90px_rgba(1,6,18,0.5)] backdrop-blur-xl">
       <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#a3a6ff]">SmartSpend Identity</p>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[#dee5ff]">{isLogin ? "Sign in to your profile" : "Create your SmartSpend profile"}</h1>
-        <p className="mt-2 text-sm text-[#a3aac4]">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#A897FF]">SmartSpend Identity</p>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[#F4F6FF]">{isLogin ? "Sign in to your profile" : "Create your SmartSpend profile"}</h1>
+        <p className="mt-2 text-sm text-[#B7BDD9]">
           {isLogin
             ? "Use your account to sync your dashboard, profile card, and financial workspace."
             : "Create a secure account so your profile and dashboard identity stay connected."}
@@ -62,7 +62,7 @@ export default function AuthCard({ mode }: { mode: Mode }) {
               value={form.full_name}
               onChange={(event) => setForm((current) => ({ ...current, full_name: event.target.value }))}
               required
-              className="w-full rounded-2xl border border-[#27314d] bg-[#121c34] px-4 py-3 text-sm text-[#dee5ff] outline-none transition focus:border-[#7277ff]"
+              className="w-full rounded-2xl border border-[rgba(255,255,255,0.05)] bg-[#121c34] px-4 py-3 text-sm text-[#F4F6FF] outline-none transition focus:border-[#7277ff]"
               placeholder="Aaline Roy"
             />
           </label>
@@ -75,7 +75,7 @@ export default function AuthCard({ mode }: { mode: Mode }) {
             value={form.email}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
             required
-            className="w-full rounded-2xl border border-[#27314d] bg-[#121c34] px-4 py-3 text-sm text-[#dee5ff] outline-none transition focus:border-[#7277ff]"
+            className="w-full rounded-2xl border border-[rgba(255,255,255,0.05)] bg-[#121c34] px-4 py-3 text-sm text-[#F4F6FF] outline-none transition focus:border-[#7277ff]"
             placeholder="you@smartspend.ai"
           />
         </label>
@@ -88,7 +88,7 @@ export default function AuthCard({ mode }: { mode: Mode }) {
             onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
             required
             minLength={8}
-            className="w-full rounded-2xl border border-[#27314d] bg-[#121c34] px-4 py-3 text-sm text-[#dee5ff] outline-none transition focus:border-[#7277ff]"
+            className="w-full rounded-2xl border border-[rgba(255,255,255,0.05)] bg-[#121c34] px-4 py-3 text-sm text-[#F4F6FF] outline-none transition focus:border-[#7277ff]"
             placeholder="Minimum 8 characters"
           />
         </label>
@@ -98,24 +98,24 @@ export default function AuthCard({ mode }: { mode: Mode }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#a3a6ff] to-[#6063ee] px-5 py-3.5 text-sm font-bold text-[#0f00a4] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-[#A897FF] to-[#6063ee] px-5 py-3.5 text-sm font-bold text-[#0f00a4] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
           {isLogin ? "Sign In" : "Create Account"}
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-[#a3aac4]">
+      <p className="mt-6 text-sm text-[#B7BDD9]">
         {isLogin ? "Need an account?" : "Already have an account?"}{" "}
-        <Link href={isLogin ? "/register" : "/login"} className="font-semibold text-[#a3a6ff] hover:underline">
+        <Link href={isLogin ? "/register" : "/login"} className="font-semibold text-[#A897FF] hover:underline">
           {isLogin ? "Register here" : "Sign in"}
         </Link>
       </p>
 
       {isLogin ? (
-        <div className="mt-6 rounded-2xl border border-[#27314d] bg-[#10192d] px-4 py-3 text-xs text-[#a3aac4]">
-          Demo account: <span className="font-semibold text-[#dee5ff]">adaline@smartspend.ai</span> /{" "}
-          <span className="font-semibold text-[#dee5ff]">SmartSpend@123</span>
+        <div className="mt-6 rounded-2xl border border-[rgba(255,255,255,0.05)] bg-[#10182E] px-4 py-3 text-xs text-[#B7BDD9]">
+          Demo account: <span className="font-semibold text-[#F4F6FF]">adaline@smartspend.ai</span> /{" "}
+          <span className="font-semibold text-[#F4F6FF]">SmartSpend@123</span>
         </div>
       ) : null}
     </div>

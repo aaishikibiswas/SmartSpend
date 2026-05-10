@@ -117,8 +117,8 @@ export default function SettingsPage() {
 
       <div className="flex gap-8">
         <div className="flex w-48 shrink-0 flex-col gap-2 xl:w-64">
-          <button className="flex items-center gap-3 rounded-xl border border-[#2A324A] bg-[#1A2035] px-4 py-3 font-semibold text-white transition-colors">
-            <Sliders className="h-5 w-5 text-[#8B5CF6]" /> Budgets
+          <button className="flex items-center gap-3 rounded-xl border border-[rgba(255,255,255,0.05)] bg-[#10182E] px-4 py-3 font-semibold text-white transition-colors">
+            <Sliders className="h-5 w-5 text-[#8BE2E8]" /> Budgets
           </button>
           <button className="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
             <BellRing className="h-5 w-5" /> Notifications
@@ -144,7 +144,7 @@ export default function SettingsPage() {
                     type="number"
                     value={globalBudget.monthly_budget}
                     onChange={(event) => setGlobalBudget((current) => ({ ...current, monthly_budget: Number(event.target.value) || 0 }))}
-                    className="w-full rounded-xl border border-[#2A324A] bg-[#0B0E14] py-3 pl-12 pr-4 text-base text-white outline-none transition-colors focus:border-[#8B5CF6]"
+                    className="w-full rounded-xl border border-[rgba(255,255,255,0.05)] bg-[#050816] py-3 pl-12 pr-4 text-base text-white outline-none transition-colors focus:border-[#8BE2E8]"
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">Your predictions and category limits use this monthly cap.</p>
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                     type="number"
                     value={weeklyTarget}
                     readOnly
-                    className="w-full rounded-xl border border-[#2A324A] bg-[#0B0E14] py-3 pl-12 pr-4 text-base text-white outline-none"
+                    className="w-full rounded-xl border border-[rgba(255,255,255,0.05)] bg-[#050816] py-3 pl-12 pr-4 text-base text-white outline-none"
                   />
                 </div>
               </div>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
           <div className="glass-card p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-white">Category Allocation</h2>
-              {isLoading ? <LoaderCircle className="h-5 w-5 animate-spin text-[#8B5CF6]" /> : null}
+              {isLoading ? <LoaderCircle className="h-5 w-5 animate-spin text-[#8BE2E8]" /> : null}
             </div>
 
             <div className="flex flex-col gap-4">
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                     value={category.name}
                     onChange={(event) => updateCategory(index, { name: event.target.value })}
                     placeholder="Category"
-                    className="rounded-lg border border-[#2A324A] bg-[#0B0E14] px-4 py-2 text-sm text-white outline-none transition-colors focus:border-[#8B5CF6]"
+                    className="rounded-lg border border-[rgba(255,255,255,0.05)] bg-[#050816] px-4 py-2 text-sm text-white outline-none transition-colors focus:border-[#8BE2E8]"
                   />
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500">Rs.</span>
@@ -186,7 +186,7 @@ export default function SettingsPage() {
                       type="number"
                       value={category.amount}
                       onChange={(event) => updateCategory(index, { amount: event.target.value })}
-                      className="w-full rounded-lg border border-[#2A324A] bg-[#0B0E14] py-2 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-[#8B5CF6]"
+                      className="w-full rounded-lg border border-[rgba(255,255,255,0.05)] bg-[#050816] py-2 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-[#8BE2E8]"
                     />
                   </div>
                   <button
@@ -201,7 +201,7 @@ export default function SettingsPage() {
               ))}
             </div>
 
-            <button type="button" onClick={addCategoryDraft} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8B5CF6] transition-colors hover:text-[#A78BFA]">
+            <button type="button" onClick={addCategoryDraft} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8BE2E8] transition-colors hover:text-[#A897FF]">
               <Plus className="h-4 w-4" /> Add Category Restriction
             </button>
           </div>
@@ -212,7 +212,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => void saveChanges()}
               disabled={isSaving || isLoading}
-              className="flex items-center gap-2 rounded-xl bg-[#8B5CF6] px-6 py-3 font-bold text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all hover:bg-[#A78BFA] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-xl bg-[#8BE2E8] px-6 py-3 font-bold text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all hover:bg-[#A897FF] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               Save Changes

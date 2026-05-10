@@ -186,7 +186,7 @@ export default function AIChatbot({
       <div className="relative group">
         {isOpen ? (
           <div className="glass-card absolute bottom-20 right-0 mb-4 flex w-[25rem] origin-bottom-right flex-col overflow-hidden rounded-[2.5rem] shadow-2xl">
-            <div className="flex items-center justify-between bg-gradient-to-br from-[#a3a6ff] to-[#6063ee] p-5 font-bold text-[#0f00a4]">
+            <div className="flex items-center justify-between bg-gradient-to-br from-[#A897FF] to-[#6063ee] p-5 font-bold text-[#0f00a4]">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
                   <Sparkles className="h-4 w-4" />
@@ -201,22 +201,22 @@ export default function AIChatbot({
               </button>
             </div>
 
-            <div ref={scrollRef} className="custom-scrollbar flex h-[26rem] flex-col gap-5 overflow-y-auto bg-[#091328]/95 p-6">
+            <div ref={scrollRef} className="custom-scrollbar flex h-[26rem] flex-col gap-5 overflow-y-auto bg-[#10182E]/95 p-6">
               {visibleMessages.map((message, index) =>
                 message.role === "ai" ? (
-                  <div key={`${message.role}-${index}-${message.text.slice(0, 12)}`} className="rounded-3xl rounded-tl-none border border-[#40485d]/10 bg-[#141f38]/50 p-4">
-                    <div className="text-xs leading-relaxed text-[#dee5ff]">
+                  <div key={`${message.role}-${index}-${message.text.slice(0, 12)}`} className="rounded-3xl rounded-tl-none border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/50 p-4">
+                    <div className="text-xs leading-relaxed text-[#F4F6FF]">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         components={{
                           p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-sm font-bold text-[#a3a6ff] mt-3 mb-1" {...props} />,
-                          h4: ({node, ...props}) => <h4 className="text-xs font-bold text-[#a3a6ff] mt-2 mb-1" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-bold text-[#A897FF] mt-3 mb-1" {...props} />,
+                          h4: ({node, ...props}) => <h4 className="text-xs font-bold text-[#A897FF] mt-2 mb-1" {...props} />,
                           ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
                           ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2" {...props} />,
                           li: ({node, ...props}) => <li className="mb-1" {...props} />,
                           strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
-                          a: ({node, ...props}) => <a className="text-[#a3a6ff] hover:underline" {...props} />,
+                          a: ({node, ...props}) => <a className="text-[#A897FF] hover:underline" {...props} />,
                         }}
                       >
                         {message.text}
@@ -229,7 +229,7 @@ export default function AIChatbot({
                             key={suggestion}
                             type="button"
                             onClick={() => void sendMessage(suggestion)}
-                            className="rounded-full bg-[#a3a6ff]/10 px-3 py-1 text-[10px] font-bold text-[#a3a6ff] transition hover:bg-[#a3a6ff]/20"
+                            className="rounded-full bg-[#A897FF]/10 px-3 py-1 text-[10px] font-bold text-[#A897FF] transition hover:bg-[#A897FF]/20"
                           >
                             {suggestion}
                           </button>
@@ -239,16 +239,16 @@ export default function AIChatbot({
                   </div>
                 ) : (
                   <div key={`${message.role}-${index}-${message.text.slice(0, 12)}`} className="flex flex-col items-end gap-1">
-                    <div className="max-w-[88%] rounded-3xl rounded-tr-none border border-[#a3a6ff]/20 bg-[#a3a6ff]/20 p-4 text-xs text-[#dee5ff]">{message.text}</div>
-                    <span className="mr-2 text-[9px] text-[#a3aac4]">Seen</span>
+                    <div className="max-w-[88%] rounded-3xl rounded-tr-none border border-[#A897FF]/20 bg-[#A897FF]/20 p-4 text-xs text-[#F4F6FF]">{message.text}</div>
+                    <span className="mr-2 text-[9px] text-[#B7BDD9]">Seen</span>
                   </div>
                 ),
               )}
 
               {isAsking ? (
-                <div className="rounded-3xl rounded-tl-none border border-[#40485d]/10 bg-[#141f38]/50 p-4">
-                  <div className="flex items-center gap-2 text-xs text-[#a3aac4]">
-                    <Loader2 className="h-4 w-4 animate-spin text-[#a3a6ff]" />
+                <div className="rounded-3xl rounded-tl-none border border-[rgba(255,255,255,0.05)]/10 bg-[#10182E]/50 p-4">
+                  <div className="flex items-center gap-2 text-xs text-[#B7BDD9]">
+                    <Loader2 className="h-4 w-4 animate-spin text-[#A897FF]" />
                     Thinking through your financial context...
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export default function AIChatbot({
             </div>
 
             <form
-              className="border-t border-[#40485d]/10 bg-[#091328] p-5"
+              className="border-t border-[rgba(255,255,255,0.05)]/10 bg-[#10182E] p-5"
               onSubmit={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -276,7 +276,7 @@ export default function AIChatbot({
                   }}
                   rows={2}
                   placeholder="Ask AI about your finances..."
-                  className="w-full resize-none rounded-2xl border-none bg-[#192540] py-3.5 pl-5 pr-14 text-xs text-[#dee5ff] outline-none placeholder:text-[#a3aac4]/40 focus:ring-1 focus:ring-[#a3a6ff]/50"
+                  className="w-full resize-none rounded-2xl border-none bg-[#10182E] py-3.5 pl-5 pr-14 text-xs text-[#F4F6FF] outline-none placeholder:text-[#B7BDD9]/40 focus:ring-1 focus:ring-[#A897FF]/50"
                 />
                 <button
                   type="button"
@@ -286,7 +286,7 @@ export default function AIChatbot({
                     void sendMessage();
                   }}
                   disabled={isAsking || !inputValue.trim()}
-                  className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[#a3a6ff] transition-colors hover:bg-[#a3a6ff]/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[#A897FF] transition-colors hover:bg-[#A897FF]/10 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Send message"
                 >
                   <Send className="h-4 w-4" />
@@ -299,10 +299,10 @@ export default function AIChatbot({
         <button
           type="button"
           onClick={() => setIsOpen((value) => !value)}
-          className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#a3a6ff] to-[#6063ee] text-[#0f00a4] shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#A897FF] to-[#6063ee] text-[#0f00a4] shadow-2xl transition-transform hover:scale-110 active:scale-95"
         >
           <Sparkles className="h-8 w-8" />
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#060e20] bg-[#ff6e84] text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#050816] bg-[#ff6e84] text-[10px] font-bold text-white">
             {aiMessageCount}
           </span>
         </button>

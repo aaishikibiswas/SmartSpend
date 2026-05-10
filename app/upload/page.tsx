@@ -49,7 +49,7 @@ export default function UploadPage() {
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-8 h-full justify-center py-10">
       <div className="text-center">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-[#8B5CF6]">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-[#8BE2E8]">
           AI Statement Analysis
         </h1>
         <p className="text-gray-400 mt-2">Upload your bank statements to extract insights and predict future spending.</p>
@@ -62,7 +62,7 @@ export default function UploadPage() {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onClick={() => inputRef.current?.click()}
-              className="w-full border-2 border-dashed border-[#2A324A] hover:border-[#8B5CF6] rounded-2xl p-12 flex flex-col items-center justify-center transition-all bg-[#0B0E14]/50 cursor-pointer group"
+              className="w-full border-2 border-dashed border-[rgba(255,255,255,0.05)] hover:border-[#8BE2E8] rounded-2xl p-12 flex flex-col items-center justify-center transition-all bg-[#050816]/50 cursor-pointer group"
             >
               <input
                 ref={inputRef}
@@ -74,15 +74,15 @@ export default function UploadPage() {
                   setError("");
                 }}
               />
-              <div className="p-4 bg-[#1A2035] rounded-full mb-4 group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-8 h-8 text-[#8B5CF6]" />
+              <div className="p-4 bg-[#10182E] rounded-full mb-4 group-hover:scale-110 transition-transform">
+                <UploadCloud className="w-8 h-8 text-[#8BE2E8]" />
               </div>
               <p className="text-white font-bold text-lg mb-1">{file ? file.name : "Drag & drop file here"}</p>
               <p className="text-gray-500 text-sm">Supported formats: PDF, CSV, PNG, JPEG</p>
               {!file ? (
                 <button
                   type="button"
-                  className="mt-6 px-6 py-2 bg-[#1A2035] text-white rounded-xl border border-[#2A324A] hover:bg-[#8B5CF6] hover:border-[#8B5CF6] transition-colors"
+                  className="mt-6 px-6 py-2 bg-[#10182E] text-white rounded-xl border border-[rgba(255,255,255,0.05)] hover:bg-[#8BE2E8] hover:border-[#8BE2E8] transition-colors"
                 >
                   Browse Files
                 </button>
@@ -96,8 +96,8 @@ export default function UploadPage() {
               disabled={!file}
               className={`mt-8 w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
                 file
-                  ? "bg-[#8B5CF6] hover:bg-[#A78BFA] text-white shadow-[0_0_20px_rgba(139,92,246,0.3)]"
-                  : "bg-[#1A2035] text-gray-500 cursor-not-allowed"
+                  ? "bg-[#8BE2E8] hover:bg-[#A897FF] text-white shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+                  : "bg-[#10182E] text-gray-500 cursor-not-allowed"
               }`}
             >
               <Sparkles className="w-5 h-5" />
@@ -106,7 +106,7 @@ export default function UploadPage() {
           </>
         ) : isProcessing ? (
           <div className="py-20 flex flex-col items-center">
-            <Loader2 className="w-12 h-12 text-[#8B5CF6] animate-spin mb-6" />
+            <Loader2 className="w-12 h-12 text-[#8BE2E8] animate-spin mb-6" />
             <h3 className="text-xl font-bold text-white mb-2 text-center">Prophet Engine Processing...</h3>
             <p className="text-gray-400 text-sm text-center max-w-sm">
               Extracting transactions, categorizing merchants, and updating your financial forecast.
@@ -128,19 +128,19 @@ export default function UploadPage() {
                   setResultCount(0);
                   setMessage("");
                 }}
-                className="px-6 py-2.5 bg-[#1A2035] text-white rounded-xl border border-[#2A324A] hover:bg-[#2A324A] transition-colors"
+                className="px-6 py-2.5 bg-[#10182E] text-white rounded-xl border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
               >
                 Upload Another
               </button>
               <Link
                 href="/?focus=forecast-insights#forecast-insights"
-                className="px-6 py-2.5 bg-[#8B5CF6] hover:bg-[#A78BFA] text-white rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                className="px-6 py-2.5 bg-[#8BE2E8] hover:bg-[#A897FF] text-white rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)]"
               >
                 View Insights
               </Link>
               <Link
                 href="/alerts"
-                className="px-6 py-2.5 bg-transparent border border-[#2A324A] hover:border-[#8B5CF6] text-white rounded-xl font-bold transition-all"
+                className="px-6 py-2.5 bg-transparent border border-[rgba(255,255,255,0.05)] hover:border-[#8BE2E8] text-white rounded-xl font-bold transition-all"
               >
                 View Alerts
               </Link>
