@@ -120,12 +120,17 @@ def _build_mongo_client():
 
     if PyMongoClient is not None:
         try:
-            client = PyMongoClient(mongo_uri)
+            # Set a very short timeout to detect connection issues fast
+            client = PyMongoClient(
+                mongo_uri, 
+                serverSelectionTimeoutMS=2000, 
+                connectTimeoutMS=2000
+            )
             client.admin.command("ping")
             logger.info("Connected to MongoDB at %s", safe_uri)
             return client
         except Exception:
-            logger.warning("MongoDB is not reachable at %s; falling back to in-memory storage.", safe_uri)
+            logger.warning("MongoDB connection timed out at %s; falling back to in-memory storage.", safe_uri)
 
     if mongomock is not None:
         logger.warning("Using in-memory mongomock storage for local development.")

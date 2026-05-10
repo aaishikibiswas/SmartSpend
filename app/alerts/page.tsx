@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { AlertTriangle, Receipt, Copy, BellRing, Lightbulb } from "lucide-react";
 import { apiClient, type AlertItem } from "@/lib/api-client";
 
-export default function AlertsPage() {
+function AlertsContent() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const searchParams = useSearchParams();
+  const focusId = searchParams.get("focus");
+  const alertRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     async function load() {
@@ -21,6 +25,22 @@ export default function AlertsPage() {
 
     load();
   }, []);
+
+  useEffect(() => {
+    if (focusId && alerts.length > 0) {
+      const el = alertRefs.current[focusId];
+      if (el) {
+        // Delay slightly to ensure layout is stable
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("focus-highlight");
+          setTimeout(() => {
+            el.classList.remove("focus-highlight");
+          }, 3000);
+        }, 100);
+      }
+    }
+  }, [focusId, alerts]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,7 +61,11 @@ export default function AlertsPage() {
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest pl-2">Recent Alerts</h2>
 
           {alerts.map((alert) => (
-            <div key={alert.id} className={`glass-card p-5 border-l-2 ${alert.type === "breach" ? "border-l-rose-500" : alert.type === "duplicate" ? "border-l-[#8BE2E8]" : "border-l-blue-500"} flex gap-4 hover:bg-white/5 transition-colors cursor-pointer`}>
+            <div 
+              key={alert.id} 
+              ref={(el) => (alertRefs.current[alert.id] = el)}
+              className={`glass-card p-5 border-l-2 ${alert.type === "breach" ? "border-l-rose-500" : alert.type === "duplicate" ? "border-l-[#8BE2E8]" : "border-l-blue-500"} flex gap-4 hover:bg-white/5 transition-all duration-500 cursor-pointer`}
+            >
               <div className={`p-3 rounded-xl h-fit ${alert.type === "breach" ? "bg-rose-500/10" : alert.type === "duplicate" ? "bg-[#8BE2E8]/10" : "bg-blue-500/10"}`}>
                 {alert.type === "breach" ? <AlertTriangle className="w-6 h-6 text-rose-500" /> : alert.type === "duplicate" ? <Copy className="w-6 h-6 text-[#8BE2E8]" /> : <Receipt className="w-6 h-6 text-blue-500" />}
               </div>
@@ -69,5 +93,13 @@ export default function AlertsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AlertsPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-gray-500">Loading alerts...</div>}>
+      <AlertsContent />
+    </Suspense>
   );
 }

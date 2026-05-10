@@ -29,7 +29,7 @@ const FinanceContext = createContext<FinanceContextValue | null>(null);
 const STORAGE_KEY = "smartspend-sync-on";
 
 function randomIntervalMs() {
-  return 10000 + Math.floor(Math.random() * 5000);
+  return 20000 + Math.floor(Math.random() * 15000);
 }
 
 function toTime(value: string | Date | undefined) {
@@ -92,7 +92,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const transactions = useMemo(() => sortByLatest([...mockTransactions, ...uploadedTransactions]), [mockTransactions, uploadedTransactions]);
 
   useEffect(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
     const stored = window.localStorage.getItem(syncStorageKey);
     if (stored === "1") {
       setSyncOn(true);
@@ -114,13 +113,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
           setUploadedTransactions(sortByLatest(allTx));
         }
       } catch {
-        // no-op; app already handles local fallbacks
+        // no-op
       }
     }
     void loadInitial();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -128,43 +125,51 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     async function loadGoals() {
       try {
         const res = await apiClient.getGoals();
-        if (!cancelled) {
+        if (!cancelled && res.success) {
           setGoals(res.data);
         }
       } catch {
-        if (!cancelled) {
-          setGoals([]);
-        }
+        if (!cancelled) setGoals([]);
       }
     }
     void loadGoals();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
     if (!syncOn) return;
     let cancelled = false;
     let timer: number | null = null;
+    const retryQueue: TransactionItem[] = [];
 
-    const tick = () => {
+    const tick = async () => {
       if (cancelled) return;
       const base = latestTimeRef.current || new Date(Math.max(toTime(transactions[0]?.rawDate || transactions[0]?.date), Date.now()));
       const tx = generateFakeTransaction(base);
       latestTimeRef.current = new Date(tx.rawDate);
+
+      const attemptPersist = async (item: TransactionItem) => {
+        const res = await apiClient.addTransaction({
+          ...item,
+          rawDate: typeof item.rawDate === 'string' ? item.rawDate : item.rawDate?.toISOString(),
+        });
+        
+        if (!res.success) {
+          console.warn("[FinanceContext] Silent persistence failure. Queuing for retry.", res.error);
+          retryQueue.push(item);
+        } else {
+          while (retryQueue.length > 0) {
+            const next = retryQueue.shift();
+            if (next) await apiClient.addTransaction(next);
+          }
+        }
+      };
+
       if (!persistInFlightRef.current) {
         persistInFlightRef.current = true;
-        void apiClient.addTransaction({
-          ...tx,
-          rawDate: tx.rawDate.toISOString(),
-        })
-          .catch((error) => {
-            console.error("Mock bank sync failed to persist transaction", error);
-          })
-          .finally(() => {
-            persistInFlightRef.current = false;
-          });
+        await attemptPersist(tx).finally(() => {
+          persistInFlightRef.current = false;
+        });
       }
 
       const liveTransactions = sortByLatest([tx, ...transactions]);
@@ -174,6 +179,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         const recentTransactions = sortByLatest([tx, ...dashboardSnapshot.recentTransactions]).slice(0, 3);
         const categoryBreakdown = mergeCategoryBreakdown(liveTransactions.slice(0, 24), dashboardSnapshot.categoryBreakdown);
         const metrics = updateMetrics(dashboardSnapshot.metrics, tx, liveTransactions);
+        
         setDashboardSnapshot({
           ...dashboardSnapshot,
           recentTransactions,
@@ -181,16 +187,14 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
           metrics,
         });
 
-        window.setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent("smartspend:ws-update", {
-              detail: {
-                type: "new_transaction",
-                data: { recentTransactions, categoryBreakdown, metrics },
-              },
-            }),
-          );
-        }, 0);
+        window.dispatchEvent(
+          new CustomEvent("smartspend:ws-update", {
+            detail: {
+              type: "new_transaction",
+              data: { recentTransactions, categoryBreakdown, metrics },
+            },
+          }),
+        );
       }
 
       timer = window.setTimeout(tick, randomIntervalMs());

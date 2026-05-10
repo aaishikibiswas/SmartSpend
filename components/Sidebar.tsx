@@ -23,10 +23,10 @@ export default function Sidebar() {
   const subtitle = user?.plan || "Sign in to sync";
 
   return (
-    <aside className="z-50 w-full border-b border-[#dee5ff]/10 bg-[#060e20]/40 backdrop-blur-3xl lg:fixed lg:inset-y-0 lg:left-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0">
+    <aside className="z-50 w-full border-b border-[#dee5ff]/10 bg-[#060e20]/40 backdrop-blur-3xl lg:fixed lg:inset-y-0 lg:left-0 lg:h-screen lg:w-60 lg:shrink-0 lg:border-b-0">
       <div className="flex h-full flex-col justify-between">
         <div>
-          <div className="p-8">
+          <div className="px-6 py-8">
             <Link href="/" className="block">
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-[#dee5ff]">SmartSpend</h1>
@@ -35,7 +35,7 @@ export default function Sidebar() {
             </Link>
           </div>
 
-          <nav className="space-y-2 px-4 text-sm font-medium tracking-tight">
+          <nav className="space-y-2 px-3 text-sm font-medium tracking-tight">
             {navItems.map((item) => {
               const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/");
               return (
@@ -56,7 +56,7 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        <div className="p-6">
+        <div className="p-4">
           <div className="rounded-xl border border-[#6d758c]/20 bg-[rgba(25,37,64,0.4)] p-4 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 overflow-hidden rounded-full border border-[#40485d]/30 bg-[#192540]">

@@ -364,6 +364,8 @@ type ApiEnvelope<T> = {
   status: number;
   data: T;
   message?: string;
+  success?: boolean;
+  error?: string;
 };
 
 type RequestOptions = RequestInit & {
@@ -373,7 +375,7 @@ type RequestOptions = RequestInit & {
 async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvelope<T>> {
   const timeoutMs = init?.timeoutMs ?? 20000;
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   const requestInit = { ...(init || {}) } as RequestInit & { timeoutMs?: number };
   delete requestInit.timeoutMs;
 
@@ -403,17 +405,28 @@ async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvel
     }
 
     if (payload && typeof payload === "object" && "status" in payload && "data" in payload) {
-      return payload as ApiEnvelope<T>;
+      return { ...(payload as ApiEnvelope<T>), success: true };
     }
-    return { status: response.status, data: payload as T };
+    return { status: response.status, data: payload as T, success: true };
   } catch (error) {
+    let errorMessage = "Network request failed.";
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`);
+      errorMessage = `Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
     }
-    if (error instanceof Error) throw error;
-    throw new Error(`Network request to ${API_BASE || "same-origin"}${path} failed.`);
+    
+    console.warn(`[API Client] Graceful failure handled for ${path}: ${errorMessage}`);
+    
+    // Return a structured failure object instead of crashing the pipeline
+    return { 
+      status: 500, 
+      data: null as any, 
+      success: false, 
+      error: errorMessage 
+    };
   } finally {
-    window.clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
   }
 }
 

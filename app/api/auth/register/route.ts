@@ -3,35 +3,43 @@ import { BACKEND_BASE, SESSION_COOKIE } from "@/lib/auth-session";
 import { shouldUseSecureCookies } from "@/lib/backend-config";
 
 export async function POST(request: Request) {
-  const payload = await request.json();
+  try {
+    const payload = await request.json();
 
-  const response = await fetch(`${BACKEND_BASE}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    cache: "no-store",
-  });
+    const response = await fetch(`${BACKEND_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
 
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      return NextResponse.json(
+        { message: body?.detail || body?.message || "Registration failed." },
+        { status: response.status },
+      );
+    }
+
+    const sessionToken = body?.data?.sessionToken;
+    const nextResponse = NextResponse.json(body, { status: response.status });
+
+    if (sessionToken) {
+      nextResponse.cookies.set(SESSION_COOKIE, sessionToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: shouldUseSecureCookies(),
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
+
+    return nextResponse;
+  } catch (error) {
+    console.error("[Register API] failure:", error);
     return NextResponse.json(
-      { message: body?.detail || body?.message || "Registration failed." },
-      { status: response.status },
+      { message: "Authentication service currently unavailable. Please check if the backend is running." },
+      { status: 503 }
     );
   }
-
-  const sessionToken = body?.data?.sessionToken;
-  const nextResponse = NextResponse.json(body, { status: response.status });
-
-  if (sessionToken) {
-    nextResponse.cookies.set(SESSION_COOKIE, sessionToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: shouldUseSecureCookies(),
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-  }
-
-  return nextResponse;
 }

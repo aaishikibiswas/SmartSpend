@@ -4,13 +4,14 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import DashboardHalo from "@/components/DashboardHalo";
+import { AnimatePresence, motion } from "framer-motion";
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthRoute = AUTH_ROUTES.has(pathname);
-  const isDashboard = pathname === "/" || pathname === "/dashboard";
+  const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/dashboard/";
 
   if (isAuthRoute) {
     return (
@@ -35,42 +36,45 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     >
       <Sidebar />
       
-      {/* 
-        MAIN CINEMATIC DASHBOARD SURFACE (RESTORED)
-        - Floating container feel with bg-[#070B17]/80 glass.
-        - Shifted left to ml-[250px] to dock seamlessly with sidebar.
-        - Large 42px curvature on all sides.
-      */}
       <main 
         className={`relative flex min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-500 ${
           isDashboard 
-            ? "lg:ml-[250px] lg:mr-4 lg:my-4 lg:rounded-[42px] bg-[#070B17]/80 backdrop-blur-3xl border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" 
-            : "lg:pl-64"
+            ? "lg:ml-[240px] lg:mr-4 lg:my-4 lg:rounded-[42px] bg-[#070B17]/80 backdrop-blur-3xl border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" 
+            : "lg:ml-60"
         }`}
       >
-        {/* Cinematic halo — dashboard page ONLY */}
-        {isDashboard && <DashboardHalo />}
+        {/* Persistent Cinematic Halo - Always mounted, visibility toggled to prevent expensive remounts */}
+        <div className={`transition-opacity duration-1000 ${isDashboard ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+          <DashboardHalo />
+        </div>
 
         {/* 
           ATMOSPHERIC BLEND OVERLAY (Dashboard Only)
           Feathers the left edge of the dashboard surface to dissolve into the sidebar's glass.
         */}
-        {isDashboard && (
-          <div 
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-32"
-            style={{
-              background: "linear-gradient(to right, #070B17 0%, rgba(7,11,23,0) 100%)",
-              opacity: 0.6
-            }}
-          />
-        )}
+        <div 
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-32 transition-opacity duration-500 ${isDashboard ? "opacity-60" : "opacity-0"}`}
+          style={{
+            background: "linear-gradient(to right, #070B17 0%, rgba(7,11,23,0) 100%)",
+          }}
+        />
 
         <div className="relative z-20 flex flex-col">
           <Header />
-          <div className={`mx-auto w-full ${isDashboard ? "max-w-[1360px] px-6 py-8 md:px-12" : "max-w-[1160px] px-4 py-5 md:px-6 md:py-6 xl:px-7"}`}>
-            {children}
-          </div>
+          
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className={`mx-auto w-full ${isDashboard ? "max-w-[1360px] px-6 py-8 md:px-12" : "max-w-[1160px] px-4 py-5 md:px-6 md:py-6 xl:px-7"}`}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

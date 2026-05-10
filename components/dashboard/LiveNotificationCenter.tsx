@@ -121,24 +121,29 @@ export default function LiveNotificationCenter() {
   }
 
   return (
-    <div className="pointer-events-none fixed right-6 top-24 z-[70] flex w-[300px] flex-col gap-2">
+    <div className="absolute right-0 top-[calc(100%+12px)] z-[70] flex w-[320px] flex-col gap-3 pointer-events-none">
       {items.map((item) => {
         const styles = stylesFor(item.tone);
         const Icon = styles.icon;
         return (
-          <div key={item.id} className={`pointer-events-auto flex items-center gap-3 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md transition-all duration-500 animate-in fade-in slide-in-from-right-4 ${styles.shell}`}>
-            <div className={`shrink-0 rounded-lg p-1.5 ${styles.badge}`}>
-              <Icon className="h-3.5 w-3.5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[11px] font-bold text-[#edf2ff]">{item.title}</p>
+          <div key={item.id} className={`pointer-events-auto flex items-center justify-between gap-3.5 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${styles.shell}`}>
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className={`shrink-0 rounded-xl p-2 ${styles.badge} flex items-center justify-center`}>
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex flex-col justify-center">
+                <p className="truncate text-[12px] font-bold text-[#edf2ff] leading-none mb-[1px]">{item.title}</p>
+                {item.message && (
+                  <p className="truncate text-[10px] font-medium text-[#a3aac4] mt-1.5 leading-tight">{item.message}</p>
+                )}
+              </div>
             </div>
             <button
               type="button"
               onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
-              className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9da8cb] hover:text-white"
+              className="ml-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[#9da8cb] hover:text-white hover:bg-white/10 transition-colors"
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         );

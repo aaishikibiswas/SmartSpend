@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Laptop, PlusCircle, ShieldAlert, Plane } from "lucide-react";
+import { Laptop, PlusCircle, ShieldAlert, Plane, Calendar } from "lucide-react";
 import { apiClient, type GoalSuggestion } from "@/lib/api-client";
 import { useFinance } from "@/context/FinanceContext";
+import CalendarPopup from "./CalendarPopup";
+import { AnimatePresence } from "framer-motion";
 
 function goalIcon(index: number) {
   return [Laptop, ShieldAlert, Plane][index] ?? Laptop;
@@ -21,22 +23,33 @@ function formatCurrency(value: number) {
   return `Rs${Math.round(value).toLocaleString()}`;
 }
 
+function formatDate(date: Date | null) {
+  if (!date) return "Select target date";
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion }) {
   const { transactions, goals, appendGoal } = useFinance();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
-  const [daysLeft, setDaysLeft] = useState("30");
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [error, setError] = useState("");
+
+  const daysUntil = useMemo(() => {
+    if (!targetDate) return 0;
+    const diff = targetDate.getTime() - new Date().getTime();
+    return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }, [targetDate]);
 
   async function handleCreateGoal() {
     setError("");
     const normalizedName = name.trim();
     const targetValue = Number(target);
-    const daysValue = Number(daysLeft);
 
-    if (!normalizedName || !Number.isFinite(targetValue) || targetValue <= 0 || !Number.isFinite(daysValue) || daysValue <= 0) {
-      setError("Enter a valid goal name, target amount, and timeline.");
+    if (!normalizedName || !Number.isFinite(targetValue) || targetValue <= 0 || !targetDate) {
+      setError("Enter goal name, target amount, and date.");
       return;
     }
 
@@ -45,13 +58,13 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
         name: normalizedName,
         target: targetValue,
         achieved: 0,
-        daysLeft: Math.round(daysValue),
+        daysLeft: daysUntil,
         color: "bg-[#8BE2E8]",
       });
       appendGoal(created.data);
       setName("");
       setTarget("");
-      setDaysLeft("30");
+      setTargetDate(null);
       setShowCreate(false);
       window.dispatchEvent(new Event("smartspend:goals-updated"));
     } catch (createError) {
@@ -157,11 +170,48 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
         </button>
         {showCreate ? (
           <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
-            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Goal name" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
-            <input value={target} onChange={(event) => setTarget(event.target.value)} type="number" min="1" placeholder="Target amount" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
-            <input value={daysLeft} onChange={(event) => setDaysLeft(event.target.value)} type="number" min="1" placeholder="Days remaining" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B]" />
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Goal name" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B] focus:border-[#7B6CF6]/50 transition-all" />
+            <input value={target} onChange={(event) => setTarget(event.target.value)} type="number" min="1" placeholder="Target amount" className="h-10 w-full rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none placeholder:text-[#6D769B] focus:border-[#7B6CF6]/50 transition-all" />
+            
+            <div className="relative">
+              <button 
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="flex h-10 w-full items-center justify-between rounded-xl border border-white/8 bg-[#10182E] px-3 text-sm text-white outline-none transition-all hover:bg-[#1f2b49] focus:border-[#7B6CF6]/50"
+              >
+                <span className={targetDate ? "text-white" : "text-[#6D769B]"}>
+                  {formatDate(targetDate)}
+                </span>
+                <Calendar className="h-4 w-4 text-[#7B6CF6]" />
+              </button>
+              
+              <AnimatePresence>
+                {showCalendar && (
+                  <CalendarPopup 
+                    selectedDate={targetDate} 
+                    onSelect={(date) => {
+                      setTargetDate(date);
+                      setShowCalendar(false);
+                    }} 
+                    onClose={() => setShowCalendar(false)} 
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+
+            {targetDate && target && (
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-[10px] font-bold text-[#8BE2E8] uppercase tracking-wider">
+                  Target in {daysUntil} days
+                </p>
+                <p className="text-[10px] font-bold text-[#A897FF] uppercase tracking-wider">
+                  Recommended: Rs. {Math.round(Number(target) / Math.max(1, daysUntil / 30)).toLocaleString()}/mo
+                </p>
+              </div>
+            )}
+
             {error ? <p className="text-xs text-rose-300">{error}</p> : null}
-            <button type="button" onClick={() => void handleCreateGoal()} className="w-full rounded-xl bg-[#7B6CF6] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#8B7DFF]">
+            <button type="button" onClick={() => void handleCreateGoal()} className="w-full rounded-xl bg-[#7B6CF6] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#8B7DFF] shadow-[0_0_15px_rgba(123,108,246,0.3)]">
               Add Goal
             </button>
           </div>

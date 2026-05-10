@@ -291,16 +291,16 @@ export default function DashboardRealtimeView({ initialData }: { initialData: Da
 
         <section className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="space-y-8 min-w-0">
+            <section id="forecast-insights" className="scroll-mt-28">
+              <ForecastChart />
+            </section>
+
             <section id="budget-panel" className="scroll-mt-28">
               <BudgetingPanel
                 key={budgetPanelKey}
                 categories={categoryBreakdown}
                 budgetSnapshot={liveBudgeting}
               />
-            </section>
-
-            <section id="forecast-insights" className="scroll-mt-28">
-              <ForecastChart />
             </section>
 
             <section id="smart-advice" className="scroll-mt-28">

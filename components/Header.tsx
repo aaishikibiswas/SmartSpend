@@ -9,6 +9,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useFinance } from "@/context/FinanceContext";
 import { apiClient, type AlertItem } from "@/lib/api-client";
 import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Settings, Upload, AlertTriangle, Copy, Receipt, X } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const LiveNotificationCenter = dynamic(() => import("./dashboard/LiveNotificationCenter"), { ssr: false });
 
 function formatRange(now: Date) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -64,7 +67,7 @@ export default function Header() {
         setUnreadAlerts((current) => Math.min(99, current + increment));
         setIsAlertAnimating(true);
         if (animationTimerRef.current) window.clearTimeout(animationTimerRef.current);
-        animationTimerRef.current = window.setTimeout(() => setIsAlertAnimating(false), 2500);
+        animationTimerRef.current = window.setTimeout(() => setIsAlertAnimating(false), 1500);
       }
 
       if (detail?.data?.alerts && Array.isArray(detail.data.alerts)) {
@@ -187,6 +190,7 @@ export default function Header() {
           </Link>
 
           <div className="relative">
+            <LiveNotificationCenter />
             <button 
               onClick={() => {
                 setIsAlertsOpen((open) => {
@@ -195,15 +199,15 @@ export default function Header() {
                   return nextOpen;
                 });
               }}
-              className={`relative rounded-full p-2 backdrop-blur-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
+              className={`relative rounded-full p-2 backdrop-blur-md transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
                 isAlertAnimating 
-                  ? "animate-alert-bell scale-110 bg-[#ff6e84]/20 shadow-[0_0_20px_rgba(255,80,80,0.7)]" 
+                  ? "animate-alert-bell scale-110 bg-[#ff6e84]/30 shadow-[0_0_30px_rgba(255,110,132,0.6)] ring-2 ring-[#ff6e84]/40" 
                   : "bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.12] scale-100"
               }`}
             >
-              <Bell className={`h-5 w-5 transition-colors duration-300 ${isAlertAnimating ? "text-[#ff6e84]" : "text-[#a3aac4]"}`} />
+              <Bell className={`h-5 w-5 transition-colors duration-500 ${isAlertAnimating ? "text-[#ff6e84]" : "text-[#a3aac4]"}`} />
               {unreadAlerts > 0 && (
-                <span className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white ${isAlertAnimating ? "animate-alert-badge" : ""}`}>
+                <span className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white shadow-[0_0_10px_rgba(255,110,132,0.8)] ${isAlertAnimating ? "animate-alert-badge" : ""}`}>
                   {unreadAlerts}
                 </span>
               )}
@@ -235,7 +239,12 @@ export default function Header() {
                       const isMedium = alert.type === "duplicate" || alert.title.toLowerCase().includes("pressure");
                       
                       return (
-                        <div key={alert.id} className="relative flex gap-3 p-3.5 hover:bg-[#192540] rounded-xl transition-all cursor-pointer group border border-transparent hover:border-white/5">
+                        <Link 
+                          href={`/alerts?focus=${alert.id}`}
+                          key={alert.id} 
+                          onClick={() => setIsAlertsOpen(false)}
+                          className="relative flex gap-3 p-3.5 hover:bg-[#192540] rounded-xl transition-all cursor-pointer group border border-transparent hover:border-white/5"
+                        >
                           <div className={`mt-0.5 rounded-full p-2 h-fit shrink-0 ${
                             isHigh ? "bg-rose-500/15 text-rose-400" : 
                             isMedium ? "bg-amber-500/15 text-amber-400" : 
@@ -261,6 +270,7 @@ export default function Header() {
                           </div>
                           <button 
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               setAlerts((current) => current.filter((a) => a.id !== alert.id));
                             }}
@@ -269,7 +279,7 @@ export default function Header() {
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
-                        </div>
+                        </Link>
                       );
                     })
                   )}

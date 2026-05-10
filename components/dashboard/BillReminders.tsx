@@ -19,7 +19,8 @@ const INITIAL_FORM: FormState = {
 };
 
 function sortBills(items: BillItem[]) {
-  return [...items].sort((left, right) => left.id - right.id);
+  if (!Array.isArray(items)) return [];
+  return [...items].sort((left, right) => (left.id || 0) - (right.id || 0));
 }
 
 export default function BillReminders() {
@@ -34,7 +35,11 @@ export default function BillReminders() {
     async function load() {
       try {
         const res = await apiClient.getBills();
-        setBills(sortBills(res.data));
+        if (res.success && Array.isArray(res.data)) {
+          setBills(sortBills(res.data));
+        } else {
+          setBills([]);
+        }
       } catch (loadError) {
         console.error(loadError);
         setBills([]);
