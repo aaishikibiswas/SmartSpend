@@ -10,7 +10,7 @@ const AUTH_ROUTES = new Set(["/login", "/register"]);
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthRoute = AUTH_ROUTES.has(pathname);
-  const isDashboard = pathname === "/";
+  const isDashboard = pathname === "/" || pathname === "/dashboard";
 
   if (isAuthRoute) {
     return (

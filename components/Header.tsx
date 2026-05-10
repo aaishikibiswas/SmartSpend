@@ -1,14 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import AICatAssistant from "@/components/AICatAssistant";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFinance } from "@/context/FinanceContext";
 import { apiClient, type AlertItem } from "@/lib/api-client";
-import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Search, Settings, Upload, AlertTriangle, Copy, Receipt } from "lucide-react";
+import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Settings, Upload, AlertTriangle, Copy, Receipt } from "lucide-react";
 
 function formatRange(now: Date) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -32,7 +32,7 @@ export default function Header() {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [isAlertAnimating, setIsAlertAnimating] = useState(false);
-  const isDashboard = pathname === "/";
+  const isDashboard = pathname === "/" || pathname === "/dashboard";
 
   useEffect(() => {
     async function loadAlerts() {
@@ -131,50 +131,19 @@ export default function Header() {
   return (
     <>
       <header 
-        className={`sticky top-0 z-40 flex items-center justify-between border-b transition-all duration-300 ${
+        className={`sticky top-0 z-40 flex justify-between border-b transition-all duration-300 ${
           isDashboard 
-            ? "h-20 border-white/[0.03] bg-transparent px-10" 
-            : "h-16 border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl"
+            ? "h-[178px] items-start border-white/[0.03] bg-transparent px-10 pt-7" 
+            : "h-16 items-center border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl"
         }`} 
         style={{ position: "sticky", overflow: "visible" }}
       >
-        <div className="flex flex-1 items-center gap-6">
+        <div className="flex flex-1 items-start gap-6">
           {/* ── Brand Logo Pill — icon only ── */}
-          <div
-            className="hidden md:flex"
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "4px",
-              borderRadius: "12px",
-              background: "rgba(5, 8, 22, 0.80)",
-              border: "1px solid rgba(139, 226, 232, 0.30)",
-              boxShadow: "0 0 14px rgba(111,231,255,0.22), 0 0 28px rgba(139,226,232,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
-              backdropFilter: "blur(12px)",
-              flexShrink: 0,
-            }}
-          >
-            <Image
-              src="/cyber-cat-logo.jpg"
-              alt="SmartSpend"
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-[10px] object-cover"
-              style={{ display: "block" }}
-              priority
-            />
-          </div>
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a3aac4]" />
-            <input
-              type="text"
-              placeholder="Search analytics, goals, or AI help..."
-              className="w-full rounded-full border border-white/10 bg-white/[0.05] py-2 pl-10 pr-4 text-sm text-[#dee5ff] placeholder:text-[#a3aac4]/50 backdrop-blur-md outline-none focus:ring-1 focus:ring-[#6366f1]/50"
-            />
-          </div>
+          {isDashboard && <AICatAssistant />}
         </div>
 
-        <div className="relative flex items-center gap-4" style={{ zIndex: 1 }}>
+        <div className={`relative flex items-center gap-4 ${isDashboard ? "pt-9" : ""}`} style={{ zIndex: 1 }}>
           <div className="hidden gap-2 md:flex">
             <button onClick={exportCSV} className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[10px] font-bold backdrop-blur-md transition-colors hover:bg-white/[0.12]">
               <Download className="h-3.5 w-3.5" />
@@ -315,8 +284,8 @@ export default function Header() {
         <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 backdrop-blur-md">
           <BrainCircuit className="h-4 w-4 text-[#a3a6ff]" />
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#7D8AB5]">Financial Personality</p>
-            <p className="text-xs font-semibold text-[#dee5ff]">{financialPersonality}</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[rgba(255,255,255,0.92)]">Financial Personality</p>
+            <p className="text-xs font-semibold text-[rgba(255,255,255,0.92)]">{financialPersonality}</p>
           </div>
         </div>
         <button className="ml-auto flex items-center gap-1 text-xs font-bold text-[#a3a6ff] hover:underline">
@@ -333,7 +302,7 @@ export default function Header() {
 
         <Link
           href="/upload"
-          className="flex items-center gap-2 rounded-full bg-gradient-to-br from-[#a3a6ff] to-[#6063ee] px-6 py-3 font-bold text-[#0f00a4] shadow-lg transition-all hover:opacity-90"
+          className="cinematic-soft-glow flex items-center gap-2 rounded-full bg-gradient-to-br from-[#a3a6ff] to-[#6063ee] px-6 py-3 font-bold text-[#0f00a4] shadow-lg transition-all hover:opacity-90"
         >
           <Upload className="h-4 w-4" />
           Upload Statement

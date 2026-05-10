@@ -16,6 +16,7 @@ type DashboardSnapshot = {
 type FinanceContextValue = {
   transactions: TransactionItem[];
   goals: GoalItem[];
+  dashboardSnapshot: DashboardSnapshot | null;
   syncOn: boolean;
   setSyncOn: React.Dispatch<React.SetStateAction<boolean>>;
   financialPersonality: string;
@@ -213,6 +214,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     () => ({
       transactions,
       goals,
+      dashboardSnapshot,
       syncOn,
       setSyncOn,
       financialPersonality,
@@ -220,7 +222,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       appendUploadedTransaction,
       appendGoal,
     }),
-    [transactions, goals, syncOn, financialPersonality, registerDashboardSnapshot, appendUploadedTransaction, appendGoal],
+    [transactions, goals, dashboardSnapshot, syncOn, financialPersonality, registerDashboardSnapshot, appendUploadedTransaction, appendGoal],
   );
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

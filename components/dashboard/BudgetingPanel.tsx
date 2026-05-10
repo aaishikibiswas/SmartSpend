@@ -155,7 +155,7 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
   const progressTone = globalUsage >= 100 ? "bg-rose-400" : globalUsage >= 80 ? "bg-amber-400" : "bg-emerald-400";
 
   return (
-    <section className="rounded-[2.5rem] bg-[#111a31] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+    <section className="cinematic-panel-glow rounded-[2.5rem] bg-[#111a31] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h2 className="text-2xl font-bold text-[#F4F6FF]">Financial Settings &amp; Budgeting</h2>

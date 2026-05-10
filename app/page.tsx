@@ -11,18 +11,26 @@ export const dynamic = "force-dynamic";
 
 async function getDashboardData(): Promise<DashboardData> {
   const token = await getSessionToken();
-  const response = await fetch(`${BACKEND_API_BASE}/dashboard/`, {
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  if (!token) {
+    throw new Error("Authentication required. Please sign in again.");
+  }
 
-  if (!response.ok) {
-    throw new Error(`Dashboard request failed with status ${response.status}.`);
+  let response: Response;
+  try {
+    response = await fetch(`${BACKEND_API_BASE}/dashboard/`, {
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new Error("Dashboard backend unavailable. Start the Python backend on port 8001 and refresh.");
   }
 
   const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.message || payload?.detail || `Dashboard request failed with status ${response.status}.`);
+  }
   return payload.data as DashboardData;
 }
 
@@ -33,7 +41,6 @@ export default async function Dashboard() {
   try {
     data = await getDashboardData();
   } catch (err) {
-    console.error(err);
     error = err instanceof Error ? err.message : "Failed to load dashboard data.";
   }
 

@@ -19,72 +19,72 @@
     "behavior_trend",
     "behavior_top_category_share"
   ],
-  "training_rows": 352,
+  "training_rows": 365,
   "evaluation_source": "hybrid_live_plus_benchmark",
   "evaluation": {
     "data_split": {
       "strategy": "time_series",
       "evaluation_source": "hybrid_live_plus_benchmark",
-      "train_rows": 211,
-      "validation_rows": 70,
-      "test_rows": 71
+      "train_rows": 219,
+      "validation_rows": 73,
+      "test_rows": 73
     },
     "models": {
       "lag_rf": {
         "validation": {
-          "rmse": 760.2352,
-          "mae": 475.3453,
-          "mape": 33.8039,
-          "r2": 0.992
+          "rmse": 1279.3351,
+          "mae": 730.0616,
+          "mape": 34.0853,
+          "r2": 0.9817
         },
         "test": {
-          "rmse": 856.1704,
-          "mae": 490.2344,
-          "mape": 70.0129,
-          "r2": 0.9749
+          "rmse": 614.9125,
+          "mae": 435.9745,
+          "mape": 77.3758,
+          "r2": 0.9389
         }
       },
       "xgb_trend": {
         "validation": {
-          "rmse": 1193.3022,
-          "mae": 436.9127,
-          "mape": 23.2263,
-          "r2": 0.9803
+          "rmse": 1171.7654,
+          "mae": 610.0412,
+          "mape": 25.3224,
+          "r2": 0.9846
         },
         "test": {
-          "rmse": 1417.3366,
-          "mae": 510.2487,
-          "mape": 40.3889,
-          "r2": 0.9313
+          "rmse": 571.921,
+          "mae": 349.8437,
+          "mape": 54.4551,
+          "r2": 0.9471
         }
       },
       "sequence_mlp": {
         "validation": {
-          "rmse": 5268.5584,
-          "mae": 4174.9656,
-          "mape": 302.4694,
-          "r2": 0.616
+          "rmse": 11939.6482,
+          "mae": 10081.949,
+          "mape": 624.6671,
+          "r2": -0.5963
         },
         "test": {
-          "rmse": 2485.3812,
-          "mae": 1364.9504,
-          "mape": 136.4181,
-          "r2": 0.7887
+          "rmse": 14524.3648,
+          "mae": 13607.7271,
+          "mape": 2140.3346,
+          "r2": -33.1103
         }
       },
       "lstm": {
         "status": "trained",
         "validation": {
-          "rmse": 9101.6859,
-          "mae": 3249.828,
-          "mape": 89.8921,
-          "r2": -0.1461
+          "rmse": 10307.8357,
+          "mae": 4116.4653,
+          "mape": 95.0474,
+          "r2": -0.1897
         },
         "test": {
-          "rmse": 5741.0172,
-          "mae": 1930.7414,
-          "mape": 78.9996,
-          "r2": -0.1275
+          "rmse": 2842.0186,
+          "mae": 1375.6807,
+          "mape": 88.4679,
+          "r2": -0.306
         }
       }
     },
@@ -96,54 +96,54 @@
         "lstm": 0.26
       },
       "validation": {
-        "rmse": 2784.6797,
-        "mae": 1001.0015,
-        "mape": 51.7835,
-        "r2": 0.8927
+        "rmse": 3860.7619,
+        "mae": 1943.522,
+        "mape": 102.4801,
+        "r2": 0.8331
       },
       "test": {
-        "rmse": 1724.3035,
-        "mae": 668.2754,
-        "mape": 47.0408,
-        "r2": 0.8983
+        "rmse": 2555.414,
+        "mae": 2357.3951,
+        "mape": 395.4401,
+        "r2": -0.0559
       }
     },
     "ablation": {
       "full_features": {
-        "rmse": 1430.0363,
-        "mae": 525.7985,
-        "mape": 42.7654,
-        "r2": 0.93
+        "rmse": 616.7379,
+        "mae": 383.9278,
+        "mape": 59.5327,
+        "r2": 0.9385
       },
       "without_behavioral_features": {
-        "rmse": 912.4318,
-        "mae": 420.7236,
-        "mape": 40.9937,
-        "r2": 0.9715
+        "rmse": 710.8586,
+        "mae": 456.4371,
+        "mape": 69.412,
+        "r2": 0.9183
       },
       "without_rolling": {
-        "rmse": 1322.6447,
-        "mae": 476.7515,
-        "mape": 37.6243,
-        "r2": 0.9402
+        "rmse": 11257.6912,
+        "mae": 2501.4324,
+        "mape": 163.1088,
+        "r2": -19.4922
       },
       "without_calendar": {
-        "rmse": 1204.1724,
-        "mae": 516.1591,
-        "mape": 54.6158,
-        "r2": 0.9504
+        "rmse": 686.3681,
+        "mae": 379.6914,
+        "mape": 47.722,
+        "r2": 0.9238
       },
       "lags_only": {
-        "rmse": 6754.9788,
-        "mae": 3238.293,
-        "mape": 357.0659,
-        "r2": -0.561
+        "rmse": 43670.7849,
+        "mae": 11369.3358,
+        "mape": 991.8893,
+        "r2": -307.3705
       },
       "without_trend": {
-        "rmse": 1279.6873,
-        "mae": 730.1724,
-        "mape": 80.4667,
-        "r2": 0.944
+        "rmse": 1003.3027,
+        "mae": 643.2329,
+        "mape": 89.5289,
+        "r2": 0.8372
       }
     },
     "deep_learning": {
@@ -153,35 +153,35 @@
     "comparison": {
       "table": {
         "LAG_RF": {
-          "rmse": 856.1704,
-          "mae": 490.2344,
-          "mape": 70.0129,
-          "r2": 0.9749
+          "rmse": 614.9125,
+          "mae": 435.9745,
+          "mape": 77.3758,
+          "r2": 0.9389
         },
         "XGB": {
-          "rmse": 1417.3366,
-          "mae": 510.2487,
-          "mape": 40.3889,
-          "r2": 0.9313
+          "rmse": 571.921,
+          "mae": 349.8437,
+          "mape": 54.4551,
+          "r2": 0.9471
         },
         "SEQUENCE_MLP": {
-          "rmse": 2485.3812,
-          "mae": 1364.9504,
-          "mape": 136.4181,
-          "r2": 0.7887
+          "rmse": 14524.3648,
+          "mae": 13607.7271,
+          "mape": 2140.3346,
+          "r2": -33.1103
         },
         "LSTM": {
-          "rmse": 5741.0172,
-          "mae": 1930.7414,
-          "mape": 78.9996,
-          "r2": -0.1275
+          "rmse": 2842.0186,
+          "mae": 1375.6807,
+          "mape": 88.4679,
+          "r2": -0.306
         }
       },
-      "best_model": "LAG_RF",
+      "best_model": "XGB",
       "selection_metric": "rmse"
     },
     "benchmark_dataset": {
-      "rows": 1114,
+      "rows": 1129,
       "profiles": [
         "balanced_saver",
         "high_variable_spend",
@@ -189,8 +189,8 @@
         "subscription_heavy"
       ],
       "date_range": {
-        "start": "2026-03-11",
-        "end": "2027-03-05"
+        "start": "2025-12-31",
+        "end": "2026-12-25"
       },
       "categories": [
         "Bills",
@@ -208,31 +208,31 @@
   "comparison": {
     "table": {
       "LAG_RF": {
-        "rmse": 856.1704,
-        "mae": 490.2344,
-        "mape": 70.0129,
-        "r2": 0.9749
+        "rmse": 614.9125,
+        "mae": 435.9745,
+        "mape": 77.3758,
+        "r2": 0.9389
       },
       "XGB": {
-        "rmse": 1417.3366,
-        "mae": 510.2487,
-        "mape": 40.3889,
-        "r2": 0.9313
+        "rmse": 571.921,
+        "mae": 349.8437,
+        "mape": 54.4551,
+        "r2": 0.9471
       },
       "SEQUENCE_MLP": {
-        "rmse": 2485.3812,
-        "mae": 1364.9504,
-        "mape": 136.4181,
-        "r2": 0.7887
+        "rmse": 14524.3648,
+        "mae": 13607.7271,
+        "mape": 2140.3346,
+        "r2": -33.1103
       },
       "LSTM": {
-        "rmse": 5741.0172,
-        "mae": 1930.7414,
-        "mape": 78.9996,
-        "r2": -0.1275
+        "rmse": 2842.0186,
+        "mae": 1375.6807,
+        "mape": 88.4679,
+        "r2": -0.306
       }
     },
-    "best_model": "LAG_RF",
+    "best_model": "XGB",
     "selection_metric": "rmse"
   }
 }

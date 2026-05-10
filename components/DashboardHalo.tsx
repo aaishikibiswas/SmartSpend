@@ -31,7 +31,7 @@ export default function DashboardHalo() {
         borderRadius: "50%",
         background: "radial-gradient(ellipse at 35% 45%, rgba(111,231,255,0.72) 0%, rgba(139,226,232,0.45) 35%, rgba(139,226,232,0.18) 58%, transparent 76%)",
         filter: "blur(34px)",
-        animation: "halo-drift-cyan 8s ease-in-out infinite, halo-breathe 3.5s ease-in-out infinite",
+        animation: "halo-drift-cyan 5.2s ease-in-out infinite, halo-breathe 2.8s ease-in-out infinite",
         willChange: "transform, opacity",
       }} />
 
@@ -45,7 +45,7 @@ export default function DashboardHalo() {
         borderRadius: "50%",
         background: "radial-gradient(ellipse at 65% 40%, rgba(168,151,255,0.72) 0%, rgba(125,117,255,0.42) 35%, rgba(125,117,255,0.16) 58%, transparent 76%)",
         filter: "blur(36px)",
-        animation: "halo-drift-lavender 10s ease-in-out infinite, halo-breathe 5s ease-in-out infinite 1s",
+        animation: "halo-drift-lavender 6.4s ease-in-out infinite, halo-breathe 3.2s ease-in-out infinite 0.6s",
         willChange: "transform, opacity",
       }} />
 
@@ -59,7 +59,7 @@ export default function DashboardHalo() {
         borderRadius: "50%",
         background: "radial-gradient(ellipse at center, rgba(125,117,255,0.34) 0%, rgba(139,226,232,0.18) 48%, transparent 78%)",
         filter: "blur(50px)",
-        animation: "halo-morph-center 9s ease-in-out infinite",
+        animation: "halo-morph-center 5.8s ease-in-out infinite",
         willChange: "transform, opacity",
         transform: "translate(0,0)",
       }} />
@@ -74,7 +74,7 @@ export default function DashboardHalo() {
         borderRadius: "9999px",
         background: "radial-gradient(ellipse at center, rgba(139,226,232,0.34) 0%, transparent 78%)",
         filter: "blur(16px)",
-        animation: "halo-breathe 2.8s ease-in-out infinite 0.5s",
+        animation: "halo-breathe 2s ease-in-out infinite 0.3s",
         willChange: "opacity",
       }} />
 
@@ -88,9 +88,10 @@ export default function DashboardHalo() {
         borderRadius: "50%",
         background: "radial-gradient(ellipse at center top, rgba(167,136,163,0.32) 0%, rgba(125,117,255,0.18) 50%, transparent 80%)",
         filter: "blur(44px)",
-        animation: "halo-mauve-bottom 12s ease-in-out infinite 2s, halo-breathe 6s ease-in-out infinite",
+        animation: "halo-mauve-bottom 7s ease-in-out infinite 1s, halo-breathe 3.6s ease-in-out infinite",
         willChange: "transform, opacity",
       }} />
+      <div className="dashboard-halo-particles" />
     </div>
   );
 }
