@@ -18,6 +18,7 @@ from backend.services.networth_engine import calculate_networth
 from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage
+from backend.utils.json_safety import to_json_safe
 
 router = APIRouter()
 
@@ -210,7 +211,7 @@ async def get_dashboard():
     advisory = {"recommended_savings": 0, "advice": [], "behavior_profile": behavior.get("behavior_profile", "balanced")}
 
     sorted_transactions = transactions.sort_values("date", ascending=False)
-    return {
+    return to_json_safe({
         "status": 200,
         "data": {
             "metrics": metrics,
@@ -231,7 +232,7 @@ async def get_dashboard():
             "recentTransactions": sorted_transactions.head(5).to_dict(orient="records"),
             "allTransactions": sorted_transactions.to_dict(orient="records"),
         },
-    }
+    })
 
 
 class AdviceRequest(BaseModel):

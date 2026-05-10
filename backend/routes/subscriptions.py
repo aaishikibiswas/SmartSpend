@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from backend.services.pipeline import broadcast_snapshot
+from backend.services.pipeline import broadcast_financial_refresh
 from backend.services.subscription_engine import add_subscription, get_all_subscriptions, remove_subscription as remove_subscription_entry
 from backend.storage import Storage
 
@@ -28,7 +28,7 @@ def get_subscriptions():
 @router.post("/")
 async def create_subscription(payload: SubscriptionCreate):
     item = add_subscription(payload.model_dump())
-    await broadcast_snapshot(event_type="update", source="subscriptions")
+    await broadcast_financial_refresh(source="subscriptions")
     return {
         "status": 201,
         "data": item,
@@ -38,7 +38,7 @@ async def create_subscription(payload: SubscriptionCreate):
 @router.delete("/{name}")
 async def remove_subscription(name: str):
     remove_subscription_entry(name)
-    await broadcast_snapshot(event_type="update", source="subscriptions")
+    await broadcast_financial_refresh(source="subscriptions")
     return {
         "status": 200,
         "data": {"removed": name},

@@ -46,7 +46,12 @@ export default function LiveNotificationCenter() {
         seenAlertsRef.current.add(item.originalId.toString());
       }
       const id = Date.now() + Math.floor(Math.random() * 1000);
-      setItems((current) => [{ id, ...item }, ...current].slice(0, 6));
+      setItems((current) => [{ id, ...item }, ...current].slice(0, 3));
+      
+      // Auto-dismiss after 2.5 seconds
+      setTimeout(() => {
+        setItems((current) => current.filter((i) => i.id !== id));
+      }, 2500);
     };
 
     const flushTransactions = () => {
@@ -116,29 +121,25 @@ export default function LiveNotificationCenter() {
   }
 
   return (
-    <div className="pointer-events-none fixed right-5 top-24 z-[70] flex w-[340px] flex-col gap-3">
+    <div className="pointer-events-none fixed right-6 top-24 z-[70] flex w-[300px] flex-col gap-2">
       {items.map((item) => {
         const styles = stylesFor(item.tone);
         const Icon = styles.icon;
         return (
-          <div key={item.id} className={`pointer-events-auto rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl ${styles.shell}`}>
-            <div className="flex items-start gap-3">
-              <div className={`mt-0.5 rounded-xl p-2 ${styles.badge}`}>
-                <Icon className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#edf2ff]">{item.title}</p>
-                <p className="mt-1 text-xs leading-5 text-[#a8b1ce]">{item.message}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
-                className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#9da8cb] transition hover:border-white/20 hover:text-white"
-                aria-label={`Dismiss ${item.title}`}
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div key={item.id} className={`pointer-events-auto flex items-center gap-3 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md transition-all duration-500 animate-in fade-in slide-in-from-right-4 ${styles.shell}`}>
+            <div className={`shrink-0 rounded-lg p-1.5 ${styles.badge}`}>
+              <Icon className="h-3.5 w-3.5" />
             </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-bold text-[#edf2ff]">{item.title}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
+              className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9da8cb] hover:text-white"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </div>
         );
       })}

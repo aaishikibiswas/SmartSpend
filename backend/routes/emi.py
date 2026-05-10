@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from backend.services.emi_engine import add_emi, get_all_emis, summarize_emis
-from backend.services.pipeline import broadcast_snapshot
+from backend.services.pipeline import broadcast_financial_refresh
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ def list_emis():
 @router.post("/")
 async def create_emi(payload: EmiCreate):
     item = add_emi(payload.model_dump())
-    await broadcast_snapshot(event_type="update", source="emi")
+    await broadcast_financial_refresh(source="emi")
     return {
         "status": 201,
         "data": item,
@@ -44,7 +44,7 @@ async def delete_emi(identifier: str):
     from backend.services.emi_engine import remove_emi
 
     remove_emi(identifier)
-    await broadcast_snapshot(event_type="update", source="emi")
+    await broadcast_financial_refresh(source="emi")
     return {
         "status": 200,
         "data": {"removed": identifier},

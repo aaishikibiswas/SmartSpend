@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from backend.storage import Storage
-from backend.services.pipeline import broadcast_snapshot
+from backend.services.pipeline import broadcast_financial_refresh
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -19,12 +19,12 @@ def get_bills():
 @router.post("/")
 async def add_bill(bill: BillCreate):
     new_bill = Storage.add_bill(bill.dict())
-    await broadcast_snapshot(event_type="update", source="bills")
+    await broadcast_financial_refresh(source="bills")
     return {"status": 201, "data": new_bill}
 
 
 @router.delete("/{identifier}")
 async def remove_bill(identifier: str):
     Storage.remove_bill(identifier)
-    await broadcast_snapshot(event_type="update", source="bills")
+    await broadcast_financial_refresh(source="bills")
     return {"status": 200, "data": {"removed": identifier}}

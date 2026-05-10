@@ -29,7 +29,19 @@ def score_transaction_anomalies(transactions_df: pd.DataFrame) -> list[dict]:
         return []
 
     contamination = _personalized_threshold(expenses)
-    model_features = expenses[["amount_abs", "day_of_week", "month", "merchant_frequency", "category_frequency"]]
+    feature_columns = [
+        "amount_abs",
+        "day_of_week",
+        "month",
+        "merchant_frequency",
+        "category_frequency",
+        "recurring_confidence",
+        "recurring_variance",
+        "merchant_repetition",
+        "liability_ratio",
+        "cashflow_pressure",
+    ]
+    model_features = expenses[feature_columns]
     detector = IsolationForest(contamination=contamination, random_state=42)
     detector.fit(model_features)
     anomaly_flags = detector.predict(model_features)
@@ -43,6 +55,8 @@ def score_transaction_anomalies(transactions_df: pd.DataFrame) -> list[dict]:
         if flag != -1:
             continue
         personalized_risk = "High" if (row["amount_abs"] > amount_mean + (2 * amount_std)) or score < -0.12 else "Medium"
+        recurring_context = float(row.get("recurring_confidence", 0)) >= 0.7 or float(row.get("merchant_frequency", 0)) >= 2
+        reason = "recurring/liability pattern" if recurring_context else "spend spike"
         flagged.append(
             {
                 "merchant": row["merchant"],
@@ -51,6 +65,10 @@ def score_transaction_anomalies(transactions_df: pd.DataFrame) -> list[dict]:
                 "amount": round(float(row["amount_abs"]), 2),
                 "anomaly_score": round(float(-score), 4),
                 "risk_flag": personalized_risk,
+                "reason": reason,
+                "merchant_frequency": int(row.get("merchant_frequency", 1)),
+                "recurring_confidence": round(float(row.get("recurring_confidence", 0)), 2),
+                "liability_ratio": round(float(row.get("liability_ratio", 0)), 2),
                 "personalized": True,
             }
         )

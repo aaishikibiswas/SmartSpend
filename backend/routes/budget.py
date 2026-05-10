@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from backend.services.alert_engine import generate_alerts, get_all_alerts
+from backend.services.alert_engine import get_all_alerts
 from backend.services.budget_engine import (
     add_or_update_category_budget,
     build_budget_feedback,
@@ -11,6 +11,7 @@ from backend.services.budget_engine import (
     remove_category_budget,
     set_global_budget,
 )
+from backend.services.pipeline import broadcast_financial_refresh
 from backend.storage import Storage
 
 router = APIRouter()
@@ -27,13 +28,6 @@ class CategoryBudgetPayload(BaseModel):
     frequency: str = "Monthly"
 
 
-def _refresh_budget_dependent_systems():
-    transactions = Storage.get_transactions()
-    alerts = generate_alerts(transactions)
-    Storage.sync_alerts(alerts)
-    return transactions
-
-
 @router.get("/global")
 def get_global_budget():
     transactions = Storage.get_transactions()
@@ -44,10 +38,11 @@ def get_global_budget():
 
 
 @router.post("/global")
-def update_global_budget(payload: GlobalBudgetPayload):
+async def update_global_budget(payload: GlobalBudgetPayload):
     transactions = Storage.get_transactions()
     summary = set_global_budget(payload.monthly_budget, payload.auto_distribute, transactions)
-    transactions = _refresh_budget_dependent_systems()
+    await broadcast_financial_refresh(source="budget")
+    transactions = Storage.get_transactions()
 
     return {
         "status": 200,
@@ -71,10 +66,11 @@ def get_category_budget():
 
 
 @router.post("/category")
-def upsert_category_budget(payload: CategoryBudgetPayload):
+async def upsert_category_budget(payload: CategoryBudgetPayload):
     transactions = Storage.get_transactions()
     category = add_or_update_category_budget(payload.name, payload.amount, payload.frequency, transactions)
-    transactions = _refresh_budget_dependent_systems()
+    await broadcast_financial_refresh(source="budget")
+    transactions = Storage.get_transactions()
 
     return {
         "status": 200,
@@ -89,10 +85,11 @@ def upsert_category_budget(payload: CategoryBudgetPayload):
 
 
 @router.delete("/category/{name}")
-def delete_category_budget(name: str):
+async def delete_category_budget(name: str):
     transactions = Storage.get_transactions()
     categories = remove_category_budget(name, transactions)
-    transactions = _refresh_budget_dependent_systems()
+    await broadcast_financial_refresh(source="budget")
+    transactions = Storage.get_transactions()
 
     return {
         "status": 200,

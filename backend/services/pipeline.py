@@ -22,6 +22,7 @@ from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.services.websocket_manager import websocket_manager
 from backend.storage import Storage, get_current_user_id
+from backend.utils.json_safety import to_json_safe
 
 
 def _build_category_comparison(transactions: pd.DataFrame) -> list[dict]:
@@ -125,11 +126,11 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
     metrics = await get_dashboard_analytics()
     budgeting = build_budget_snapshot(transactions)
     subscriptions = get_all_subscriptions(transactions)
-    emi_summary = summarize_emis()
+    emi_summary = summarize_emis(transactions)
     bills = Storage.get_bills()
     expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills)
     networth = calculate_networth(metrics, emi_summary)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills, transactions)
     prediction = {
         "forecast": {"peakAlert": {"day": "Refreshing...", "amount": 0}, "series": []},
         "next_expense_prediction": predict_next_expense(build_daily_expense_series(transactions), include_prophet=False),
@@ -139,7 +140,7 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
     advisory = await generate_financial_advice(metrics, {"global": budgeting["global"]}, prediction["next_expense_prediction"], expense_split, behavior)
     recent_transactions = transactions.sort_values("date", ascending=False).head(5).to_dict(orient="records") if not transactions.empty else []
 
-    return {
+    return to_json_safe({
         "type": event_type,
         "data": {
             "source": source,
@@ -165,7 +166,7 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
             "recentTransactions": recent_transactions,
             "allTransactions": transactions.sort_values("date", ascending=False).to_dict(orient="records") if not transactions.empty else [],
         },
-    }
+    })
 
 
 async def broadcast_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> None:
@@ -173,6 +174,14 @@ async def broadcast_snapshot(latest_transaction: dict | None = None, event_type:
         await _build_snapshot(latest_transaction=latest_transaction, event_type=event_type, source=source),
         user_id=get_current_user_id(),
     )
+
+
+async def broadcast_financial_refresh(source: str = "system", latest_transaction: dict | None = None) -> dict:
+    transactions = Storage.get_transactions()
+    new_alerts = _refresh_financial_state(transactions)
+    snapshot = await _build_snapshot(latest_transaction=latest_transaction, event_type="update", source=source)
+    await _broadcast_post_refresh(snapshot, source, new_alerts=new_alerts)
+    return {"snapshot": snapshot, "new_alerts": new_alerts}
 
 
 async def process_uploaded_transactions(transactions: list[dict]) -> None:

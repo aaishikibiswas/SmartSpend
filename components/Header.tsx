@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { jsPDF } from "jspdf";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import AICatAssistant from "@/components/AICatAssistant";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useFinance } from "@/context/FinanceContext";
 import { apiClient, type AlertItem } from "@/lib/api-client";
-import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Settings, Upload, AlertTriangle, Copy, Receipt } from "lucide-react";
+import { Bell, BrainCircuit, CalendarDays, Download, ListFilter, Settings, Upload, AlertTriangle, Copy, Receipt, X } from "lucide-react";
 
 function formatRange(now: Date) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -31,8 +31,10 @@ export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [unreadAlerts, setUnreadAlerts] = useState(0);
   const [isAlertAnimating, setIsAlertAnimating] = useState(false);
-  const isDashboard = pathname === "/" || pathname === "/dashboard";
+  const animationTimerRef = useRef<number | null>(null);
+  const isDashboard = pathname === "/" || pathname === "/dashboard" || pathname === "/dashboard/";
 
   useEffect(() => {
     async function loadAlerts() {
@@ -48,9 +50,21 @@ export default function Header() {
     const handleWsUpdate = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       
-      if (detail?.type === 'alert_trigger') {
+      if (detail?.type === 'alert_trigger' || detail?.type === 'live-alert') {
+        const incomingAlerts = Array.isArray(detail?.data?.alerts) ? detail.data.alerts : [];
+        if (incomingAlerts.length > 0) {
+          setAlerts((current) => {
+            const existingIds = new Set(current.map(a => a.id));
+            const newAlerts = incomingAlerts.filter((a: AlertItem) => !existingIds.has(a.id));
+            return [...newAlerts, ...current].slice(0, 20);
+          });
+        }
+        
+        const increment = detail?.data?.latest ? 1 : Math.max(1, incomingAlerts.length ? Math.min(incomingAlerts.length, 5) : 1);
+        setUnreadAlerts((current) => Math.min(99, current + increment));
         setIsAlertAnimating(true);
-        setTimeout(() => setIsAlertAnimating(false), 2500);
+        if (animationTimerRef.current) window.clearTimeout(animationTimerRef.current);
+        animationTimerRef.current = window.setTimeout(() => setIsAlertAnimating(false), 2500);
       }
 
       if (detail?.data?.alerts && Array.isArray(detail.data.alerts)) {
@@ -65,6 +79,7 @@ export default function Header() {
     window.addEventListener("smartspend:ws-snapshot", handleWsUpdate);
     
     return () => {
+      if (animationTimerRef.current) window.clearTimeout(animationTimerRef.current);
       window.removeEventListener("smartspend:ws-update", handleWsUpdate);
       window.removeEventListener("smartspend:ws-alert_trigger", handleWsUpdate);
       window.removeEventListener("smartspend:ws-snapshot", handleWsUpdate);
@@ -133,17 +148,17 @@ export default function Header() {
       <header 
         className={`sticky top-0 z-40 flex justify-between border-b transition-all duration-300 ${
           isDashboard 
-            ? "h-[178px] items-start border-white/[0.03] bg-transparent px-10 pt-7" 
+            ? "h-[210px] items-start border-white/[0.03] bg-transparent px-10 pt-8" 
             : "h-16 items-center border-[#dee5ff]/10 bg-[#060e20]/80 px-8 shadow-xl shadow-black/20 backdrop-blur-xl"
         }`} 
         style={{ position: "sticky", overflow: "visible" }}
       >
-        <div className="flex flex-1 items-start gap-6">
+        <div className="flex flex-1 items-start gap-6 pt-2">
           {/* ── Brand Logo Pill — icon only ── */}
           {isDashboard && <AICatAssistant />}
         </div>
 
-        <div className={`relative flex items-center gap-4 ${isDashboard ? "pt-9" : ""}`} style={{ zIndex: 1 }}>
+        <div className={`relative flex items-center gap-4 ${isDashboard ? "pt-12" : ""}`} style={{ zIndex: 1 }}>
           <div className="hidden gap-2 md:flex">
             <button onClick={exportCSV} className="flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1 text-[10px] font-bold backdrop-blur-md transition-colors hover:bg-white/[0.12]">
               <Download className="h-3.5 w-3.5" />
@@ -173,50 +188,96 @@ export default function Header() {
 
           <div className="relative">
             <button 
-              onClick={() => setIsAlertsOpen(!isAlertsOpen)}
+              onClick={() => {
+                setIsAlertsOpen((open) => {
+                  const nextOpen = !open;
+                  if (nextOpen) setUnreadAlerts(0);
+                  return nextOpen;
+                });
+              }}
               className={`relative rounded-full p-2 backdrop-blur-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#6366f1]/50 ${
                 isAlertAnimating 
-                  ? "scale-110 bg-[#ff6e84]/20 shadow-[0_0_20px_rgba(255,110,132,0.8)]" 
+                  ? "animate-alert-bell scale-110 bg-[#ff6e84]/20 shadow-[0_0_20px_rgba(255,80,80,0.7)]" 
                   : "bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.12] scale-100"
               }`}
             >
               <Bell className={`h-5 w-5 transition-colors duration-300 ${isAlertAnimating ? "text-[#ff6e84]" : "text-[#a3aac4]"}`} />
-              {alerts.length > 0 && (
-                <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white">
-                  {alerts.length}
+              {unreadAlerts > 0 && (
+                <span className={`absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6e84] text-[9px] font-bold text-white ${isAlertAnimating ? "animate-alert-badge" : ""}`}>
+                  {unreadAlerts}
                 </span>
               )}
             </button>
 
             {isAlertsOpen && (
-              <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-[#27314d] bg-[#10192d] shadow-xl backdrop-blur-xl z-50">
+              <div className="absolute right-0 mt-2 w-[340px] max-h-[480px] overflow-y-auto rounded-2xl border border-[#27314d] bg-[#10192d] shadow-2xl backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-200">
                 <div className="sticky top-0 bg-[#10192d]/95 backdrop-blur border-b border-[#27314d] p-4 flex justify-between items-center z-10">
-                  <h3 className="font-bold text-[#dee5ff]">Smart Alerts</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-[#dee5ff]">Smart Alerts</h3>
+                    {unreadAlerts > 0 && <span className="flex h-2 w-2 rounded-full bg-[#ff6e84] animate-pulse" />}
+                  </div>
                   {alerts.length > 0 && (
-                    <span className="text-xs text-[#a3aac4]">{alerts.length} new</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#a3aac4]">{alerts.length} active</span>
                   )}
                 </div>
-                <div className="p-2 flex flex-col gap-1">
+                <div className="p-2 flex flex-col gap-1.5">
                   {alerts.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-[#a3aac4]">No new alerts.</div>
-                  ) : (
-                    alerts.map((alert) => (
-                      <div key={alert.id} className="flex gap-3 p-3 hover:bg-[#192540] rounded-xl transition-colors cursor-pointer group">
-                        <div className={`mt-0.5 rounded-full p-1.5 h-fit ${alert.type === "breach" ? "bg-rose-500/10 text-rose-500" : alert.type === "duplicate" ? "bg-[#8B5CF6]/10 text-[#8B5CF6]" : "bg-blue-500/10 text-blue-500"}`}>
-                          {alert.type === "breach" ? <AlertTriangle className="w-4 h-4" /> : alert.type === "duplicate" ? <Copy className="w-4 h-4" /> : <Receipt className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-[#dee5ff] group-hover:text-white transition-colors">{alert.title}</p>
-                          <p className="text-xs text-[#a3aac4] mt-0.5 line-clamp-2 leading-relaxed">{alert.message}</p>
-                        </div>
+                    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+                      <div className="mb-3 rounded-full bg-white/5 p-3 text-[#40485d]">
+                        <Bell className="h-6 w-6 opacity-20" />
                       </div>
-                    ))
+                      <p className="text-sm font-semibold text-[#dee5ff]">No new alerts</p>
+                      <p className="mt-1 text-xs text-[#a3aac4]">Your financial workspace is clear and synced.</p>
+                    </div>
+                  ) : (
+                    alerts.map((alert) => {
+                      const isHigh = alert.type === "breach" || alert.title.toLowerCase().includes("warning") || alert.title.toLowerCase().includes("spike");
+                      const isMedium = alert.type === "duplicate" || alert.title.toLowerCase().includes("pressure");
+                      
+                      return (
+                        <div key={alert.id} className="relative flex gap-3 p-3.5 hover:bg-[#192540] rounded-xl transition-all cursor-pointer group border border-transparent hover:border-white/5">
+                          <div className={`mt-0.5 rounded-full p-2 h-fit shrink-0 ${
+                            isHigh ? "bg-rose-500/15 text-rose-400" : 
+                            isMedium ? "bg-amber-500/15 text-amber-400" : 
+                            "bg-blue-500/15 text-blue-400"
+                          }`}>
+                            {isHigh ? <AlertTriangle className="w-4 h-4" /> : isMedium ? <Copy className="w-4 h-4" /> : <Receipt className="w-4 h-4" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex justify-between items-start mb-0.5">
+                              <p className="text-[13px] font-bold text-[#dee5ff] group-hover:text-white transition-colors truncate pr-4">{alert.title}</p>
+                              <span className="text-[9px] font-medium text-[#6d758c] whitespace-nowrap pt-0.5">Just now</span>
+                            </div>
+                            <p className="text-[12px] text-[#a3aac4] leading-relaxed line-clamp-3 mb-2">{alert.message}</p>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                                isHigh ? "text-rose-500/80" : 
+                                isMedium ? "text-amber-500/80" : 
+                                "text-blue-500/80"
+                              }`}>
+                                {isHigh ? "High Severity" : isMedium ? "Medium Priority" : "System Insight"}
+                              </span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAlerts((current) => current.filter((a) => a.id !== alert.id));
+                            }}
+                            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white/10 text-[#6d758c] hover:text-white transition-all"
+                            aria-label="Dismiss alert"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
                 {alerts.length > 0 && (
-                  <div className="sticky bottom-0 bg-[#10192d]/95 backdrop-blur border-t border-[#27314d] p-2">
-                    <Link href="/alerts" onClick={() => setIsAlertsOpen(false)} className="block w-full py-2 text-center text-xs font-bold text-[#6366f1] hover:text-[#8183f4] transition-colors">
-                      View All Alerts
+                  <div className="sticky bottom-0 bg-[#10192d]/95 backdrop-blur border-t border-[#27314d] p-2.5">
+                    <Link href="/alerts" onClick={() => setIsAlertsOpen(false)} className="flex items-center justify-center gap-2 w-full py-2.5 text-center text-[11px] font-bold uppercase tracking-widest text-[#6366f1] hover:text-[#8183f4] transition-all bg-white/[0.03] hover:bg-white/[0.06] rounded-xl">
+                      Enter Alerts Center
                     </Link>
                   </div>
                 )}

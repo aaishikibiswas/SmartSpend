@@ -62,6 +62,14 @@ def add_transaction_context_features(df: pd.DataFrame) -> pd.DataFrame:
     category_counts = working["category"].value_counts().to_dict()
     working["merchant_frequency"] = working["merchant"].map(merchant_counts).fillna(1).astype(float)
     working["category_frequency"] = working["category"].map(category_counts).fillna(1).astype(float)
+    recurring_confidence = working["recurring_confidence"] if "recurring_confidence" in working.columns else pd.Series(0, index=working.index)
+    working["recurring_confidence"] = pd.to_numeric(recurring_confidence, errors="coerce").fillna(0).astype(float)
+    working["liability_ratio"] = working["category"].str.lower().isin({"emi", "loan", "housing", "bills", "utilities", "subscription", "insurance"}).astype(float)
+    merchant_mean = working.groupby("merchant")["amount_abs"].transform("mean").replace(0, 1)
+    merchant_std = working.groupby("merchant")["amount_abs"].transform("std").fillna(0)
+    working["recurring_variance"] = (merchant_std / merchant_mean).fillna(0).astype(float)
+    working["merchant_repetition"] = (working["merchant_frequency"] / max(float(len(working)), 1.0)).astype(float)
+    working["cashflow_pressure"] = np.where(working["amount"] < 0, working["amount_abs"], 0).astype(float)
     return working
 
 

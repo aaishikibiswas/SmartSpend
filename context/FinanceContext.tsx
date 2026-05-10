@@ -87,6 +87,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [goals, setGoals] = useState<GoalItem[]>([]);
   const [dashboardSnapshot, setDashboardSnapshot] = useState<DashboardSnapshot | null>(null);
   const latestTimeRef = useRef<Date | null>(null);
+  const persistInFlightRef = useRef(false);
 
   const transactions = useMemo(() => sortByLatest([...mockTransactions, ...uploadedTransactions]), [mockTransactions, uploadedTransactions]);
 
@@ -152,6 +153,19 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const base = latestTimeRef.current || new Date(Math.max(toTime(transactions[0]?.rawDate || transactions[0]?.date), Date.now()));
       const tx = generateFakeTransaction(base);
       latestTimeRef.current = new Date(tx.rawDate);
+      if (!persistInFlightRef.current) {
+        persistInFlightRef.current = true;
+        void apiClient.addTransaction({
+          ...tx,
+          rawDate: tx.rawDate.toISOString(),
+        })
+          .catch((error) => {
+            console.error("Mock bank sync failed to persist transaction", error);
+          })
+          .finally(() => {
+            persistInFlightRef.current = false;
+          });
+      }
 
       const liveTransactions = sortByLatest([tx, ...transactions]);
       setMockTransactions((prev) => sortByLatest([tx, ...prev]));

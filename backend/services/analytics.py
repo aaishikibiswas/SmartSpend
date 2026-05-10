@@ -82,7 +82,7 @@ async def get_dashboard_analytics() -> dict:
     expense_df = df[df["amount"] < 0].copy()
     subscriptions, emi_summary = await asyncio.gather(
         asyncio.to_thread(get_all_subscriptions, df),
-        asyncio.to_thread(summarize_emis)
+        asyncio.to_thread(summarize_emis, df)
     )
 
     total_income = float(income_df["amount"].sum())
@@ -103,7 +103,7 @@ async def get_dashboard_analytics() -> dict:
     ) = await asyncio.gather(
         asyncio.to_thread(get_global_budget_summary, df),
         asyncio.to_thread(classify_expense_split, df, subscriptions, emi_summary, Storage.get_bills()),
-        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, Storage.get_bills()),
+        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, Storage.get_bills(), df),
         asyncio.to_thread(build_behavior_profile, df),
         asyncio.to_thread(latest_anomaly_summary, df)
     )

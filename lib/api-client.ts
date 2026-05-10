@@ -277,6 +277,7 @@ export type TransactionCreatePayload = {
   merchant: string;
   category?: string;
   amount: number;
+  [key: string]: unknown;
 };
 
 export type BudgetConfigPayload = {
