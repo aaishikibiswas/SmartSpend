@@ -21,7 +21,7 @@ from backend.services.networth_engine import calculate_networth
 from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.services.websocket_manager import websocket_manager
-from backend.storage import Storage, bills_db
+from backend.storage import Storage, get_current_user_id
 
 
 def _build_category_comparison(transactions: pd.DataFrame) -> list[dict]:
@@ -59,6 +59,7 @@ def _refresh_financial_state(transactions_df: pd.DataFrame) -> list[dict]:
 
 
 async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: list[dict] | None = None, new_alerts: list[dict] | None = None) -> None:
+    user_id = get_current_user_id()
     if transactions:
         for transaction in transactions:
             await websocket_manager.broadcast(
@@ -68,7 +69,8 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
                         "source": source,
                         "transaction": transaction,
                     },
-                }
+                },
+                user_id=user_id,
             )
 
     if new_alerts and len(new_alerts) > 0:
@@ -86,7 +88,8 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
                     "alerts": snapshot["data"]["alerts"],
                     "latest": latest_new_alert,
                 },
-            }
+            },
+            user_id=user_id,
         )
 
     await websocket_manager.broadcast(
@@ -96,10 +99,11 @@ async def _broadcast_post_refresh(snapshot: dict, source: str, transactions: lis
                 "source": source,
                 "prediction": snapshot["data"]["prediction"],
             },
-        }
+        },
+        user_id=user_id,
     )
 
-    await websocket_manager.broadcast(snapshot)
+    await websocket_manager.broadcast(snapshot, user_id=user_id)
 
 
 async def _complete_uploaded_refresh(transactions: list[dict]) -> None:
@@ -122,9 +126,10 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
     budgeting = build_budget_snapshot(transactions)
     subscriptions = get_all_subscriptions(transactions)
     emi_summary = summarize_emis()
-    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
+    bills = Storage.get_bills()
+    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills)
     networth = calculate_networth(metrics, emi_summary)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills)
     prediction = {
         "forecast": {"peakAlert": {"day": "Refreshing...", "amount": 0}, "series": []},
         "next_expense_prediction": predict_next_expense(build_daily_expense_series(transactions), include_prophet=False),
@@ -145,7 +150,7 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
             "prediction": prediction,
             "goals": get_all_goals(),
             "goalSuggestion": _build_goal_suggestion(metrics, budgeting),
-            "bills": bills_db,
+            "bills": bills,
             "subscriptions": subscriptions,
             "emi": emi_summary,
             "expenseSplit": expense_split,
@@ -164,7 +169,10 @@ async def _build_snapshot(latest_transaction: dict | None = None, event_type: st
 
 
 async def broadcast_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> None:
-    await websocket_manager.broadcast(await _build_snapshot(latest_transaction=latest_transaction, event_type=event_type, source=source))
+    await websocket_manager.broadcast(
+        await _build_snapshot(latest_transaction=latest_transaction, event_type=event_type, source=source),
+        user_id=get_current_user_id(),
+    )
 
 
 async def process_uploaded_transactions(transactions: list[dict]) -> None:
@@ -186,7 +194,8 @@ async def process_live_transaction(transaction: dict) -> None:
                 "source": "stream",
                 "transaction": transaction,
             },
-        }
+        },
+        user_id=get_current_user_id(),
     )
     asyncio.create_task(_complete_live_refresh(transaction))
 

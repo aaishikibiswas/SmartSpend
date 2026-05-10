@@ -18,7 +18,7 @@ from backend.models.train import train_regression_model
 from backend.logging_config import setup_logging
 from backend.services.pipeline import get_current_snapshot
 from backend.services.websocket_manager import websocket_manager
-from backend.storage import Storage
+from backend.storage import Storage, reset_current_user_id, set_current_user_id
 
 setup_logging()
 logger = logging.getLogger("smartspend.api")
@@ -91,11 +91,28 @@ def health_check():
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     started = time.perf_counter()
+    context_token = None
     try:
+        path = request.url.path
+        if path.startswith("/api/") and not path.startswith("/api/auth/"):
+            authorization = request.headers.get("authorization", "")
+            token = authorization.removeprefix("Bearer ").strip() if authorization else ""
+            user = Storage.get_user_by_session(token)
+            if user is None:
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=401,
+                    content={"status": 401, "data": None, "message": "Authentication required."},
+                )
+            context_token = set_current_user_id(user["id"])
         response = await call_next(request)
     except Exception:
         logger.exception("Request failed | method=%s path=%s", request.method, request.url.path)
         raise
+    finally:
+        if context_token is not None:
+            reset_current_user_id(context_token)
 
     # Request-level INFO logs are intentionally muted for cleaner terminals.
     # Uncomment this block when you want per-request timing again.
@@ -113,12 +130,20 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 def warm_up_models():
     def _run_training() -> None:
+        context_token = None
         try:
+            first_user_id = Storage.get_first_user_id()
+            if first_user_id is None:
+                return
+            context_token = set_current_user_id(first_user_id)
             transactions = Storage.get_transactions()
             if not transactions.empty:
                 train_regression_model(transactions)
         except Exception:
             logger.exception("Background model warm-up failed")
+        finally:
+            if context_token is not None:
+                reset_current_user_id(context_token)
 
     threading.Thread(target=_run_training, daemon=True).start()
 
@@ -131,7 +156,8 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await websocket_manager.connect(websocket)
+    context_token = set_current_user_id(user["id"])
+    await websocket_manager.connect(websocket, user["id"])
     try:
         snapshot = await get_current_snapshot()
         snapshot["user"] = user
@@ -142,6 +168,8 @@ async def websocket_endpoint(websocket: WebSocket):
         websocket_manager.disconnect(websocket)
     except Exception:
         websocket_manager.disconnect(websocket)
+    finally:
+        reset_current_user_id(context_token)
 
 
 @app.get("/sse")
@@ -155,7 +183,8 @@ async def sse_endpoint(request: Request, token: str = ""):
         )
 
     async def event_generator():
-        connection_id, queue = websocket_manager.connect_sse()
+        context_token = set_current_user_id(user["id"])
+        connection_id, queue = websocket_manager.connect_sse(user["id"])
         try:
             snapshot = await get_current_snapshot()
             snapshot["user"] = user
@@ -172,6 +201,7 @@ async def sse_endpoint(request: Request, token: str = ""):
                     yield ": keep-alive\n\n"
         finally:
             websocket_manager.disconnect_sse(connection_id)
+            reset_current_user_id(context_token)
 
     return StreamingResponse(
         event_generator(),

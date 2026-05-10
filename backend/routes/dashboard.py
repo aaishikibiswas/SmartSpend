@@ -17,7 +17,7 @@ from backend.models.predict import build_daily_expense_series, predict_next_expe
 from backend.services.networth_engine import calculate_networth
 from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
-from backend.storage import Storage, bills_db
+from backend.storage import Storage
 
 router = APIRouter()
 
@@ -147,6 +147,7 @@ def _build_metrics_from_data(
 async def get_dashboard():
     # Single DB read — all engines that call Storage.get_transactions() hit the 5s TTL cache
     transactions = Storage.get_transactions()
+    bills = Storage.get_bills()
 
     # ── Level 1: All independent tasks run in parallel ──────────────────────
     (
@@ -179,9 +180,9 @@ async def get_dashboard():
         cashflow,
         prediction,
     ) = await asyncio.gather(
-        asyncio.to_thread(classify_expense_split, transactions, subscriptions, emi_summary, bills_db),
+        asyncio.to_thread(classify_expense_split, transactions, subscriptions, emi_summary, bills),
         asyncio.to_thread(calculate_networth, metrics, emi_summary),
-        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills_db, transactions),
+        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills, transactions),
         asyncio.to_thread(
             predict_next_expense, daily_series, False, True,
             _budget_summary=budget_global,
@@ -226,7 +227,7 @@ async def get_dashboard():
             "behavior": behavior,
             "advisory": advisory,
             "prediction": prediction,
-            "bills": bills_db,
+            "bills": bills,
             "recentTransactions": sorted_transactions.head(5).to_dict(orient="records"),
             "allTransactions": sorted_transactions.to_dict(orient="records"),
         },

@@ -6,7 +6,6 @@ from backend.services.emi_engine import build_emi_alerts, summarize_emis
 from backend.services.expense_classifier import classify_expense_split
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage
-from backend.storage import bills_db
 
 
 def generate_alerts(df):
@@ -87,7 +86,7 @@ def generate_alerts(df):
     for alert in build_emi_alerts():
         alerts.append(alert)
 
-    expense_split = classify_expense_split(df, get_all_subscriptions(df), summarize_emis(df), bills_db)
+    expense_split = classify_expense_split(df, get_all_subscriptions(df), summarize_emis(df), Storage.get_bills())
     if expense_split["fixed_percent"] > 70:
         alerts.append(
             {

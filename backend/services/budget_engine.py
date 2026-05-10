@@ -8,7 +8,6 @@ from backend.services.emi_engine import summarize_emis
 from backend.services.expense_classifier import classify_expense_split
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage
-from backend.storage import bills_db
 
 
 DEFAULT_CATEGORY_TARGETS = {
@@ -102,7 +101,7 @@ def get_global_budget_summary(transactions_df: pd.DataFrame | None = None) -> di
     monthly_budget = float(config["monthly"])
     subscriptions = get_all_subscriptions(transactions_df if transactions_df is not None else Storage.get_transactions())
     emi_summary = summarize_emis(transactions_df)
-    expense_split = classify_expense_split(transactions_df if transactions_df is not None else Storage.get_transactions(), subscriptions, emi_summary, bills_db)
+    expense_split = classify_expense_split(transactions_df if transactions_df is not None else Storage.get_transactions(), subscriptions, emi_summary, Storage.get_bills())
     fixed_reserved = round(float(expense_split["fixed_total"]), 2)
     adjustable_variable_budget = max(monthly_budget - fixed_reserved, 0.0)
     remaining = round(monthly_budget - total_spent - fixed_reserved, 2)

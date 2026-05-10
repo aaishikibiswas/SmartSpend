@@ -11,7 +11,7 @@ from backend.services.emi_engine import summarize_emis
 from backend.services.expense_classifier import classify_expense_split
 from backend.services.goal_engine import get_all_goals
 from backend.services.subscription_engine import get_all_subscriptions
-from backend.storage import Storage, bills_db
+from backend.storage import Storage
 
 
 def _format_currency(value: float) -> str:
@@ -77,8 +77,9 @@ def answer_finance_query(question: str, history: list[dict[str, str]] | None = N
     goals = get_all_goals()
     subscriptions = get_all_subscriptions(Storage.get_transactions())
     emi_summary = summarize_emis()
-    expense_split = classify_expense_split(Storage.get_transactions(), subscriptions, emi_summary, bills_db)
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db)
+    bills = Storage.get_bills()
+    expense_split = classify_expense_split(Storage.get_transactions(), subscriptions, emi_summary, bills)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills)
     prediction = predict_next_expense(build_daily_expense_series(Storage.get_transactions()))
     forecast = generate_prophet_forecast(Storage.get_transactions(), days=15)
     ctx = _expense_context()
@@ -344,9 +345,9 @@ def answer_finance_query(question: str, history: list[dict[str, str]] | None = N
         }
 
     if "bill" in lowered or "due" in lowered:
-        if not bills_db:
+        if not bills:
             return {"answer": "You do not have any bill reminders configured right now.", "suggestions": _suggestions()}
-        next_bill = bills_db[0]
+        next_bill = bills[0]
         return {
             "answer": f"Your next bill reminder is {next_bill['name']} for {_format_currency(next_bill['amount'])} and it is marked as {next_bill['due']}.",
             "suggestions": _suggestions(),

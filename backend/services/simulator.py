@@ -8,7 +8,7 @@ from backend.services.networth_engine import calculate_networth
 from backend.services.priority_engine import build_priorities
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.models.predict import build_daily_expense_series, predict_next_expense
-from backend.storage import Storage, bills_db
+from backend.storage import Storage
 
 
 def simulate_finances(transactions, input_data: dict) -> dict:
@@ -27,7 +27,8 @@ def simulate_finances(transactions, input_data: dict) -> dict:
 
     subscriptions = get_all_subscriptions(transactions)
     emi_summary = summarize_emis(transactions)
-    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
+    bills = Storage.get_bills()
+    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills)
     baseline_behavior = build_behavior_profile(transactions)
     variable_adjustment = max(new_expense - float(expense_split["fixed_total"]), 0.0)
     simulated_total = float(expense_split["fixed_total"]) + variable_adjustment
@@ -70,7 +71,7 @@ def simulate_finances(transactions, input_data: dict) -> dict:
         "fixedExpensePercent": simulated_split["fixed_percent"],
         "variableExpensePercent": simulated_split["variable_percent"],
     }
-    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills_db, transactions)
+    cashflow = build_cashflow_timeline(subscriptions, emi_summary, bills, transactions)
     networth = calculate_networth({"totalBalance": projected_savings + 13000, "netSavings": projected_savings}, emi_summary)
     updated_metrics.update(
         {

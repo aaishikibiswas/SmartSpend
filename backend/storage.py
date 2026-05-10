@@ -7,6 +7,7 @@ import logging
 import time
 import functools
 import threading
+from contextvars import ContextVar
 
 try:
     from pymongo import MongoClient as PyMongoClient
@@ -20,38 +21,70 @@ except Exception:
 
 logger = logging.getLogger("smartspend.storage")
 mongo_degraded_until = 0.0
-local_transactions_buffer: List[Dict[str, Any]] = []
+current_user_id: ContextVar[int | None] = ContextVar("current_user_id", default=None)
+local_transactions_buffer: Dict[int, List[Dict[str, Any]]] = {}
 local_tx_next_id = 1_000_000
 
 # ---------------------------------------------------------------------------
 # Request-scoped transaction cache (TTL = 5 seconds)
 # ---------------------------------------------------------------------------
 _tx_cache_lock = threading.Lock()
-_tx_cache_df: pd.DataFrame | None = None
-_tx_cache_ts: float = 0.0
+_tx_cache_by_user: Dict[int, tuple[pd.DataFrame, float]] = {}
 _TX_CACHE_TTL = 5.0  # seconds
 
 
-def _get_cached_transactions() -> pd.DataFrame | None:
+def set_current_user_id(user_id: int | None):
+    return current_user_id.set(user_id)
+
+
+def reset_current_user_id(token) -> None:
+    current_user_id.reset(token)
+
+
+def get_current_user_id(required: bool = True) -> int | None:
+    user_id = current_user_id.get()
+    if user_id is None and required:
+        raise PermissionError("Authentication required.")
+    return user_id
+
+
+def _owner_filter(extra: Dict[str, Any] | None = None, user_id: int | None = None) -> Dict[str, Any]:
+    owner_id = user_id if user_id is not None else get_current_user_id()
+    query: Dict[str, Any] = {"userId": owner_id}
+    if extra:
+        query.update(extra)
+    return query
+
+
+def _with_owner(doc: Dict[str, Any], user_id: int | None = None) -> Dict[str, Any]:
+    owner_id = user_id if user_id is not None else get_current_user_id()
+    row = dict(doc)
+    row["userId"] = owner_id
+    return row
+
+
+def _get_cached_transactions(user_id: int) -> pd.DataFrame | None:
     with _tx_cache_lock:
-        if _tx_cache_df is not None and (time.time() - _tx_cache_ts) < _TX_CACHE_TTL:
-            return _tx_cache_df
+        cached = _tx_cache_by_user.get(user_id)
+        if cached is not None:
+            df, ts = cached
+            if (time.time() - ts) < _TX_CACHE_TTL:
+                return df
     return None
 
 
-def _set_cached_transactions(df: pd.DataFrame) -> None:
-    global _tx_cache_df, _tx_cache_ts
+def _set_cached_transactions(user_id: int, df: pd.DataFrame) -> None:
     with _tx_cache_lock:
-        _tx_cache_df = df
-        _tx_cache_ts = time.time()
+        _tx_cache_by_user[user_id] = (df, time.time())
 
 
-def invalidate_transaction_cache() -> None:
+def invalidate_transaction_cache(user_id: int | None = None) -> None:
     """Call this after any write to transactions so next read is fresh."""
-    global _tx_cache_df, _tx_cache_ts
     with _tx_cache_lock:
-        _tx_cache_df = None
-        _tx_cache_ts = 0.0
+        if user_id is None:
+            _tx_cache_by_user.clear()
+        else:
+            _tx_cache_by_user.pop(user_id, None)
 
 
 def _is_mongo_degraded() -> bool:
@@ -67,14 +100,15 @@ def _empty_transactions_df() -> pd.DataFrame:
     return pd.DataFrame(columns=["id", "date", "merchant", "category", "amount", "type", "language"])
 
 
-def _buffer_transactions(new_txs: List[Dict[str, Any]]) -> None:
+def _buffer_transactions(new_txs: List[Dict[str, Any]], user_id: int) -> None:
     global local_tx_next_id
+    user_buffer = local_transactions_buffer.setdefault(user_id, [])
     for tx in new_txs:
-        row = dict(tx)
+        row = _with_owner(tx, user_id)
         if "id" not in row:
             row["id"] = local_tx_next_id
             local_tx_next_id += 1
-        local_transactions_buffer.append(row)
+        user_buffer.append(row)
 
 
 def _build_mongo_client():
@@ -155,89 +189,123 @@ alerts_db: List[Dict[str, Any]] = []
 
 def _refresh_legacy_views() -> None:
     global goals_db, bills_db, alerts_db
-    goals_db = [_clean_id(dict(doc)) for doc in db.goals.find({}, {"_id": 0})]
-    bills_db = [_clean_id(dict(doc)) for doc in db.bills.find({}, {"_id": 0})]
-    alerts_db = [_clean_id(dict(doc)) for doc in db.alerts.find({}, {"_id": 0})]
+    user_id = get_current_user_id(required=False)
+    query = {"userId": user_id} if user_id is not None else {"userId": {"$exists": False}}
+    goals_db = [_clean_id(dict(doc)) for doc in db.goals.find(query, {"_id": 0})]
+    bills_db = [_clean_id(dict(doc)) for doc in db.bills.find(query, {"_id": 0})]
+    alerts_db = [_clean_id(dict(doc)) for doc in db.alerts.find(query, {"_id": 0})]
 
 class Storage:
     @staticmethod
     def initialize() -> None:
-        if db.goals.count_documents({}) == 0:
-            db.goals.insert_many(DEFAULT_GOALS)
-        if db.bills.count_documents({}) == 0:
-            db.bills.insert_many(DEFAULT_BILLS)
-        if db.emis.count_documents({}) == 0:
-            db.emis.insert_many(DEFAULT_EMIS)
-        if db.budget.count_documents({}) == 0:
-            db.budget.insert_one(DEFAULT_BUDGET_CONFIG)
         if db.users.count_documents({}) == 0:
-            Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
+            user = Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
+            default_user_id = user["id"]
+        else:
+            first_user = db.users.find_one(sort=[("id", 1)])
+            default_user_id = first_user["id"] if first_user else 1
+
+        for collection_name in [
+            "transactions",
+            "goals",
+            "bills",
+            "emis",
+            "budget",
+            "alerts",
+            "subscriptions",
+            "suppressed_subscriptions",
+            "suppressed_emis",
+            "uploaded_statements",
+            "wallet",
+            "simulator",
+            "preferences",
+            "ai_insights",
+        ]:
+            getattr(db, collection_name).update_many(
+                {"userId": {"$exists": False}},
+                {"$set": {"userId": default_user_id}},
+            )
+
+        if db.goals.count_documents({"userId": default_user_id}) == 0:
+            db.goals.insert_many([_with_owner(goal, default_user_id) for goal in DEFAULT_GOALS])
+        if db.bills.count_documents({"userId": default_user_id}) == 0:
+            db.bills.insert_many([_with_owner(bill, default_user_id) for bill in DEFAULT_BILLS])
+        if db.emis.count_documents({"userId": default_user_id}) == 0:
+            db.emis.insert_many([_with_owner(emi, default_user_id) for emi in DEFAULT_EMIS])
+        if db.budget.count_documents({"type": "global", "userId": default_user_id}) == 0:
+            db.budget.insert_one(_with_owner(DEFAULT_BUDGET_CONFIG, default_user_id))
         _refresh_legacy_views()
 
     @staticmethod
     def get_transactions() -> pd.DataFrame:
-        cached = _get_cached_transactions()
+        user_id = get_current_user_id()
+        cached = _get_cached_transactions(user_id)
         if cached is not None:
             return cached
         if _is_mongo_degraded():
-            df = pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
-            _set_cached_transactions(df)
+            rows = local_transactions_buffer.get(user_id, [])
+            df = pd.DataFrame(rows) if rows else _empty_transactions_df()
+            _set_cached_transactions(user_id, df)
             return df
         try:
-            txs = list(db.transactions.find({}, {"_id": 0}))
-            if local_transactions_buffer:
-                txs.extend(local_transactions_buffer)
+            txs = list(db.transactions.find(_owner_filter(user_id=user_id), {"_id": 0}))
+            if local_transactions_buffer.get(user_id):
+                txs.extend(local_transactions_buffer[user_id])
             df = pd.DataFrame(txs) if txs else _empty_transactions_df()
-            _set_cached_transactions(df)
+            _set_cached_transactions(user_id, df)
             return df
         except Exception as exc:
             import traceback
             traceback.print_exc()
             _mark_mongo_degraded()
             logger.error("Failed to load transactions from MongoDB, returning empty dataframe: %s: %s", type(exc).__name__, exc)
-            df = pd.DataFrame(local_transactions_buffer) if local_transactions_buffer else _empty_transactions_df()
-            _set_cached_transactions(df)
+            rows = local_transactions_buffer.get(user_id, [])
+            df = pd.DataFrame(rows) if rows else _empty_transactions_df()
+            _set_cached_transactions(user_id, df)
             return df
 
     @staticmethod
     def replace_transactions(new_txs: List[Dict[str, Any]]):
+        user_id = get_current_user_id()
+        invalidate_transaction_cache(user_id)
         if _is_mongo_degraded():
-            local_transactions_buffer.clear()
+            local_transactions_buffer[user_id] = []
             if new_txs:
-                _buffer_transactions(new_txs)
+                _buffer_transactions(new_txs, user_id)
             return
         try:
-            db.transactions.delete_many({})
-            local_transactions_buffer.clear()
+            db.transactions.delete_many(_owner_filter(user_id=user_id))
+            local_transactions_buffer[user_id] = []
             if new_txs:
                 Storage.add_transactions(new_txs)
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to replace transactions in MongoDB, buffering locally: %s: %s", type(exc).__name__, exc)
-            local_transactions_buffer.clear()
+            local_transactions_buffer[user_id] = []
             if new_txs:
-                _buffer_transactions(new_txs)
+                _buffer_transactions(new_txs, user_id)
 
     @staticmethod
     def add_transactions(new_txs: List[Dict[str, Any]]):
         if not new_txs: return
-        invalidate_transaction_cache()
+        user_id = get_current_user_id()
+        invalidate_transaction_cache(user_id)
         if _is_mongo_degraded():
-            _buffer_transactions(new_txs)
+            _buffer_transactions(new_txs, user_id)
             return
         try:
-            max_tx = db.transactions.find_one(sort=[("id", -1)])
+            max_tx = db.transactions.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
             start_id = max_tx["id"] + 1 if max_tx and "id" in max_tx else 1
             docs = []
             for i, tx in enumerate(new_txs):
-                row = dict(tx)
+                row = _with_owner(tx, user_id)
                 row["id"] = start_id + i
                 docs.append(row)
             db.transactions.insert_many(docs)
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to add transactions to MongoDB, buffering locally: %s: %s", type(exc).__name__, exc)
-            _buffer_transactions(new_txs)
+            _buffer_transactions(new_txs, user_id)
 
     @staticmethod
     def add_transaction(tx: Dict[str, Any]):
@@ -245,7 +313,7 @@ class Storage:
 
     @staticmethod
     def reset_alerts():
-        db.alerts.delete_many({})
+        db.alerts.delete_many(_owner_filter())
         _refresh_legacy_views()
 
     @staticmethod
@@ -253,10 +321,11 @@ class Storage:
         if _is_mongo_degraded():
             return
         try:
-            existing = list(db.alerts.find({}, {"_id": 0}))
+            user_id = get_current_user_id()
+            existing = list(db.alerts.find(_owner_filter(user_id=user_id), {"_id": 0}))
             existing_map = {f"{a['title']}::{a['message']}": a for a in existing}
             
-            db.alerts.delete_many({})
+            db.alerts.delete_many(_owner_filter(user_id=user_id))
             if not new_alerts:
                 _refresh_legacy_views()
                 return
@@ -272,6 +341,7 @@ class Storage:
             for alert in new_alerts:
                 key = f"{alert['title']}::{alert['message']}"
                 doc = dict(alert)
+                doc["userId"] = user_id
                 if key in existing_map:
                     doc["id"] = existing_map[key]["id"]
                 else:
@@ -296,9 +366,10 @@ class Storage:
 
     @staticmethod
     def add_alert(alert: Dict[str, Any]):
-        max_alert = db.alerts.find_one(sort=[("id", -1)])
+        user_id = get_current_user_id()
+        max_alert = db.alerts.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
         next_id = max_alert["id"] + 1 if max_alert and "id" in max_alert else 1
-        doc = dict(alert)
+        doc = _with_owner(alert, user_id)
         doc["id"] = next_id
         db.alerts.insert_one(doc)
         _refresh_legacy_views()
@@ -308,7 +379,7 @@ class Storage:
         if _is_mongo_degraded():
             return []
         try:
-            return [_clean_id(doc) for doc in db.alerts.find(sort=[("id", -1)])]
+            return [_clean_id(doc) for doc in db.alerts.find(_owner_filter(), sort=[("id", -1)])]
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load alerts from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
@@ -320,7 +391,7 @@ class Storage:
             config = DEFAULT_BUDGET_CONFIG
         else:
             try:
-                config = db.budget.find_one({"type": "global"}) or DEFAULT_BUDGET_CONFIG
+                config = db.budget.find_one(_owner_filter({"type": "global"})) or _with_owner(DEFAULT_BUDGET_CONFIG)
             except Exception as exc:
                 _mark_mongo_degraded()
                 logger.error("Failed to load budget config from MongoDB, using defaults: %s: %s", type(exc).__name__, exc)
@@ -367,12 +438,13 @@ class Storage:
                     "frequency": frequency,
                 }
         db.budget.update_one(
-            {"type": "global"},
+            _owner_filter({"type": "global"}),
             {"$set": {
                 "monthly": monthly,
                 "weekly": weekly,
                 "auto_distribute": auto_distribute,
-                "categories": normalized_categories
+                "categories": normalized_categories,
+                "userId": get_current_user_id(),
             }},
             upsert=True
         )
@@ -406,6 +478,11 @@ class Storage:
         }
         db.users.insert_one(user)
         return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
+
+    @staticmethod
+    def get_first_user_id() -> int | None:
+        user = db.users.find_one(sort=[("id", 1)])
+        return int(user["id"]) if user and "id" in user else None
 
     @staticmethod
     def authenticate_user(email: str, password: str) -> Dict[str, Any] | None:
@@ -462,7 +539,7 @@ class Storage:
         if _is_mongo_degraded():
             return []
         try:
-            return [_clean_id(doc) for doc in db.emis.find({}, {"_id": 0})]
+            return [_clean_id(doc) for doc in db.emis.find(_owner_filter(), {"_id": 0})]
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load EMIs from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
@@ -473,7 +550,7 @@ class Storage:
         if _is_mongo_degraded():
             return []
         try:
-            return [_clean_id(doc) for doc in db.subscriptions.find({}, {"_id": 0})]
+            return [_clean_id(doc) for doc in db.subscriptions.find(_owner_filter(), {"_id": 0})]
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load subscriptions from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
@@ -481,9 +558,10 @@ class Storage:
 
     @staticmethod
     def add_subscription(subscription: Dict[str, Any]) -> Dict[str, Any]:
-        max_sub = db.subscriptions.find_one(sort=[("id", -1)])
+        user_id = get_current_user_id()
+        max_sub = db.subscriptions.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
         next_id = max_sub["id"] + 1 if max_sub and "id" in max_sub else 1
-        doc = dict(subscription)
+        doc = _with_owner(subscription, user_id)
         doc["id"] = next_id
         db.subscriptions.insert_one(doc)
         return _clean_id(doc)
@@ -493,16 +571,17 @@ class Storage:
         normalized = str(name).strip().lower()
         try:
             id_val = int(name)
-            result = db.subscriptions.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+            result = db.subscriptions.delete_one(_owner_filter({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]}))
         except ValueError:
-            result = db.subscriptions.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+            result = db.subscriptions.delete_one(_owner_filter({"name": {"$regex": f"^{normalized}$", "$options": "i"}}))
         return result.deleted_count > 0
 
     @staticmethod
     def add_emi(emi: Dict[str, Any]) -> Dict[str, Any]:
-        max_emi = db.emis.find_one(sort=[("id", -1)])
+        user_id = get_current_user_id()
+        max_emi = db.emis.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
         next_id = max_emi["id"] + 1 if max_emi and "id" in max_emi else 1
-        doc = dict(emi)
+        doc = _with_owner(emi, user_id)
         doc["id"] = next_id
         db.emis.insert_one(doc)
         return _clean_id(doc)
@@ -512,9 +591,9 @@ class Storage:
         normalized = str(identifier).strip().lower()
         try:
             id_val = int(identifier)
-            result = db.emis.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+            result = db.emis.delete_one(_owner_filter({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]}))
         except ValueError:
-            result = db.emis.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+            result = db.emis.delete_one(_owner_filter({"name": {"$regex": f"^{normalized}$", "$options": "i"}}))
             
         if result.deleted_count > 0:
             return True
@@ -526,7 +605,7 @@ class Storage:
         if _is_mongo_degraded():
             return set()
         try:
-            return {doc["name"] for doc in db.suppressed_subscriptions.find()}
+            return {doc["name"] for doc in db.suppressed_subscriptions.find(_owner_filter())}
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load suppressed subscriptions, returning empty set: %s: %s", type(exc).__name__, exc)
@@ -536,8 +615,8 @@ class Storage:
     def suppress_subscription(name: str) -> None:
         if str(name).strip():
             db.suppressed_subscriptions.update_one(
-                {"name": str(name).strip().lower()},
-                {"$set": {"name": str(name).strip().lower()}},
+                _owner_filter({"name": str(name).strip().lower()}),
+                {"$set": {"name": str(name).strip().lower(), "userId": get_current_user_id()}},
                 upsert=True
             )
 
@@ -546,7 +625,7 @@ class Storage:
         if _is_mongo_degraded():
             return set()
         try:
-            return {doc["name"] for doc in db.suppressed_emis.find()}
+            return {doc["name"] for doc in db.suppressed_emis.find(_owner_filter())}
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load suppressed EMIs, returning empty set: %s: %s", type(exc).__name__, exc)
@@ -556,8 +635,8 @@ class Storage:
     def suppress_emi(name: str) -> None:
         if str(name).strip():
             db.suppressed_emis.update_one(
-                {"name": str(name).strip().lower()},
-                {"$set": {"name": str(name).strip().lower()}},
+                _owner_filter({"name": str(name).strip().lower()}),
+                {"$set": {"name": str(name).strip().lower(), "userId": get_current_user_id()}},
                 upsert=True
             )
 
@@ -566,7 +645,7 @@ class Storage:
         if _is_mongo_degraded():
             return []
         try:
-            return [_clean_id(doc) for doc in db.bills.find({}, {"_id": 0})]
+            return [_clean_id(doc) for doc in db.bills.find(_owner_filter(), {"_id": 0})]
         except Exception as exc:
             _mark_mongo_degraded()
             logger.error("Failed to load bills from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
@@ -574,9 +653,10 @@ class Storage:
 
     @staticmethod
     def add_bill(bill: Dict[str, Any]) -> Dict[str, Any]:
-        max_bill = db.bills.find_one(sort=[("id", -1)])
+        user_id = get_current_user_id()
+        max_bill = db.bills.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
         next_id = max_bill["id"] + 1 if max_bill and "id" in max_bill else 1
-        doc = dict(bill)
+        doc = _with_owner(bill, user_id)
         doc["id"] = next_id
         db.bills.insert_one(doc)
         _refresh_legacy_views()
@@ -587,9 +667,9 @@ class Storage:
         normalized = str(identifier).strip().lower()
         try:
             id_val = int(identifier)
-            result = db.bills.delete_one({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]})
+            result = db.bills.delete_one(_owner_filter({"$or": [{"id": id_val}, {"name": {"$regex": f"^{normalized}$", "$options": "i"}}]}))
         except ValueError:
-            result = db.bills.delete_one({"name": {"$regex": f"^{normalized}$", "$options": "i"}})
+            result = db.bills.delete_one(_owner_filter({"name": {"$regex": f"^{normalized}$", "$options": "i"}}))
         deleted = result.deleted_count > 0
         if deleted:
             _refresh_legacy_views()
@@ -597,12 +677,39 @@ class Storage:
 
     @staticmethod
     def replace_bills(items: List[Dict[str, Any]]) -> None:
-        db.bills.delete_many({})
+        user_id = get_current_user_id()
+        db.bills.delete_many(_owner_filter(user_id=user_id))
         if items:
             docs = []
             for item in items:
-                docs.append(item)
+                docs.append(_with_owner(item, user_id))
             db.bills.insert_many(docs)
         _refresh_legacy_views()
+
+    @staticmethod
+    def get_goals() -> List[Dict[str, Any]]:
+        if _is_mongo_degraded():
+            return []
+        try:
+            return [_clean_id(doc) for doc in db.goals.find(_owner_filter(), {"_id": 0})]
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to load goals from MongoDB, returning empty list: %s: %s", type(exc).__name__, exc)
+            return []
+
+    @staticmethod
+    def add_goal(goal: Dict[str, Any]) -> Dict[str, Any]:
+        user_id = get_current_user_id()
+        max_goal = db.goals.find_one(_owner_filter(user_id=user_id), sort=[("id", -1)])
+        next_id = max_goal["id"] + 1 if max_goal and "id" in max_goal else 1
+        doc = _with_owner(goal, user_id)
+        doc["id"] = next_id
+        db.goals.insert_one(doc)
+        _refresh_legacy_views()
+        return _clean_id(doc)
+
+    @staticmethod
+    def add_uploaded_statement(file_info: Dict[str, Any]) -> None:
+        db.uploaded_statements.insert_one(_with_owner(file_info))
 
 Storage.initialize()

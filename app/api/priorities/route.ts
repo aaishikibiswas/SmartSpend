@@ -1,13 +1,6 @@
-import { BACKEND_API_BASE as BACKEND_BASE } from "@/lib/backend-config";
+import { proxyBackend } from "@/lib/backend-proxy";
 
 export async function GET() {
-  const response = await fetch(`${BACKEND_BASE}/priorities/`, {
-    cache: "no-store",
-  });
-  const body = await response.text();
-  return new Response(body, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
-  });
+  return proxyBackend("/priorities/");
 }
 

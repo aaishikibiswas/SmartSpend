@@ -15,7 +15,6 @@ from backend.services.expense_classifier import classify_expense_split
 from backend.services.networth_engine import calculate_networth
 from backend.services.subscription_engine import get_all_subscriptions
 from backend.storage import Storage
-from backend.storage import bills_db
 
 
 async def get_dashboard_analytics() -> dict:
@@ -30,8 +29,8 @@ async def get_dashboard_analytics() -> dict:
             anomaly
         ) = await asyncio.gather(
             asyncio.to_thread(summarize_emis),
-            asyncio.to_thread(classify_expense_split, df, [], {}, bills_db),
-            asyncio.to_thread(build_cashflow_timeline, [], {}, bills_db),
+            asyncio.to_thread(classify_expense_split, df, [], {}, Storage.get_bills()),
+            asyncio.to_thread(build_cashflow_timeline, [], {}, Storage.get_bills()),
             asyncio.to_thread(build_behavior_profile, df),
             asyncio.to_thread(latest_anomaly_summary, df),
         )
@@ -103,8 +102,8 @@ async def get_dashboard_analytics() -> dict:
         anomaly
     ) = await asyncio.gather(
         asyncio.to_thread(get_global_budget_summary, df),
-        asyncio.to_thread(classify_expense_split, df, subscriptions, emi_summary, bills_db),
-        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, bills_db),
+        asyncio.to_thread(classify_expense_split, df, subscriptions, emi_summary, Storage.get_bills()),
+        asyncio.to_thread(build_cashflow_timeline, subscriptions, emi_summary, Storage.get_bills()),
         asyncio.to_thread(build_behavior_profile, df),
         asyncio.to_thread(latest_anomaly_summary, df)
     )

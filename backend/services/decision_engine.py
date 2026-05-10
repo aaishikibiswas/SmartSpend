@@ -9,7 +9,7 @@ from backend.services.emi_engine import summarize_emis
 from backend.services.analytics import get_dashboard_analytics
 from backend.services.expense_classifier import classify_expense_split
 from backend.services.subscription_engine import get_all_subscriptions
-from backend.storage import Storage, bills_db
+from backend.storage import Storage
 
 
 def evaluate_purchase(item_name: str, price: float) -> dict[str, Any]:
@@ -23,7 +23,7 @@ def evaluate_purchase(item_name: str, price: float) -> dict[str, Any]:
     prediction = predict_next_expense(build_daily_expense_series(transactions))
     emi_summary = summarize_emis()
     subscriptions = get_all_subscriptions(transactions)
-    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, bills_db)
+    expense_split = classify_expense_split(transactions, subscriptions, emi_summary, Storage.get_bills())
 
     global_remaining = float(budget_snapshot["global"]["remaining_amount"])
     category_budget = next((item for item in budget_snapshot["categories"] if item["name"].lower() == category.lower()), None)

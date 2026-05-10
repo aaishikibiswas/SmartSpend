@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { apiClient, type CategoryBreakdownItem, type DashboardMetrics, type GoalItem, type TransactionItem } from "@/lib/api-client";
 import { calculateLiveScores, calculateScoreInputs, sortTransactionsByLatest } from "@/lib/financial-scoring";
 import { generateFakeTransaction } from "@/lib/mock-bank-sync";
@@ -77,6 +78,8 @@ function updateMetrics(current: DashboardMetrics, tx: TransactionItem, liveTrans
 }
 
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const syncStorageKey = `${STORAGE_KEY}:${user?.id ?? "anonymous"}`;
   const [syncOn, setSyncOn] = useState(false);
   const [uploadedTransactions, setUploadedTransactions] = useState<TransactionItem[]>([]);
   const [mockTransactions, setMockTransactions] = useState<TransactionItem[]>([]);
@@ -87,15 +90,16 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const transactions = useMemo(() => sortByLatest([...mockTransactions, ...uploadedTransactions]), [mockTransactions, uploadedTransactions]);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(syncStorageKey);
     if (stored === "1") {
       setSyncOn(true);
     }
-  }, []);
+  }, [syncStorageKey]);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, syncOn ? "1" : "0");
-  }, [syncOn]);
+    window.localStorage.setItem(syncStorageKey, syncOn ? "1" : "0");
+  }, [syncOn, syncStorageKey]);
 
   useEffect(() => {
     let cancelled = false;

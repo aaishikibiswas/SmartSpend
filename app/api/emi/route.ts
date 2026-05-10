@@ -1,26 +1,14 @@
-import { BACKEND_API_BASE as BACKEND_BASE } from "@/lib/backend-config";
+import { proxyBackend } from "@/lib/backend-proxy";
 
 export async function GET() {
-  const response = await fetch(`${BACKEND_BASE}/emi/`, {
-    cache: "no-store",
-  });
-  const body = await response.text();
-  return new Response(body, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
-  });
+  return proxyBackend("/emi/");
 }
 
 export async function POST(request: Request) {
-  const response = await fetch(`${BACKEND_BASE}/emi/`, {
+  return proxyBackend("/emi/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    contentType: "application/json",
     body: await request.text(),
-  });
-  const body = await response.text();
-  return new Response(body, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
   });
 }
 

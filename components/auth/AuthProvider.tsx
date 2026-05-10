@@ -30,25 +30,8 @@ export default function AuthProvider({
   }, [initialUser]);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("smartspend_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("smartspend_user");
-    }
+    sessionStorage.removeItem("smartspend-ai-chat");
   }, [user]);
-
-  useEffect(() => {
-    if (initialUser) return;
-
-    const cached = localStorage.getItem("smartspend_user");
-    if (cached) {
-      try {
-        setUser(JSON.parse(cached) as AuthUser);
-      } catch {
-        localStorage.removeItem("smartspend_user");
-      }
-    }
-  }, [initialUser]);
 
   useEffect(() => {
     if (initialUser) {
@@ -85,7 +68,7 @@ export default function AuthProvider({
       logout: async () => {
         await apiClient.logout().catch(() => null);
         setUser(null);
-        localStorage.removeItem("smartspend_user");
+        sessionStorage.removeItem("smartspend-ai-chat");
         router.push("/login");
         router.refresh();
       },

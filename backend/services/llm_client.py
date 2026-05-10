@@ -4,6 +4,7 @@ import httpx
 from dotenv import load_dotenv
 from backend.services.memory import memory_store
 from backend.services.retrieval import retriever
+from backend.storage import get_current_user_id
 
 load_dotenv(".env.local")
 load_dotenv()
@@ -70,12 +71,13 @@ async def _call_openrouter(model: str, messages: list[dict]) -> str:
 
 
 async def ask_finance_query(session_id: str, question: str) -> dict:
+    scoped_session_id = f"user:{get_current_user_id()}:{session_id or 'default'}"
     retrieved_faqs = retriever.retrieve(question, top_k=2)
     faq_context = "Context:\n" + "\n".join(f"- {doc}" for doc in retrieved_faqs) if retrieved_faqs else ""
 
     messages = [{"role": "system", "content": f"{SYSTEM_PROMPT}\n{faq_context}"}]
 
-    history = memory_store.get_history(session_id, limit=6)
+    history = memory_store.get_history(scoped_session_id, limit=6)
     for msg in history:
         messages.append({"role": msg["role"], "content": msg["content"]})
 
@@ -99,8 +101,8 @@ async def ask_finance_query(session_id: str, question: str) -> dict:
     if not answer:
         answer = "AI assistant temporarily unavailable"
 
-    memory_store.add_message(session_id, "user", question)
-    memory_store.add_message(session_id, "assistant", answer)
+    memory_store.add_message(scoped_session_id, "user", question)
+    memory_store.add_message(scoped_session_id, "assistant", answer)
 
     suggestions = [
         "What is my biggest expense?",

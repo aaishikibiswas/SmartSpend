@@ -5,12 +5,17 @@ import DashboardFinanceBridge from "@/components/dashboard/DashboardFinanceBridg
 import DashboardRealtimeView from "@/components/dashboard/DashboardRealtimeView";
 import type { DashboardData } from "@/lib/api-client";
 import { BACKEND_API_BASE } from "@/lib/backend-config";
+import { getSessionToken } from "@/lib/auth-session";
 
 export const dynamic = "force-dynamic";
 
 async function getDashboardData(): Promise<DashboardData> {
+  const token = await getSessionToken();
   const response = await fetch(`${BACKEND_API_BASE}/dashboard/`, {
     cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {

@@ -1,4 +1,11 @@
+import { getSessionToken } from "@/lib/auth-session";
+
 export async function POST(request: Request) {
+  const token = await getSessionToken();
+  if (!token) {
+    return Response.json({ reply: "Authentication required" }, { status: 401 });
+  }
+
   const { message, contextData } = (await request.json().catch(() => ({}))) as {
     message?: string;
     contextData?: {

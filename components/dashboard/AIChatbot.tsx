@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, Send, Sparkles, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -63,8 +64,10 @@ export default function AIChatbot({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isAsking, setIsAsking] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const firstName = user?.full_name?.split(" ")[0] || "there";
+  const storageKey = `${STORAGE_KEY}:${user?.id ?? "anonymous"}`;
 
   useEffect(() => {
     const saved = window.localStorage.getItem(OPEN_STATE_KEY);
@@ -79,9 +82,10 @@ export default function AIChatbot({
 
   useEffect(() => {
     try {
-      const stored = window.sessionStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Message[];
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      const scopedStored = window.sessionStorage.getItem(storageKey);
+      if (scopedStored) {
+        const parsed = JSON.parse(scopedStored) as Message[];
         if (Array.isArray(parsed) && parsed.length > 0) {
           setMessages(parsed);
           return;
@@ -92,12 +96,12 @@ export default function AIChatbot({
     }
 
     setMessages([initialGreeting(firstName)]);
-  }, [firstName]);
+  }, [firstName, storageKey]);
 
   useEffect(() => {
     if (messages.length === 0) return;
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+    window.sessionStorage.setItem(storageKey, JSON.stringify(messages));
+  }, [messages, storageKey]);
 
   useEffect(() => {
     const node = scrollRef.current;
@@ -119,6 +123,10 @@ export default function AIChatbot({
       })),
     [recentTransactions],
   );
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const sendMessage = async (questionOverride?: string) => {
     const question = (questionOverride ?? inputValue).trim();
@@ -179,13 +187,13 @@ export default function AIChatbot({
     }
   };
 
-  if (!floating) return null;
+  if (!floating || !isMounted) return null;
 
-  return (
-    <div className="fixed bottom-8 right-8 z-[100]">
+  return createPortal(
+    <div className="fixed bottom-8 right-8 z-[9999]">
       <div className="relative group">
         {isOpen ? (
-          <div className="glass-card absolute bottom-20 right-0 mb-4 flex w-[25rem] origin-bottom-right flex-col overflow-hidden rounded-[2.5rem] shadow-2xl">
+          <div className="glass-card absolute bottom-20 right-0 mb-4 flex w-[25rem] max-w-[calc(100vw-2rem)] origin-bottom-right flex-col overflow-hidden rounded-[2.5rem] shadow-2xl">
             <div className="flex items-center justify-between bg-gradient-to-br from-[#A897FF] to-[#6063ee] p-5 font-bold text-[#0f00a4]">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
@@ -307,6 +315,7 @@ export default function AIChatbot({
           </span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
