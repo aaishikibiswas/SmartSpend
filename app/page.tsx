@@ -13,15 +13,13 @@ export const dynamic = "force-dynamic";
 
 import { FALLBACK_DASHBOARD_DATA } from "@/lib/fallback-data";
 
-async function fetchWithRetry(url: string, init: RequestInit, retries = 3, delay = 1000): Promise<Response> {
+async function fetchWithRetry(url: string, init: RequestInit, retries = 10, delay = 1500): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, init);
-      // If the response is OK or it's a 401 (which we handle by redirecting), return it
       if (response.ok || response.status === 401) {
         return response;
       }
-      // For other errors (500, 503, etc.), retry if we have attempts left
       if (i < retries - 1) {
         await new Promise((res) => setTimeout(res, delay));
         continue;
@@ -66,7 +64,6 @@ async function getDashboardData(): Promise<DashboardData> {
       throw err;
     }
 
-    console.warn("[Dashboard] Backend unavailable or returned error. Using fallback data to keep dashboard alive.");
     return FALLBACK_DASHBOARD_DATA;
   }
 }

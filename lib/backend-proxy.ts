@@ -8,7 +8,7 @@ type ProxyOptions = {
   timeoutMessage?: string;
 };
 
-export async function proxyBackend(path: string, options: ProxyOptions = {}) {
+export async function proxyBackend(path: string, options: ProxyOptions = {}, retries = 3) {
   const token = await getSessionToken();
   if (!token) {
     return NextResponse.json({ status: 401, data: null, message: "Authentication required." }, { status: 401 });
@@ -20,43 +20,57 @@ export async function proxyBackend(path: string, options: ProxyOptions = {}) {
     headers.set("Content-Type", options.contentType);
   }
 
-  let timeoutId: NodeJS.Timeout | undefined;
-  try {
-    const controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), 15000);
+  const delay = 1500;
+  for (let i = 0; i < retries; i++) {
+    let timeoutId: NodeJS.Timeout | undefined;
+    try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60s
 
-    const response = await fetch(`${BACKEND_BASE}${path}`, {
-      method: options.method || "GET",
-      headers,
-      body: options.body ?? null,
-      cache: "no-store",
-      signal: controller.signal,
-    });
+      const response = await fetch(`${BACKEND_BASE}${path}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body ?? null,
+        cache: "no-store",
+        signal: controller.signal,
+      });
 
-    const body = await response.text();
-    return new Response(body, {
-      status: response.status,
-      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-    });
-  } catch (err: any) {
-    console.warn(`[Backend Proxy] Request to ${path} failed:`, err?.message || err);
-    
-    const isAbort = err?.name === "AbortError" || err?.message === "aborted";
-    const status = isAbort ? 504 : 503;
-    const message = isAbort 
-      ? (options.timeoutMessage || "Backend request timed out")
-      : "Backend service temporarily unavailable";
+      if (!response.ok && response.status >= 500 && i < retries - 1) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
-    return NextResponse.json(
-      {
-        status,
-        data: null,
-        message,
-        error: err?.code || err?.name || "UNKNOWN_ERROR"
-      },
-      { status },
-    );
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
+      const body = await response.text();
+      if (timeoutId) clearTimeout(timeoutId);
+      return new Response(body, {
+        status: response.status,
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      });
+    } catch (err: any) {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      const isRetryable = err?.name === "AbortError" || err?.name === "TypeError" || err?.message?.includes("aborted");
+      if (isRetryable && i < retries - 1) {
+        await new Promise(res => setTimeout(res, delay));
+        continue;
+      }
+
+      console.warn(`[Backend Proxy] Final failure for ${path}:`, err?.message || err);
+      
+      const isAbort = err?.name === "AbortError" || err?.message === "aborted";
+      const status = isAbort ? 504 : 503;
+      const message = isAbort 
+        ? (options.timeoutMessage || "Backend request timed out")
+        : "Backend service temporarily unavailable";
+
+      return NextResponse.json(
+        {
+          status,
+          data: null,
+          message,
+          error: err?.code || err?.name || "UNKNOWN_ERROR"
+        },
+        { status },
+      );
+    }
   }
 }

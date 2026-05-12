@@ -372,62 +372,83 @@ type RequestOptions = RequestInit & {
   timeoutMs?: number; // optional timeout in ms
 };
 
-async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvelope<T>> {
-  const timeoutMs = init?.timeoutMs ?? 20000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  const requestInit = { ...(init || {}) } as RequestInit & { timeoutMs?: number };
-  delete requestInit.timeoutMs;
+async function request<T>(path: string, init?: RequestOptions, retries = 3): Promise<ApiEnvelope<T>> {
+  const timeoutMs = init?.timeoutMs ?? 60000;
+  const delay = 1500;
 
-  try {
-    const response = await fetch(`${API_BASE}${path}`, {
-      cache: "no-store",
-      redirect: "follow",
-      ...requestInit,
-      signal: controller.signal,
-    });
+  for (let i = 0; i < retries; i++) {
+    let timeoutId: NodeJS.Timeout | undefined;
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60s
+    const requestInit = { ...(init || {}) } as RequestInit & { timeoutMs?: number };
+    delete requestInit.timeoutMs;
 
-    let payload: unknown = null;
     try {
-      payload = await response.json();
-    } catch {
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}.`);
+      const response = await fetch(`${API_BASE}${path}`, {
+        cache: "no-store",
+        redirect: "follow",
+        ...requestInit,
+        signal: controller.signal,
+      });
+
+      let payload: unknown = null;
+      try {
+        payload = await response.json();
+      } catch {
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}.`);
+        }
       }
-    }
 
-    if (!response.ok) {
-      const message =
-        typeof payload === "object" && payload && "message" in payload && typeof (payload as any).message === "string"
-          ? (payload as any).message
-          : `Request failed with status ${response.status}.`;
-      throw new Error(message);
-    }
+      if (!response.ok) {
+        const message =
+          typeof payload === "object" && payload && "message" in payload && typeof (payload as any).message === "string"
+            ? (payload as any).message
+            : `Request failed with status ${response.status}.`;
+        
+        // Retry on 503 or 504 (backend still booting or overloaded)
+        if ((response.status === 503 || response.status === 504) && i < retries - 1) {
+          clearTimeout(timeoutId);
+          await new Promise(res => setTimeout(res, delay));
+          continue;
+        }
 
-    if (payload && typeof payload === "object" && "status" in payload && "data" in payload) {
-      return { ...(payload as ApiEnvelope<T>), success: true };
+        const error = new Error(message);
+        (error as any).status = response.status;
+        throw error;
+      }
+
+      clearTimeout(timeoutId);
+      if (payload && typeof payload === "object" && "status" in payload && "data" in payload) {
+        return { ...(payload as ApiEnvelope<T>), success: true };
+      }
+      return { status: response.status, data: payload as T, success: true };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      const isRetryable = error.name === "TypeError" || error.name === "AbortError" || error.message?.includes("aborted");
+      
+      if (isRetryable && i < retries - 1) {
+        await new Promise(res => setTimeout(res, delay));
+        continue;
+      }
+
+      let errorMessage = "Network request failed.";
+      if (error instanceof DOMException && error.name === "AbortError") {
+        errorMessage = `Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      console.warn(`[API Client] Final failure for ${path}: ${errorMessage}`);
+      return { 
+        status: error.status || 500, 
+        data: null as any, 
+        success: false, 
+        error: errorMessage 
+      };
     }
-    return { status: response.status, data: payload as T, success: true };
-  } catch (error) {
-    let errorMessage = "Network request failed.";
-    if (error instanceof DOMException && error.name === "AbortError") {
-      errorMessage = `Request to ${API_BASE || "same-origin"}${path} timed out after ${Math.round(timeoutMs / 1000)} seconds.`;
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    
-    console.warn(`[API Client] Graceful failure handled for ${path}: ${errorMessage}`);
-    
-    // Return a structured failure object instead of crashing the pipeline
-    return { 
-      status: (error as any)?.status || 500, 
-      data: null as any, 
-      success: false, 
-      error: errorMessage 
-    };
-  } finally {
-    clearTimeout(timeoutId);
   }
+  return { status: 503, data: null as any, success: false, error: "Service unavailable after retries" };
 }
 
 // ---------- API Client ----------

@@ -120,21 +120,31 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadGoals() {
-      try {
-        const res = await apiClient.getGoals();
-        if (!cancelled && res.success) {
-          setGoals(res.data);
-        }
-      } catch {
-        if (!cancelled) setGoals([]);
+  const refreshGoals = useCallback(async () => {
+    try {
+      const res = await apiClient.getGoals();
+      if (res.success) {
+        setGoals(res.data);
       }
+    } catch (err) {
+      console.warn("[FinanceContext] Goal refresh failed:", err);
     }
-    void loadGoals();
-    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    void refreshGoals();
+    
+    // Listen for manual updates from components
+    window.addEventListener("smartspend:goals-updated", refreshGoals);
+    
+    // Periodic poll to keep goals in sync (every 30s)
+    const interval = setInterval(refreshGoals, 30000);
+    
+    return () => {
+      window.removeEventListener("smartspend:goals-updated", refreshGoals);
+      clearInterval(interval);
+    };
+  }, [refreshGoals]);
 
   useEffect(() => {
     if (!syncOn) return;

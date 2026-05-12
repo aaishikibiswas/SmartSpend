@@ -269,25 +269,31 @@ Routes: ["/budget", "/transactions", "/wallet", "/alerts", "/goals", "/"].
                 return None
             try:
                 logger.info("Smart Advice: Attempting AI insights with %s", model)
+                # Use a slightly longer timeout for the AI call itself, 
+                # but the overall request will be controlled by the race.
                 response = await asyncio.wait_for(
                     _call_openrouter(model, [{"role": "user", "content": prompt}]),
-                    timeout=4.5,
+                    timeout=12.0, 
                 )
                 return _extract_json_array(response)
             except Exception as exc:
-                logger.warning("Smart Advice: %s failed: %s", model, type(exc).__name__)
+                logger.warning("Smart Advice: %s failed or timed out: %s", model, type(exc).__name__)
                 return None
 
-        ai_items = None
-        for model in (PRIMARY_MODEL, FALLBACK_MODEL, SECONDARY_FALLBACK):
-            ai_items = await try_ai_generation(model)
-            if ai_items:
-                break
+        # Race the models in parallel to get the fastest successful response
+        models_to_try = [m for m in [PRIMARY_MODEL, FALLBACK_MODEL, SECONDARY_FALLBACK] if m]
+        if models_to_try:
+            tasks = [try_ai_generation(model) for model in models_to_try]
+            ai_results = await asyncio.gather(*tasks)
+            # Take the first successful result
+            ai_items = next((res for res in ai_results if res), None)
+        else:
+            ai_items = None
 
         if ai_items:
             final_advice.extend(item for item in ai_items[:3] if isinstance(item, dict))
         else:
-            logger.warning("Smart Advice: OpenRouter did not return valid JSON; using live rule insights.")
+            logger.info("Smart Advice: No AI results obtained; using live rule insights.")
 
         valid_icons = ["shield", "trending-up", "landmark", "wallet", "zap", "activity", "target"]
         sanitized: list[dict] = []

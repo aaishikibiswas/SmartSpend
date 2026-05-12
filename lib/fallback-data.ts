@@ -2,13 +2,13 @@ import type { DashboardData } from "./api-client";
 
 export const FALLBACK_DASHBOARD_DATA: DashboardData = {
   metrics: {
-    totalBalance: 458920.0,
-    totalIncome: 185000.0,
-    totalExpense: 124300.0,
-    netSavings: 60700.0,
-    burnRate: 4143.0,
-    savingsGrowth: 12.4,
-    lifestyleInflation: 4.2,
+    totalBalance: 12500.0,
+    totalIncome: 45000.0,
+    totalExpense: 38000.0,
+    netSavings: 7000.0,
+    burnRate: 1266.0,
+    savingsGrowth: 4.2,
+    lifestyleInflation: 8.5,
     runwayMonths: 18,
     healthScore: 84,
     creditScore: 785,

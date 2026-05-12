@@ -82,19 +82,46 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
     return income - expense;
   }, [transactions]);
 
+  const averageMonthlySavings = useMemo(() => {
+    if (transactions.length === 0) return 0;
+    const income = transactions.reduce((acc, tx) => tx.type === "income" ? acc + Number(tx.amount || 0) : acc, 0);
+    const expense = transactions.reduce((acc, tx) => tx.type === "expense" ? acc + Math.abs(Number(tx.amount || 0)) : acc, 0);
+    const net = income - expense;
+    // Estimate months covered by transactions (min 1)
+    const dates = transactions.map(t => new Date(t.date).getTime()).filter(t => !isNaN(t));
+    if (dates.length < 2) return Math.max(0, net);
+    const months = Math.max(1, (Math.max(...dates) - Math.min(...dates)) / (1000 * 60 * 60 * 24 * 30.44));
+    return Math.max(0, net / months);
+  }, [transactions]);
+
   const updatedGoals = useMemo(() => {
-    return goals.slice(0, 3).map((goal) => {
-      const target = Math.max(0, Number(goal.target || 0));
-      const savedAmount = Math.max(0, Math.min(currentSavings, target));
-      const progress = target > 0 ? Math.max(0, Math.min((currentSavings / target) * 100, 100)) : 0;
-      return {
-        ...goal,
-        achieved: savedAmount,
-        savedAmount,
-        progress: progress.toFixed(0),
-      };
-    });
-  }, [goals, currentSavings]);
+    let remainingSavings = currentSavings;
+    
+    return goals
+      .slice(0, 3)
+      .filter(Boolean)
+      .map((goal) => {
+        const target = Math.max(0, Number(goal.target || 0));
+        const allocatedToThisGoal = Math.max(0, Math.min(remainingSavings, target));
+        remainingSavings = Math.max(0, remainingSavings - allocatedToThisGoal);
+        
+        const progress = target > 0 ? Math.max(0, Math.min((allocatedToThisGoal / target) * 100, 100)) : 0;
+        const remainingToSave = Math.max(0, target - allocatedToThisGoal);
+        const monthsLeft = Math.max(0.1, (goal.daysLeft || 30) / 30.44);
+        const requiredMonthly = remainingToSave / monthsLeft;
+        const isOnTrack = averageMonthlySavings >= requiredMonthly;
+
+        return {
+          ...goal,
+          achieved: allocatedToThisGoal,
+          savedAmount: allocatedToThisGoal,
+          progress: progress.toFixed(0),
+          requiredMonthly,
+          isOnTrack,
+          remainingToSave
+        };
+      });
+  }, [goals, currentSavings, averageMonthlySavings]);
 
   const liveSuggestedContribution = useMemo(() => {
     return Math.max(Math.round(Math.max(currentSavings, 0) * 0.3), Math.round(suggestion.recommendedContribution || 0));
@@ -104,7 +131,7 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
     <section className="glass-card rounded-[2rem] p-8">
       <div className="mb-6 flex items-center justify-between">
         <h4 className="font-bold text-[#F4F6FF]">Financial Goals</h4>
-        <PlusCircle className="h-5 w-5 cursor-pointer text-[#B7BDD9] transition-colors hover:text-[#A897FF]" />
+        <PlusCircle className="h-5 w-5 cursor-pointer text-[#B7BDD9] transition-colors hover:text-[#A897FF]" onClick={() => setShowCreate(!showCreate)} />
       </div>
 
       <div className="space-y-10">
@@ -112,7 +139,6 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
 
         {updatedGoals.map((goal, index) => {
           const percent = Number(goal.progress);
-          const remaining = Math.max(0, goal.target - goal.savedAmount);
           const Icon = goalIcon(index);
           const tone = goalTone(index);
 
@@ -132,8 +158,8 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
                 </div>
                 <div className="text-right">
                   <p className={`font-manrope text-lg font-black ${tone.text}`}>{percent}%</p>
-                  <p className={`text-[9px] font-bold uppercase tracking-widest ${tone.text}`}>
-                    {percent >= 90 ? "Nearly Goal" : percent >= 45 ? "On Track" : "Progress"}
+                  <p className={`text-[9px] font-bold uppercase tracking-widest ${goal.isOnTrack ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {percent >= 100 ? "Goal Met" : goal.isOnTrack ? "On Track" : "Action Needed"}
                   </p>
                 </div>
               </div>
@@ -144,15 +170,18 @@ export default function GoalTracker({ suggestion }: { suggestion: GoalSuggestion
                     <div className="absolute bottom-0 right-0 top-0 w-2 bg-white/20 blur-[2px]" />
                   </div>
                 </div>
-                <div className="mt-2 flex justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#B7BDD9]">Remaining</span>
-                    <span className="text-xs font-bold text-[#F4F6FF]">{formatCurrency(remaining)}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-[9px] font-bold uppercase tracking-tighter text-[#B7BDD9]">Deadline</span>
-                    <span className="text-xs font-bold text-[#F4F6FF]">{goal.daysLeft} days left</span>
-                  </div>
+                <div className="mt-3 rounded-xl bg-white/[0.03] p-2.5">
+                   <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-[#B7BDD9]">Smart Reminder</span>
+                      <span className="text-[9px] font-bold text-[#F4F6FF]">{goal.daysLeft} days left</span>
+                   </div>
+                   <p className="text-[10px] leading-relaxed text-[#B7BDD9]">
+                      {percent >= 100 
+                        ? "Congratulations! You've successfully hit your target." 
+                        : goal.isOnTrack 
+                          ? `At your current savings of ${formatCurrency(averageMonthlySavings)}/mo, you'll reach this on time.`
+                          : `You need to save ${formatCurrency(goal.requiredMonthly)}/mo to hit your deadline. (Current: ${formatCurrency(averageMonthlySavings)})`}
+                   </p>
                 </div>
               </div>
             </div>

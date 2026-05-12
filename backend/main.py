@@ -161,13 +161,14 @@ def warm_up_models():
             if context_token is not None:
                 reset_current_user_id(context_token)
 
+
     threading.Thread(target=_run_training, daemon=True).start()
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     token = websocket.query_params.get("token")
-    user = Storage.get_user_by_session(token)
+    user = await run_in_threadpool(Storage.get_user_by_session, token)
     if user is None:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -190,7 +191,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/sse")
 async def sse_endpoint(request: Request, token: str = ""):
-    user = Storage.get_user_by_session(token)
+    user = await run_in_threadpool(Storage.get_user_by_session, token)
     if user is None:
         return StreamingResponse(
             iter([f"event: error\ndata: {json.dumps({'message': 'Authentication required.'})}\n\n"]),
@@ -213,12 +214,11 @@ async def sse_endpoint(request: Request, token: str = ""):
                 try:
                     message = await asyncio.wait_for(queue.get(), timeout=15)
                     yield f"event: {message.get('type', 'update')}\ndata: {json.dumps(message)}\n\n"
-                except TimeoutError:
+                except (asyncio.TimeoutError, TimeoutError):
                     yield ": keep-alive\n\n"
         finally:
             websocket_manager.disconnect_sse(connection_id)
             reset_current_user_id(context_token)
-
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",

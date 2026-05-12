@@ -123,9 +123,9 @@ def _build_mongo_client():
             # Set a very short timeout to detect connection issues fast
             client = PyMongoClient(
                 mongo_uri, 
-                serverSelectionTimeoutMS=10000, # Increased to 10s for better reliability
-                connectTimeoutMS=10000,
-                socketTimeoutMS=10000
+                serverSelectionTimeoutMS=3000, # Reduced to 3s for faster reloads
+                connectTimeoutMS=3000,
+                socketTimeoutMS=3000
             )
             # Do not ping here to avoid blocking import. 
             # We will let the first real query handle the timeout or use degradation.
@@ -144,6 +144,34 @@ def _build_mongo_client():
 
 mongo_client = _build_mongo_client()
 db = mongo_client["smartspend"]
+
+import json
+MOCK_DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local_persistence.json")
+IS_MOCK = mongomock is not None and isinstance(mongo_client, mongomock.MongoClient)
+
+def _persist_mock_data():
+    if not IS_MOCK: return
+    try:
+        data = {}
+        for coll in ["users", "sessions", "transactions", "goals", "bills", "emis", "budget", "alerts", "subscriptions"]:
+            data[coll] = list(db[coll].find({}, {"_id": 0}))
+        os.makedirs(os.path.dirname(MOCK_DB_PATH), exist_ok=True)
+        with open(MOCK_DB_PATH, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception: pass
+
+def _load_mock_data():
+    if not IS_MOCK or not os.path.exists(MOCK_DB_PATH): return
+    try:
+        with open(MOCK_DB_PATH, "r") as f:
+            data = json.load(f)
+        for coll, docs in data.items():
+            if docs:
+                db[coll].delete_many({})
+                db[coll].insert_many(docs)
+        logger.info("Restored mock data from local persistence.")
+    except Exception:
+        logger.error("Failed to restore mock data.")
 
 # Initialization of default data
 DEFAULT_GOALS = [
@@ -204,6 +232,9 @@ def _refresh_legacy_views() -> None:
 class Storage:
     @staticmethod
     def initialize() -> None:
+        if IS_MOCK:
+            _load_mock_data()
+        
         if _is_mongo_degraded():
             return
         try:
@@ -243,6 +274,9 @@ class Storage:
                 db.emis.insert_many([_with_owner(emi, default_user_id) for emi in DEFAULT_EMIS])
             if db.budget.count_documents({"type": "global", "userId": default_user_id}) == 0:
                 db.budget.insert_one(_with_owner(DEFAULT_BUDGET_CONFIG, default_user_id))
+            
+            if IS_MOCK:
+                _persist_mock_data()
             _refresh_legacy_views()
         except Exception as exc:
             _mark_mongo_degraded()
@@ -493,6 +527,7 @@ class Storage:
             "password_salt": salt,
         }
         db.users.insert_one(user)
+        _persist_mock_data()
         return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
 
     @staticmethod
@@ -515,6 +550,7 @@ class Storage:
     def create_session(user_id: int) -> str:
         token = secrets.token_urlsafe(32)
         db.sessions.insert_one({"token": token, "user_id": user_id})
+        _persist_mock_data()
         return token
 
     @staticmethod
