@@ -17,13 +17,21 @@ def evaluate_purchase(item_name: str, price: float) -> dict[str, Any]:
     price = round(max(0.0, float(price)), 2)
     category = categorize_transaction(item_name, amount=price) if item_name else "Other"
 
-    metrics = get_dashboard_analytics()
     transactions = Storage.get_transactions()
+    income_df = transactions[transactions["amount"] > 0]
+    expense_df = transactions[transactions["amount"] < 0].copy()
+    
+    total_income = float(income_df["amount"].sum())
+    total_expense = abs(float(expense_df["amount"].sum()))
+
     budget_snapshot = get_budget_snapshot(transactions)
     prediction = predict_next_expense(build_daily_expense_series(transactions))
-    emi_summary = summarize_emis()
+    emi_summary = summarize_emis(transactions)
     subscriptions = get_all_subscriptions(transactions)
     expense_split = classify_expense_split(transactions, subscriptions, emi_summary, Storage.get_bills())
+
+    recurring_load = float(emi_summary["monthly_load"]) + sum(float(item["monthly_cost"]) for item in subscriptions)
+    net_savings = total_income - total_expense - recurring_load
 
     global_remaining = float(budget_snapshot["global"]["remaining_amount"])
     category_budget = next((item for item in budget_snapshot["categories"] if item["name"].lower() == category.lower()), None)
@@ -33,8 +41,7 @@ def evaluate_purchase(item_name: str, price: float) -> dict[str, Any]:
     post_global_remaining = global_remaining - price
     post_category_remaining = category_remaining - price
     budget_impact_pct = round((price / max(float(budget_snapshot["global"]["monthly_budget"]), 1.0)) * 100, 2)
-    recurring_load = float(emi_summary["monthly_load"]) + sum(float(item["monthly_cost"]) for item in subscriptions)
-    affordability_buffer = float(metrics["netSavings"]) - recurring_load
+    affordability_buffer = net_savings - recurring_load
     variable_remaining = max(float(budget_snapshot["global"].get("adjustable_variable_budget", 0)) - float(expense_split["variable_total"]), 0.0)
 
     if post_global_remaining < 0 or post_category_remaining < 0 or affordability_buffer <= 0 or variable_remaining < price:

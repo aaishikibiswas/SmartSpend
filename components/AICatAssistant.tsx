@@ -205,7 +205,7 @@ export default function AICatAssistant() {
         <div className="ai-cat-aura absolute inset-[-24px] rounded-[38px]" />
         <div className="ai-cat-frame relative h-full w-full overflow-hidden rounded-[30px]">
           <Image
-            src="/ai-cat-assistant.png"
+            src="/strict-neon-kitten.jpg"
             alt="SmartSpend AI companion"
             fill
             sizes="148px"

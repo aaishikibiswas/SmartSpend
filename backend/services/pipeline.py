@@ -123,6 +123,7 @@ async def _complete_live_refresh(transaction: dict) -> None:
 
 async def _build_snapshot(latest_transaction: dict | None = None, event_type: str = "update", source: str = "system") -> dict:
     transactions = Storage.get_transactions()
+    # Parallelizing...
     metrics = await get_dashboard_analytics()
     budgeting = build_budget_snapshot(transactions)
     subscriptions = get_all_subscriptions(transactions)

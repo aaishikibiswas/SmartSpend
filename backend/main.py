@@ -11,6 +11,7 @@ load_dotenv(".env.local")
 load_dotenv() # Fallback to .env
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from starlette.requests import Request
@@ -97,7 +98,7 @@ async def log_requests(request: Request, call_next):
         if path.startswith("/api/") and not path.startswith("/api/auth/"):
             authorization = request.headers.get("authorization", "")
             token = authorization.removeprefix("Bearer ").strip() if authorization else ""
-            user = Storage.get_user_by_session(token)
+            user = await run_in_threadpool(Storage.get_user_by_session, token)
             if user is None:
                 from fastapi.responses import JSONResponse
 
@@ -107,12 +108,24 @@ async def log_requests(request: Request, call_next):
                 )
             context_token = set_current_user_id(user["id"])
         response = await call_next(request)
-    except Exception:
+    except Exception as exc:
         logger.exception("Request failed | method=%s path=%s", request.method, request.url.path)
-        raise
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"status": 503, "data": None, "message": "Backend service temporarily unavailable", "error": str(exc)},
+        )
     finally:
         if context_token is not None:
             reset_current_user_id(context_token)
+
+    # Request-level INFO logs are intentionally muted for cleaner terminals.
+    # Uncomment this block when you want per-request timing again.
+    # duration_ms = (time.perf_counter() - started) * 1000
+    # logger.info(
+    #     "Request completed | method=%s path=%s status=%s duration_ms=%.2f",
+    #     request.method,
+    #     request.url.path,
 
     # Request-level INFO logs are intentionally muted for cleaner terminals.
     # Uncomment this block when you want per-request timing again.
@@ -129,6 +142,9 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 def warm_up_models():
+    # Initialize storage (MongoDB) synchronously to ensure it's ready for first requests
+    Storage.initialize()
+
     def _run_training() -> None:
         context_token = None
         try:

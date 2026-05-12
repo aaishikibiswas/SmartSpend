@@ -123,14 +123,15 @@ def _build_mongo_client():
             # Set a very short timeout to detect connection issues fast
             client = PyMongoClient(
                 mongo_uri, 
-                serverSelectionTimeoutMS=2000, 
-                connectTimeoutMS=2000
+                serverSelectionTimeoutMS=10000, # Increased to 10s for better reliability
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000
             )
-            client.admin.command("ping")
-            logger.info("Connected to MongoDB at %s", safe_uri)
+            # Do not ping here to avoid blocking import. 
+            # We will let the first real query handle the timeout or use degradation.
             return client
         except Exception:
-            logger.warning("MongoDB connection timed out at %s; falling back to in-memory storage.", safe_uri)
+            logger.warning("MongoDB client creation failed for %s; falling back to in-memory storage.", safe_uri)
 
     if mongomock is not None:
         logger.warning("Using in-memory mongomock storage for local development.")
@@ -203,43 +204,49 @@ def _refresh_legacy_views() -> None:
 class Storage:
     @staticmethod
     def initialize() -> None:
-        if db.users.count_documents({}) == 0:
-            user = Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
-            default_user_id = user["id"]
-        else:
-            first_user = db.users.find_one(sort=[("id", 1)])
-            default_user_id = first_user["id"] if first_user else 1
+        if _is_mongo_degraded():
+            return
+        try:
+            if db.users.count_documents({}) == 0:
+                user = Storage.create_user("Adaline Chen", "adaline@smartspend.ai", "SmartSpend@123")
+                default_user_id = user["id"]
+            else:
+                first_user = db.users.find_one(sort=[("id", 1)])
+                default_user_id = first_user["id"] if first_user else 1
 
-        for collection_name in [
-            "transactions",
-            "goals",
-            "bills",
-            "emis",
-            "budget",
-            "alerts",
-            "subscriptions",
-            "suppressed_subscriptions",
-            "suppressed_emis",
-            "uploaded_statements",
-            "wallet",
-            "simulator",
-            "preferences",
-            "ai_insights",
-        ]:
-            getattr(db, collection_name).update_many(
-                {"userId": {"$exists": False}},
-                {"$set": {"userId": default_user_id}},
-            )
+            for collection_name in [
+                "transactions",
+                "goals",
+                "bills",
+                "emis",
+                "budget",
+                "alerts",
+                "subscriptions",
+                "suppressed_subscriptions",
+                "suppressed_emis",
+                "uploaded_statements",
+                "wallet",
+                "simulator",
+                "preferences",
+                "ai_insights",
+            ]:
+                getattr(db, collection_name).update_many(
+                    {"userId": {"$exists": False}},
+                    {"$set": {"userId": default_user_id}},
+                )
 
-        if db.goals.count_documents({"userId": default_user_id}) == 0:
-            db.goals.insert_many([_with_owner(goal, default_user_id) for goal in DEFAULT_GOALS])
-        if db.bills.count_documents({"userId": default_user_id}) == 0:
-            db.bills.insert_many([_with_owner(bill, default_user_id) for bill in DEFAULT_BILLS])
-        if db.emis.count_documents({"userId": default_user_id}) == 0:
-            db.emis.insert_many([_with_owner(emi, default_user_id) for emi in DEFAULT_EMIS])
-        if db.budget.count_documents({"type": "global", "userId": default_user_id}) == 0:
-            db.budget.insert_one(_with_owner(DEFAULT_BUDGET_CONFIG, default_user_id))
-        _refresh_legacy_views()
+            if db.goals.count_documents({"userId": default_user_id}) == 0:
+                db.goals.insert_many([_with_owner(goal, default_user_id) for goal in DEFAULT_GOALS])
+            if db.bills.count_documents({"userId": default_user_id}) == 0:
+                db.bills.insert_many([_with_owner(bill, default_user_id) for bill in DEFAULT_BILLS])
+            if db.emis.count_documents({"userId": default_user_id}) == 0:
+                db.emis.insert_many([_with_owner(emi, default_user_id) for emi in DEFAULT_EMIS])
+            if db.budget.count_documents({"type": "global", "userId": default_user_id}) == 0:
+                db.budget.insert_one(_with_owner(DEFAULT_BUDGET_CONFIG, default_user_id))
+            _refresh_legacy_views()
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to initialize MongoDB storage: %s: %s", type(exc).__name__, exc)
 
     @staticmethod
     def get_transactions() -> pd.DataFrame:
@@ -442,17 +449,21 @@ class Storage:
                     "amount": amount,
                     "frequency": frequency,
                 }
-        db.budget.update_one(
-            _owner_filter({"type": "global"}),
-            {"$set": {
-                "monthly": monthly,
-                "weekly": weekly,
-                "auto_distribute": auto_distribute,
-                "categories": normalized_categories,
-                "userId": get_current_user_id(),
-            }},
-            upsert=True
-        )
+        try:
+            db.budget.update_one(
+                _owner_filter({"type": "global"}),
+                {"$set": {
+                    "monthly": monthly,
+                    "weekly": weekly,
+                    "auto_distribute": auto_distribute,
+                    "categories": normalized_categories,
+                    "userId": get_current_user_id(),
+                }},
+                upsert=True
+            )
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to update budget config in MongoDB: %s: %s", type(exc).__name__, exc)
 
     @staticmethod
     def _hash_password(password: str, salt: str) -> str:
@@ -510,18 +521,31 @@ class Storage:
     def get_user_by_session(token: str | None) -> Dict[str, Any] | None:
         if not token:
             return None
-        session = db.sessions.find_one({"token": token})
-        if not session:
-            return None
-        user = db.users.find_one({"id": session["user_id"]})
-        if user:
-            return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
+        if _is_mongo_degraded():
+            raise ConnectionError("Database is currently degraded.")
+        try:
+            session = db.sessions.find_one({"token": token})
+            if not session:
+                return None
+            user = db.users.find_one({"id": session["user_id"]})
+            if user:
+                return _clean_id({key: value for key, value in user.items() if key not in {"password_hash", "password_salt", "_id"}})
+        except Exception as exc:
+            if not isinstance(exc, ConnectionError):
+                _mark_mongo_degraded()
+                logger.error("Failed to get user by session from MongoDB: %s: %s", type(exc).__name__, exc)
+            raise ConnectionError(f"Database error: {exc}")
         return None
 
     @staticmethod
     def delete_session(token: str | None):
-        if token:
+        if not token or _is_mongo_degraded():
+            return
+        try:
             db.sessions.delete_one({"token": token})
+        except Exception as exc:
+            _mark_mongo_degraded()
+            logger.error("Failed to delete session from MongoDB: %s: %s", type(exc).__name__, exc)
 
     @staticmethod
     def update_user(user_id: int, updates: Dict[str, Any]) -> Dict[str, Any] | None:
@@ -717,4 +741,5 @@ class Storage:
     def add_uploaded_statement(file_info: Dict[str, Any]) -> None:
         db.uploaded_statements.insert_one(_with_owner(file_info))
 
-Storage.initialize()
+
+# Storage.initialize() is now called in main.py startup to avoid blocking imports.

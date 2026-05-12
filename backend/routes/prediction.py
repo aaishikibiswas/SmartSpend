@@ -17,10 +17,12 @@ async def get_prediction(payload: PredictionRequest):
     df = await asyncio.to_thread(Storage.get_transactions)
     days = max(1, min(payload.timelineDays, 60))
     
-    # Run heavy ML in threads
-    forecast_data = await asyncio.to_thread(generate_prophet_forecast, df, days=days)
+    # Run heavy ML in parallel threads
     daily_expenses = await asyncio.to_thread(build_daily_expense_series, df)
-    next_expense = await asyncio.to_thread(predict_next_expense, daily_expenses, include_prophet=False)
+    forecast_data, next_expense = await asyncio.gather(
+        asyncio.to_thread(generate_prophet_forecast, df, days=days),
+        asyncio.to_thread(predict_next_expense, daily_expenses, include_prophet=False)
+    )
 
     return {
         "status": 200,

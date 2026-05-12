@@ -43,9 +43,10 @@ export default function Header() {
     async function loadAlerts() {
       try {
         const res = await apiClient.getAlerts();
-        setAlerts(res.data);
+        setAlerts(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error(err);
+        setAlerts([]);
       }
     }
     loadAlerts();
@@ -157,8 +158,24 @@ export default function Header() {
         style={{ position: "sticky", overflow: "visible" }}
       >
         <div className="flex flex-1 items-start gap-6 pt-2">
-          {/* ── Brand Logo Pill — icon only ── */}
-          {isDashboard && <AICatAssistant />}
+          {/* ── Brand Logo Pill ── */}
+          {isDashboard ? (
+            <AICatAssistant />
+          ) : (
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-[#020617] shadow-lg transition-transform group-hover:scale-105">
+                <img
+                  src="/strict-neon-kitten.jpg"
+                  alt="SmartSpend Logo"
+                  className="h-full w-full object-contain p-1.5"
+                />
+              </div>
+              <div className="hidden flex-col md:flex">
+                <span className="text-sm font-bold tracking-tight text-[#dee5ff]">SmartSpend</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#6366f1]/80">AI Analytics</span>
+              </div>
+            </Link>
+          )}
         </div>
 
         <div className={`relative flex items-center gap-4 ${isDashboard ? "pt-12" : ""}`} style={{ zIndex: 1 }}>
@@ -220,12 +237,12 @@ export default function Header() {
                     <h3 className="font-bold text-[#dee5ff]">Smart Alerts</h3>
                     {unreadAlerts > 0 && <span className="flex h-2 w-2 rounded-full bg-[#ff6e84] animate-pulse" />}
                   </div>
-                  {alerts.length > 0 && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#a3aac4]">{alerts.length} active</span>
+                  {(alerts?.length || 0) > 0 && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#a3aac4]">{(alerts?.length || 0)} active</span>
                   )}
                 </div>
                 <div className="p-2 flex flex-col gap-1.5">
-                  {alerts.length === 0 ? (
+                  {!alerts || alerts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                       <div className="mb-3 rounded-full bg-white/5 p-3 text-[#40485d]">
                         <Bell className="h-6 w-6 opacity-20" />
@@ -284,7 +301,7 @@ export default function Header() {
                     })
                   )}
                 </div>
-                {alerts.length > 0 && (
+                {(alerts?.length || 0) > 0 && (
                   <div className="sticky bottom-0 bg-[#10192d]/95 backdrop-blur border-t border-[#27314d] p-2.5">
                     <Link href="/alerts" onClick={() => setIsAlertsOpen(false)} className="flex items-center justify-center gap-2 w-full py-2.5 text-center text-[11px] font-bold uppercase tracking-widest text-[#6366f1] hover:text-[#8183f4] transition-all bg-white/[0.03] hover:bg-white/[0.06] rounded-xl">
                       Enter Alerts Center

@@ -37,7 +37,8 @@ export const FALLBACK_DASHBOARD_DATA: DashboardData = {
     categories: [
       { name: "Housing", allocated_amount: 50000, spent_amount: 45000, remaining_amount: 5000, usage_percent: 90, status: "warning", frequency: "Monthly", monthly_equivalent: 50000 },
       { name: "Food", allocated_amount: 25000, spent_amount: 22000, remaining_amount: 3000, usage_percent: 88, status: "warning", frequency: "Monthly", monthly_equivalent: 25000 }
-    ]
+    ],
+    feedback: []
   },
   goalSuggestion: {
     recommendedContribution: 25000,

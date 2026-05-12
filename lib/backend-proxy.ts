@@ -20,9 +20,10 @@ export async function proxyBackend(path: string, options: ProxyOptions = {}) {
     headers.set("Content-Type", options.contentType);
   }
 
+  let timeoutId: NodeJS.Timeout | undefined;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await fetch(`${BACKEND_BASE}${path}`, {
       method: options.method || "GET",

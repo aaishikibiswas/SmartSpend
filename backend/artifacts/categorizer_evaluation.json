@@ -4,21 +4,21 @@
   "evaluation": {
     "data_split": {
       "strategy": "stratified_train_validation_test",
-      "train_rows": 343,
-      "validation_rows": 115,
-      "test_rows": 115
+      "train_rows": 364,
+      "validation_rows": 122,
+      "test_rows": 122
     },
     "validation": {
-      "accuracy": 0.913,
-      "precision_macro": 0.923,
-      "recall_macro": 0.9163,
-      "f1_macro": 0.9183
+      "accuracy": 0.8525,
+      "precision_macro": 0.6958,
+      "recall_macro": 0.6773,
+      "f1_macro": 0.6811
     },
     "test": {
-      "accuracy": 0.8957,
-      "precision_macro": 0.9196,
-      "recall_macro": 0.9052,
-      "f1_macro": 0.9067
+      "accuracy": 0.8607,
+      "precision_macro": 0.7807,
+      "recall_macro": 0.7908,
+      "f1_macro": 0.7764
     },
     "classes": [
       "Housing",
@@ -27,7 +27,9 @@
       "Shopping",
       "Entertainment",
       "Healthcare",
-      "Income"
+      "Income",
+      "Bills",
+      "Travel"
     ]
   }
 }

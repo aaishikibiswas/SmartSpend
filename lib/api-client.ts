@@ -420,7 +420,7 @@ async function request<T>(path: string, init?: RequestOptions): Promise<ApiEnvel
     
     // Return a structured failure object instead of crashing the pipeline
     return { 
-      status: 500, 
+      status: (error as any)?.status || 500, 
       data: null as any, 
       success: false, 
       error: errorMessage 

@@ -455,7 +455,7 @@ export default function BudgetingPanel({ categories, budgetSnapshot }: Budgeting
 
       {/* FOOTER ALERTS (2 Horizontal Cards) */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
-        {feedback.slice(0, 2).map((line, idx) => {
+        {feedback?.slice(0, 2).map((line, idx) => {
           const isError = line.toLowerCase().includes("over") || line.toLowerCase().includes("breach");
           return (
             <div key={idx} className={`flex items-center gap-5 rounded-2xl border px-6 py-5 transition-all ${

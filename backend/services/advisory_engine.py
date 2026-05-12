@@ -271,7 +271,7 @@ Routes: ["/budget", "/transactions", "/wallet", "/alerts", "/goals", "/"].
                 logger.info("Smart Advice: Attempting AI insights with %s", model)
                 response = await asyncio.wait_for(
                     _call_openrouter(model, [{"role": "user", "content": prompt}]),
-                    timeout=6.0,
+                    timeout=4.5,
                 )
                 return _extract_json_array(response)
             except Exception as exc:
